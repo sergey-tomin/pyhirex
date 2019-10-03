@@ -9,7 +9,7 @@ import pyqtgraph as pg
 from scipy.optimize import curve_fit
 from threading import Thread, Event
 path = os.path.realpath(__file__)
-indx = path.find("spectr.py")
+indx = path.find("hirex.py")
 print("PATH to main file: " + os.path.realpath(__file__) + " path to folder: "+ path[:indx])
 sys.path.insert(0, path[:indx])
 
@@ -85,7 +85,7 @@ class SpectrometerWindow(QMainWindow):
         self.back_taker = Background(mi=self.mi)
         #print(self.mi.__class__)
         #path = os.path.realpath(__file__)
-        indx = path.find("spectr.py")
+        indx = path.find("hirex.py")
         self.path2main_folder = path[:indx]
         self.path2gui = self.path2main_folder + "gui" +  os.sep
 
