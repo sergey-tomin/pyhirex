@@ -354,7 +354,8 @@ class TestMachineInterface(XFELMachineInterface):
         """
         #if "QUAD" in device_name:
         #    return 0
-        return np.random.rand(1280) #self.data
+        spectrum  = 10*np.exp(-np.linspace(-10, 10, num=1280)**2/((2*2))) + 10*np.exp(-np.linspace(-8, 12, num=1280)**2/((2*0.25))) + np.random.rand(1280)
+        return  spectrum
 
     def set_value(self, device_name, val):
         """
