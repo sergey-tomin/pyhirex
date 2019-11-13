@@ -3,7 +3,6 @@ Most of GUI logic is placed here.
 S.Tomin, 2017
 """
 
-#from ocelot.optimizer.UIOcelotInterface_gen import *
 import json
 import scipy
 from PyQt5.QtGui import QPixmap, QImage, QScreen
@@ -20,7 +19,6 @@ from shutil import copy
 from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QMessageBox, QApplication,QMenu, QWidget, QAction, QTableWidget, QTableWidgetItem, QDoubleSpinBox
 
 from gui.UISpectrometer import Ui_MainWindow
-#from gui.UIadaptive_feedback import Ui_Form
 
 from PyQt5 import QtGui, QtCore
 
@@ -99,19 +97,19 @@ class MainWindow(Ui_MainWindow):
     def __init__(self, Form):
         Ui_MainWindow.__init__(self)
         self.setupUi(Form)
-        #self.menuBar.setNativeMenuBar(False)
+        self.menubar.setNativeMenuBar(False)
         #self.mainToolBar.setVisible(False)
         self.Form = Form
         # load in the dark theme style sheet
         #if self.style_file != "standard.css":
         self.le_a.editingFinished.connect(self.check_address)
-        self.le_b.editingFinished.connect(self.check_address)
+        #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
         self.loadStyleSheet(filename=self.Form.path2gui +"colinDark.css")
 
     def check_address(self):
         self.is_le_addr_ok(self.le_a)
-        self.is_le_addr_ok(self.le_b)
+        #self.is_le_addr_ok(self.le_b)
 
 
     def is_le_addr_ok(self, line_edit):
@@ -141,10 +139,10 @@ class MainWindow(Ui_MainWindow):
         table["chb_show_fit"] = self.chb_show_fit.checkState()
         table["comboBox"] = self.comboBox.currentIndex()
         table["sb_bnumber"] = self.sb_bnumber.value()
-        table["sb_b"] = self.sb_b.value()
-
+        table["sb_av_nbunch"] = self.sb_av_nbunch.value()
+        table["sb_transmission"] = self.sb_transmission.value()
         table["le_a"] = str(self.le_a.text())
-        table["le_b"] = str(self.le_b.text())
+        #table["le_b"] = str(self.le_b.text())
 
         table["sb_px1"] = self.sb_px1.value()
         table["sb_E0"] = self.sb_E0.value()
@@ -181,8 +179,9 @@ class MainWindow(Ui_MainWindow):
             if "chb_show_fit" in table.keys(): self.chb_show_fit.setCheckState(table["chb_show_fit"])
             if "comboBox" in table.keys(): self.comboBox.setCurrentIndex(table["comboBox"])
             if "sb_bnumber" in table.keys(): self.sb_bnumber.setValue(table["sb_bnumber"])
-            if "sb_b" in table.keys(): self.sb_b.setValue(table["sb_b"])
-            
+            if "sb_av_nbunch" in table.keys(): self.sb_av_nbunch.setValue(table["sb_av_nbunch"])
+            if "sb_transmission" in table.keys(): self.sb_transmission.setValue(table["sb_transmission"])
+
             if "sb_px1" in table.keys(): self.sb_px1.setValue(table["sb_px1"])
             if "sb_E0" in table.keys(): self.sb_E0.setValue(table["sb_E0"])
             if "sb_ev_px" in table.keys(): self.sb_ev_px.setValue(table["sb_ev_px"])
@@ -190,7 +189,7 @@ class MainWindow(Ui_MainWindow):
             
             
             if "le_a" in table.keys(): self.le_a.setText(table["le_a"])
-            if "le_b" in table.keys(): self.le_b.setText(table["le_b"])
+            #if "le_b" in table.keys(): self.le_b.setText(table["le_b"])
 
             print("RESTORE STATE: OK")
         except:
