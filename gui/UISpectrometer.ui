@@ -484,9 +484,9 @@
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_13">
              <item row="1" column="0">
-              <widget class="QPushButton" name="pb_a">
+              <widget class="QPushButton" name="pb_cross_calib">
                <property name="text">
-                <string>PB A</string>
+                <string>Cross-calibration with XGM</string>
                </property>
               </widget>
              </item>

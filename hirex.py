@@ -159,6 +159,18 @@ class SpectrometerWindow(QMainWindow):
         self.back_taker_status.timeout.connect(self.is_back_taker_alive)
 
         self.ui.actionSettings.triggered.connect(self.run_settings_window)
+        self.ui.pb_cross_calib.clicked.connect(self.cross_calibrate)
+        self.is_txt_item = False
+        self.calib_energy_coef = 1
+    def cross_calibrate(self):
+
+        if len(self.av_sig) < 3:
+            return
+
+        energy_uJ = self.mi.get_value(self.slow_xgm_signal)
+        ave_integ = np.trapz(self.av_sig, self.x_axis)
+        self.calib_energy_coef = energy_uJ/ave_integ
+
 
     def run_settings_window(self):
         if self.settings is None:
@@ -210,7 +222,6 @@ class SpectrometerWindow(QMainWindow):
             #self.plot1.enableAutoScale()
             self.plot1.enableAutoRange()
 
-    
     def calibration(self):
         ev_px = self.ui.sb_ev_px.value()
         E0 = self.ui.sb_E0.value()
@@ -271,9 +282,12 @@ class SpectrometerWindow(QMainWindow):
         else:
             single_sig = x
             self.av_sig = y 
-            
+
+        single_integr = np.trapz(single_sig, self.x_axis)
+        ave_integ = np.trapz(self.av_sig, self.x_axis) * self.calib_energy_coef
+
         self.single.setData(self.x_axis, single_sig)
-        self.average.setData(x=self.x_axis, y= self.av_sig)
+        self.average.setData(x=self.x_axis, y=self.av_sig)
         n_av = int(self.ui.sb_av_nbunch.value())
         if len(self.X) > n_av:
             self.X = self.X[:n_av]
@@ -284,6 +298,11 @@ class SpectrometerWindow(QMainWindow):
 
 
         self.img.setImage(self.data_2d[self.img_idx1:self.img_idx2])
+        if not self.is_txt_item:
+            self.plot1.addItem(self.textItem)
+            self.is_txt_item = True
+        self.update_text("Av = " + str(np.round(ave_integ, 1)) + " uJ")
+
 
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
@@ -291,6 +310,8 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 255);")
             self.ui.pb_start.setText("Start")
         else:
+
+
             self.timer_live.start(100)
             self.ui.pb_start.setText("Stop")
             self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127);")
@@ -307,6 +328,19 @@ class SpectrometerWindow(QMainWindow):
 
             self.img.scale(scale_coef_xaxis, 1)
             self.img.translate(translate_coef_xaxis, 0)
+            #self.plot1.addItem(self.textItem)
+
+    def update_text(self, text=None):
+        x_left = self.plot1.viewRange()[0][0]
+        x_right = self.plot1.viewRange()[0][1]
+        y_down = self.plot1.viewRange()[1][0]
+        y_up = self.plot1.viewRange()[1][1]
+        x = x_left + (x_right - x_left)*0.7
+        y = y_down + (y_up - y_down)*0.9
+
+        #print(self.plot1.viewRange())
+        self.textItem.setText(text)
+        self.textItem.setPos(x, y)
 
     def closeEvent(self, event):
         #if self.orbit.adaptive_feedback is not None:
@@ -373,8 +407,14 @@ class SpectrometerWindow(QMainWindow):
         self.fit_func = pg.PlotCurveItem(pen=pen, name='Gauss Fit')
 
         #self.plot1.addItem(self.fit_func)
-        
+        self.plot1.enableAutoRange(False)
+        self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
+        # self.textItem.setPos(10, 10)
+
+
         self.plot1.sigRangeChanged.connect(self.zoom_signal)
+
+
 
     def add_image_widget(self):
         win = pg.GraphicsLayoutWidget()
@@ -442,7 +482,8 @@ class SpectrometerWindow(QMainWindow):
         self.hrx_n_px = table["sb_hrx_npx"]
         self.logbook = table["logbook"]
         self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch"]
-
+        self.fast_xgm_signal = table["le_fast_xgm"]
+        self.slow_xgm_signal = table["le_slow_xgm"]
         if "server" in table.keys():
             self.server = table["server"]
         else:

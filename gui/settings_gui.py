@@ -55,6 +55,8 @@ class HirexSettings(QWidget):
         table["server_list"] = self.string2list(self.ui.le_server.text())
         table["server"] = self.ui.combo_server.currentText()
 
+        table["le_fast_xgm"] = self.ui.le_fast_xgm.text()
+        table["le_slow_xgm"] = self.ui.le_slow_xgm.text()
 
         table["style"] = self.ui.cb_style_def.currentIndex()
         table["style_file"] = self.ui.cb_style_def.currentText()
@@ -88,6 +90,9 @@ class HirexSettings(QWidget):
         if "le_ctrl_num_bunch" in table.keys(): self.ui.le_ctrl_num_bunch.setText(table["le_ctrl_num_bunch"])
 
         if "le_logbook" in table.keys(): self.ui.le_logbook.setText(table["le_logbook"])
+
+        if "le_fast_xgm" in table.keys(): self.ui.le_fast_xgm.setText(table["le_fast_xgm"])
+        if "le_slow_xgm" in table.keys(): self.ui.le_slow_xgm.setText(table["le_slow_xgm"])
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))
