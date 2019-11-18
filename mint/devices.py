@@ -1,14 +1,155 @@
 """
 Sergey Tomin, XFEL/DESY, 2017
 """
-from mint.interface import Device
+from mint.opt_objects import Device
 from PyQt5 import QtGui, QtCore
 import numpy as np
 import time
 from threading import Thread, Event
+from scipy.optimize import curve_fit
 import logging
 
 logger = logging.getLogger(__name__)
+
+class Spectrometer():
+    def __init__(self, mi, eid=None):
+        self.eid = eid
+        self.mi = mi
+        self.devmode = False
+        self.num_px = 1280  # number of pixels
+        self.x_axis = np.arange(self.num_px)
+        self.spectrum = []
+        self.background = []
+        self.av_spectrum = []
+        self.gauss_coeff_fit = None
+        #self.update_params(transmission=1, calib_energy_coef=1)
+        self.update_background()
+
+    def update_params(self, transmission=1, calib_energy_coef=1):
+        self.transmission = transmission
+        self.calib_energy_coef = calib_energy_coef
+
+
+    def update_background(self, background=None):
+        if background is not None and len(background) == self.num_px:
+            self.background = background
+        else:
+            self.background = np.zeros(self.num_px)
+
+    def get_value(self):
+        """
+        basic method to get value/spectrum via DOOCS server
+        :return:
+        """
+        if self.devmode:
+            spectrum = 10 * np.exp(-np.linspace(-10, 10, num=1280) ** 2 / ((2 * 2))) + 10 * np.exp(
+                -np.linspace(-8, 12, num=1280) ** 2 / ((2 * 0.25))) + np.random.rand(1280)
+            return spectrum
+
+        val = self.mi.get_value(self.eid)
+        return val
+
+    def get_spectrum(self):
+        """
+        basic method to get value/spectrum via DOOCS server
+        :return:
+        """
+        raw_spectrum = self.get_value()
+
+        if len(raw_spectrum) == len(self.background):
+            spectrum = raw_spectrum - self.background
+        else:
+            spectrum = raw_spectrum
+        spectrum = spectrum * self.calib_energy_coef * self.transmission
+        return spectrum
+
+    #def get_spectrums(self):
+    #    """
+    #    method returns spectrum and average spectrum over self.n_ave_spectrum shots
+    #    :return:
+    #    """
+    #    self.spectrum = self.get_spectrum()
+    #    #self.spec_list.insert(0, self.spectrum)
+    #    #self.av_spectrum = np.mean(self.spec_list, axis=0)
+    #
+    #    #if len(self.spec_list) > self.n_ave_spectrum:
+    #    #    self.spec_list = self.spec_list[:self.n_ave_spectrum]
+    #    self.data2d = np.roll(self.data2d, 1, axis=1)
+    #
+    #    self.data2d[:, 0] = self.spectrum  #  single_sig_wo_noise
+    #    self.av_spectrum = np.mean(self.data2d[:, :self.n_ave_spectrum], axis=1)
+    #    return self.spectrum, self.av_spectrum
+
+
+    def cross_calibrate(self, spectrum, transmission, pulse_energy):
+        """
+        Cross calibrate with spectrum with pulse energy
+
+        :param spectrum: array
+        :param transmission: transmission coefficient 0 - 1
+        :param pulse_energy: in [uJ]
+        :return: calibration coefficient
+        """
+        if len(spectrum) < 3:
+            return
+        #energy_uJ = self.mi.get_value(self.slow_xgm_signal)
+        ave_integ = np.trapz(spectrum, self.x_axis)/transmission
+        self.calib_energy_coef = pulse_energy/ave_integ
+        return self.calib_energy_coef # uJ/au
+
+    def fit_guass(self, spectrum):
+        """
+        method to fit gaus to average spectrum to find a central pixel
+
+        :param spectrum: array
+        :return: number of central pixel
+        """
+        if len(spectrum) == 0:
+            return
+        y = spectrum
+        x = np.arange(len(y))
+
+        def gauss(x, *p):
+            A, mu, sigma = p
+            return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
+
+        # (A, mu, sigma)
+        p0 = [np.max(y), np.argmax(y), 30]
+
+        self.gauss_coeff_fit, var_matrix = curve_fit(gauss, x, y, p0=p0)
+        mu = self.gauss_coeff_fit[1]
+        px1 = mu
+        return px1
+
+    def calibrate_axis(self, ev_px, E0, px1):
+        """
+        method to calibrate energy axis
+
+        :param ev_px: ev/pixel
+        :param E0: ev, energy of a central pixel
+        :param px1: int, number of a centrl pixel
+        :return: x_axis - array in [ev]
+        """
+        #ev_px = self.ui.sb_ev_px.value()
+        #E0 = self.ui.sb_E0.value()
+        #px1 = self.ui.sb_px1.value()
+        start = E0 - px1*ev_px
+        stop = E0 + (self.num_px - px1) * ev_px
+        self.x_axis = np.linspace(start, stop, num=self.num_px)
+        return self.x_axis
+
+
+class BunchNumberCTRL():
+    def __init__(self, mi, doocs_ch):
+        self.mi = mi
+        self.doocs_ch = doocs_ch
+
+    def get_value(self):
+        val = self.mi.get_value(self.doocs_ch)
+        return val
+
+    def set_value(self, num):
+        self.mi.set_value(self.doocs_ch, num)
 
 
 class Corrector(Device):
@@ -514,118 +655,6 @@ class MIOrbit(Device, Thread):
         """
         gold_orbit = self.mi.get_value(self.server + ".DIAG/" + "ORBIT" + "/*/POS." + self.subtrain + ".GOLD")
         return gold_orbit
-
-class MIAdviser(Device):
-    def __init__(self, eid=None, server="XFEL", subtrain="SA1"):
-        super(MIAdviser, self).__init__(eid=eid)
-        self.bpm_server = "BPM"  # "ORBIT"     # or "BPM"
-        self.subtrain = subtrain
-        self.server = server
-
-    def get_x(self):
-        try:
-            self.orbit_x = self.mi.get_value(self.server + ".DIAG/" + self.bpm_server + "/*/X." + self.subtrain)
-        except Exception as e:
-            logger.info("get_x: self.mi.get_value: " + str(e))
-            self.orbit_x = []
-
-    def get_y(self):
-        try:
-            self.orbit_y = self.mi.get_value(self.server + ".DIAG/" + self.bpm_server + "/*/Y." + self.subtrain)
-        except Exception as e:
-            logger.info("get_y: self.mi.get_value: " + str(e))
-            self.orbit_y = []
-        
-    def get_bpm_z_pos(self):
-        try:
-            self.bpm_z_pos = self.mi.get_value(self.server + ".DIAG/" + self.bpm_server + "/*/Z_POS")
-        except Exception as e:
-            logger.info("get_bpm_z_pos: self.mi.get_value: " + str(e))
-            self.bpm_z_pos = []
-        #print(self.bpm_z_pos)
-
-    def get_kicks(self):
-        #"XFEL.MAGNETS/MAGNET.ML/" + self.eid + "/KICK_MRAD.SP"
-        try:
-            self.kicks = self.mi.get_value(self.server + ".MAGNETS/MAGNET.ML/*/KICK_MRAD.SP")
-        except Exception as e:
-            logger.critical("get_kicks: self.mi.get_value: " + str(e))
-            raise e
-
-    def get_momentums(self):
-        #"XFEL.MAGNETS/MAGNET.ML/" + self.eid + "/KICK_MRAD.SP"
-        try:
-            self.moments = self.mi.get_value(self.server + ".MAGNETS/MAGNET.ML/*/MOMENTUM.SP")
-        except Exception as e:
-            logger.critical("get_momentums: self.mi.get_value: " + str(e))
-            raise e
-
-    def get_cor_z_pos(self):
-        try:
-            self.cor_z_pos = self.mi.get_value("XFEL.MAGNETS/MAGNET.ML/*/Z_POS")
-        except Exception as e:
-            logger.info("get_cor_z_pos: self.mi.get_value: " + str(e))
-            self.cor_z_pos = []
-
-    def get_corrs(self, ref_names):
-
-        self.get_kicks()
-        self.get_momentums()
-        self.get_cor_z_pos()
-        names = [x["str"] for x in self.kicks]
-        #print(self.kicks)
-        kicks = np.array([x["float1"] for x in self.kicks])/1000.
-        moments = np.array([x["float1"] for x in self.moments])
-        z_poss = np.array([x["float1"] for x in self.cor_z_pos])
-        indxs = []
-        for name in ref_names:
-            indxs.append(names.index(name))
-        return kicks[indxs], moments[indxs], z_poss[indxs]
-
-    def get_bpm_z_from_ref(self, ref_names):
-        self.get_bpm_z_pos()
-        names = [x["str"] for x in self.bpm_z_pos]
-        z_poss = np.array([x["float1"] for x in self.bpm_z_pos])
-        indxs = []
-        for name in ref_names:
-            indxs.append(names.index(name))
-        
-        return z_poss[indxs]
-        
-    def get_bpm_x(self, ref_names):
-
-        self.get_x()
-        if len(self.orbit_x) == 0:
-            return None
-        names = [x["str"] for x in self.orbit_x]
-        pos = np.array([x["float1"] for x in self.orbit_x])
-
-        indxs = []
-        for name in ref_names:
-            if name in names:
-                indxs.append(names.index(name))
-        
-        z_pos = self.get_bpm_z_from_ref(ref_names)
-        return pos[indxs], z_pos
-
-    def get_bpm_y(self, ref_names):
-
-        self.get_y()
-        #self.get_bpm_z_pos()
-
-        if len(self.orbit_y) == 0:
-            return None
-
-        names = [x["str"] for x in self.orbit_y]
-        pos = np.array([x["float1"] for x in self.orbit_y])
-        #z_poss = np.array([x["float"] for x in self.bpm_z_pos])
-
-        indxs = []
-        for name in ref_names:
-            indxs.append(names.index(name))
-            
-        z_pos = self.get_bpm_z_from_ref(ref_names)
-        return pos[indxs], z_pos
 
 
 class MIStandardFeedback(Device):

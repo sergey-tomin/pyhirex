@@ -105,7 +105,7 @@ class MainWindow(Ui_MainWindow):
         self.le_a.editingFinished.connect(self.check_address)
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
-        self.loadStyleSheet(filename=self.Form.path2gui +"colinDark.css")
+        self.loadStyleSheet(filename=self.Form.gui_dir +"colinDark.css")
 
     def check_address(self):
         self.is_le_addr_ok(self.le_a)

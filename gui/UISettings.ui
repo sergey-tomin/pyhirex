@@ -171,6 +171,14 @@
             </item>
             <item row="8" column="1" colspan="2">
              <widget class="QLineEdit" name="le_ctrl_num_bunch">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="locale">
+               <locale language="English" country="UnitedStates"/>
+              </property>
               <property name="text">
                <string>XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2</string>
               </property>
@@ -192,7 +200,7 @@
              <widget class="QLineEdit" name="le_server">
               <property name="font">
                <font>
-                <pointsize>10</pointsize>
+                <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
@@ -280,7 +288,7 @@
              <widget class="QLineEdit" name="le_trans_ch">
               <property name="font">
                <font>
-                <pointsize>10</pointsize>
+                <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
@@ -296,10 +304,22 @@
              </widget>
             </item>
             <item row="5" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_fast_xgm"/>
+             <widget class="QLineEdit" name="le_fast_xgm">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+             </widget>
             </item>
             <item row="6" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_slow_xgm"/>
+             <widget class="QLineEdit" name="le_slow_xgm">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

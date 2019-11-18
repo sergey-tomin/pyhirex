@@ -27,7 +27,7 @@ class HirexSettings(QWidget):
         self.ui.cb_style_def.addItem("colinDark.css")
         self.ui.cb_style_def.addItem("dark.css")
         self.style_file = None
-        self.load_state(filename=self.master.config_file)
+        self.load_state(filename=self.master.settings_file)
         #except:
         #    pass
         if self.style_file is not None:
@@ -36,9 +36,9 @@ class HirexSettings(QWidget):
     def apply_settings(self):
         update = self.question_box("Save Settings and Close?")
         if update:
-            if not os.path.exists(self.master.config_dir):
-                os.makedirs(self.master.config_dir)
-            self.save_state(self.master.config_file)
+            if not os.path.exists(self.master.settings_file):
+                os.makedirs(self.master.settings_file)
+            self.save_state(self.master.settings_file)
             self.master.load_settings()
             self.close()
 
