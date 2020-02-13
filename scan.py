@@ -5,7 +5,7 @@ from PyQt5 import QtGui, QtCore
 import time
 from mint.opt_objects import Device
 from scipy import ndimage
-
+from matplotlib import cm
 
 
 class ScanTool(Thread):
@@ -40,6 +40,37 @@ class ScanTool(Thread):
         self._stop_event.set()
 
 
+class ScanToolContinues(Thread):
+    def __init__(self, mi, device):
+        super(ScanToolContinues, self).__init__()
+        self.mi = mi
+        self.parent = None
+        self.devmode = False
+        self.device = device
+
+        self.timeout = 2
+        self.val_range = []
+        self.kill = False
+        self._stop_event = Event()
+        self.doocs_vals = []
+        self.spectrums = []
+
+    def run(self):
+        self.spectrums = np.empty([1, self.parent.hrx_n_px])
+        while not self.kill:
+            x = self.device.get_value()
+            self.doocs_vals.append(x)
+            print(np.shape(self.spectrums), np.shape(self.parent.ave_spectrum))
+            self.spectrums = np.append(self.spectrums, self.parent.ave_spectrum.reshape(1, -1), axis=0)
+            time.sleep(self.timeout)
+
+        print("Scanning finished")
+
+    def stop(self):
+        print("stop")
+        self._stop_event.set()
+
+
 class ScanInterface:
     """
     Main class for orbit correction
@@ -50,7 +81,8 @@ class ScanInterface:
         self.mi = self.parent.mi
 
         self.add_plot()
-        # self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
+        self.add_image_widget()
+        self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
 
         self.scanning = None
         self.plot_timer = pg.QtCore.QTimer()
@@ -80,13 +112,24 @@ class ScanInterface:
 
     def plot_scan(self):
         x = self.scanning.doocs_vals
-        peaks = self.scanning.peak_list_vals
-        for i in range(self.ui.sb_num_peaks.value()):
-            if len(peaks) > 0 and len(peaks[0]) > i:
-                y = [peaks[i] for peaks in peaks]
-                self.peak_lines[i].setData(x, y)
-            else:
-                self.peak_lines[i].setData([], [])
+        # peaks = self.scanning.peak_list_vals
+
+
+        # scale_coef_xaxis = (x[0] - x[-1]) / len(x)
+        # translate_coef_xaxis = x[0] / scale_coef_xaxis
+        # self.add_image_item()
+        # self.img.scale(scale_coef_xaxis, 1)
+        # self.img.translate(translate_coef_xaxis, 0)
+        # print(np.shape(self.scanning.spectrums))
+
+        self.img.setImage(self.scanning.spectrums)
+
+        # for i in range(self.ui.sb_num_peaks.value()):
+        #     if len(peaks) > 0 and len(peaks[0]) > i:
+        #         y = [peaks[i] for peaks in peaks]
+        #         self.peak_lines[i].setData(x, y)
+        #     else:
+        #         self.peak_lines[i].setData([], [])
 
     def start_stop_scan(self):
         if self.ui.pb_start_scan.text() == "Stop":
@@ -114,7 +157,11 @@ class ScanInterface:
                 return
 
 
-            self.scanning = ScanTool(mi=self.mi, device=Device(eid=doocs_channel))
+            # self.scanning = ScanTool(mi=self.mi, device=Device(eid=doocs_channel))
+            dev = Device(eid=doocs_channel)
+            dev.mi = self.mi
+            self.scanning = ScanToolContinues(mi=self.mi, device=dev)
+
             self.scanning.parent = self.parent
             self.scanning.timeout = self.ui.sbox_scan_wait.value()
             self.scanning.val_range = val_range
@@ -124,6 +171,33 @@ class ScanInterface:
 
             self.ui.pb_start_scan.setText("Stop")
             self.ui.pb_start_scan.setStyleSheet("color: rgb(85, 255, 127);")
+
+    def add_image_widget(self):
+        win = pg.GraphicsLayoutWidget()
+        layout = QtGui.QGridLayout()
+        self.ui.widget_map.setLayout(layout)
+        layout.addWidget(win)
+
+        self.img_plot = win.addPlot()
+
+        self.add_image_item()
+
+    def add_image_item(self):
+        self.img_plot.clear()
+
+        self.img_plot.setLabel('left', "eV", units='')
+        self.img_plot.setLabel('bottom', "", units='Angle [deg]')
+
+        self.img = pg.ImageItem()
+
+        self.img_plot.addItem(self.img)
+
+        colormap = cm.get_cmap('viridis') #"nipy_spectral")  # cm.get_cmap("CMRmap")
+        colormap._init()
+        lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
+
+        # Apply the colormap
+        self.img.setLookupTable(lut)
 
 
     def add_plot(self):
@@ -187,12 +261,16 @@ class ScanInterface:
         #pos = evt.x(), evt.y() #evt[0]  ## using signal proxy turns original arguments into a tuple
         #print(evt.x())
         if self.plot1.sceneBoundingRect().contains(evt.x(), evt.y()):
+            if self.scanning is not None:
+                axis = self.scanning.doocs_vals
+            else:
+                return
             mousePoint = self.plot1.vb.mapSceneToView(evt)
             # index = int(mousePoint.x())
-            array = np.asarray(self.x_axis)
+            array = np.asarray(axis)
             index = (np.abs(array - mousePoint.x())).argmin()
             #print(mousePoint.x(), index, len(self.x_axis))
-            if index > 0 and index < len(self.x_axis):
+            if index > 0 and index < len(axis):
                 self.label.setText(
                     "<span style='font-size: 16pt', style='color: green'>x=%0.1f,   <span style='color: red'>y=%0.1f</span>" % (
                     mousePoint.x(), mousePoint.y()))

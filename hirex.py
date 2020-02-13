@@ -278,7 +278,6 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_background.setText("Taking ...              ")
             self.ui.pb_background.setStyleSheet("color: rgb(85, 255, 127);")
 
-
     def live_spec(self):
 
         spectrum = self.spectrometer.get_value()
@@ -331,7 +330,6 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setText("Start")
         else:
 
-
             self.timer_live.start(100)
             self.ui.pb_start.setText("Stop")
             self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127);")
@@ -365,6 +363,7 @@ class SpectrometerWindow(QMainWindow):
     def closeEvent(self, event):
         #if self.orbit.adaptive_feedback is not None:
         #    self.orbit.adaptive_feedback.close()c
+        self.scantool.scanning.kill = True
         if 1:
             self.ui.save_state(self.config_file)
         logger.info("close")
@@ -424,8 +423,6 @@ class SpectrometerWindow(QMainWindow):
 
         self.plot1.addItem(self.single)
 
-        # color = QtGui.QColor(255, 0, 0)
-        # pen = pg.mkPen((255, 0, 0), width=2)
         pen = pg.mkPen((51, 255, 51), width=2)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
         self.average = pg.PlotCurveItem( pen=pen, name='average')

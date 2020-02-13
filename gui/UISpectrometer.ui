@@ -515,7 +515,141 @@
         <string>Scan</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_18">
-        <item row="1" column="1">
+        <item row="0" column="0" colspan="2">
+         <widget class="QWidget" name="widget_scan" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_12">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Control</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_19">
+           <item row="2" column="5">
+            <widget class="QPushButton" name="pb_check_range">
+             <property name="text">
+              <string>check</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Waiting time after step</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="5">
+            <widget class="QPushButton" name="pb_show_map">
+             <property name="text">
+              <string>Map</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Select HIREX property</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="4">
+            <widget class="QLineEdit" name="le_scan_range"/>
+           </item>
+           <item row="1" column="1" colspan="5">
+            <widget class="QLineEdit" name="le_scan_doocs"/>
+           </item>
+           <item row="0" column="1" colspan="4">
+            <widget class="QComboBox" name="combo_hirex_prop"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Scanning range (numpy)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>DOOCS channel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="5">
+            <widget class="QPushButton" name="pb_start_scan">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">color: rgb(255, 0, 0); font-size: 14pt;</string>
+             </property>
+             <property name="text">
+              <string>Start</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string> sec </string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="QDoubleSpinBox" name="sbox_scan_wait">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="locale">
+              <locale language="English" country="UnitedStates"/>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>2.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QWidget" name="widget_map" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
          <widget class="QGroupBox" name="groupBox_11">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -608,123 +742,6 @@
             </widget>
            </item>
           </layout>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QGroupBox" name="groupBox_12">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Control</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_19">
-           <item row="1" column="1" colspan="4">
-            <widget class="QLineEdit" name="le_scan_doocs"/>
-           </item>
-           <item row="2" column="4">
-            <widget class="QPushButton" name="pb_check_range">
-             <property name="text">
-              <string>check</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>Waiting time after step</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>Select HIREX property</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1" colspan="3">
-            <widget class="QLineEdit" name="le_scan_range"/>
-           </item>
-           <item row="4" column="2">
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string> sec </string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QDoubleSpinBox" name="sbox_scan_wait">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="locale">
-              <locale language="English" country="UnitedStates"/>
-             </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="minimum">
-              <double>0.100000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.100000000000000</double>
-             </property>
-             <property name="value">
-              <double>2.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1" colspan="4">
-            <widget class="QComboBox" name="combo_hirex_prop"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Scanning range (numpy)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>DOOCS channel</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="3" colspan="2">
-            <widget class="QPushButton" name="pb_start_scan">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">color: rgb(255, 0, 0); font-size: 14pt;</string>
-             </property>
-             <property name="text">
-              <string>Start</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QWidget" name="widget_scan" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
          </widget>
         </item>
        </layout>
