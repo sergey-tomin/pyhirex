@@ -424,7 +424,7 @@ class SpectrometerWindow(QMainWindow):
 
         self.plot1.addItem(self.single)
 
-        color = QtGui.QColor(255, 0, 0)
+        # color = QtGui.QColor(255, 0, 0)
         # pen = pg.mkPen((255, 0, 0), width=2)
         pen = pg.mkPen((51, 255, 51), width=2)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
