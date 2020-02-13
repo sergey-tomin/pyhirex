@@ -102,7 +102,7 @@ class MainWindow(Ui_MainWindow):
         self.Form = Form
         # load in the dark theme style sheet
         #if self.style_file != "standard.css":
-        self.le_a.editingFinished.connect(self.check_address)
+        self.le_a.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_a))
         self.le_scan_doocs.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_scan_doocs))
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
@@ -150,6 +150,9 @@ class MainWindow(Ui_MainWindow):
         table["sb_ev_px"] = self.sb_ev_px.value()
         table["sb_nbunch_back"] = self.sb_nbunch_back.value()
 
+        table["sbox_scan_wait"] = self.sbox_scan_wait.value()
+        table["le_scan_doocs"] = str(self.le_scan_doocs.text())
+        table["le_scan_range"] = str(self.le_scan_range.text())
 
         with open(filename, 'w') as f:
             json.dump(table, f)
@@ -191,6 +194,9 @@ class MainWindow(Ui_MainWindow):
             
             if "le_a" in table.keys(): self.le_a.setText(table["le_a"])
             #if "le_b" in table.keys(): self.le_b.setText(table["le_b"])
+            if "sbox_scan_wait" in table.keys(): self.sbox_scan_wait.setValue(table["sbox_scan_wait"])
+            if "le_scan_doocs" in table.keys(): self.le_scan_doocs.setText(table["le_scan_doocs"])
+            if "le_scan_range" in table.keys(): self.le_scan_range.setText(table["le_scan_range"])
 
             print("RESTORE STATE: OK")
         except:

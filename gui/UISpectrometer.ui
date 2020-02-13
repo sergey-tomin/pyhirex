@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1353</width>
+    <width>1362</width>
     <height>918</height>
    </rect>
   </property>
@@ -524,8 +524,90 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string>Peak Finder Properties</string>
           </property>
+          <layout class="QGridLayout" name="gridLayout_20">
+           <item row="1" column="1">
+            <widget class="QDoubleSpinBox" name="sb_gauss_filter">
+             <property name="locale">
+              <locale language="English" country="UnitedStates"/>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <double>100.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>5.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>Lower threshold in % from max amplitude</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDoubleSpinBox" name="sb_low_thresh">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <double>100.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>10.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>20.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Gauss filter, sigma in px</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>Peaks number</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Minimum distance between peaks</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="sb_mkn_dist_peaks">
+             <property name="maximum">
+              <number>200</number>
+             </property>
+             <property name="value">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="sb_num_peaks">
+             <property name="maximum">
+              <number>3</number>
+             </property>
+             <property name="value">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item row="1" column="0">
@@ -537,7 +619,7 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string>Control</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_19">
            <item row="1" column="1" colspan="4">
@@ -717,7 +799,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1353</width>
+     <width>1362</width>
      <height>22</height>
     </rect>
    </property>

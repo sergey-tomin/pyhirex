@@ -4,6 +4,7 @@ from threading import Thread, Event
 from PyQt5 import QtGui, QtCore
 import time
 from mint.opt_objects import Device
+from scipy import ndimage
 
 
 
@@ -11,21 +12,15 @@ class ScanTool(Thread):
     def __init__(self, mi, device):
         super(ScanTool, self).__init__()
         self.mi = mi
+        self.parent = None
         self.devmode = False
         self.device = device
         self.timeout = 2
         self.val_range = []
         self.kill = False
         self._stop_event = Event()
-
-    def load(self):
-        self.background = np.array([])
-        try:
-            self.background = np.loadtxt("background.txt")
-        except Exception as ex:
-            print("Problem with background: {}. Exception was: {}".format("background.txt", ex))
-
-        return self.background
+        self.doocs_vals = []
+        self.peak_list_vals = []
 
     def run(self):
         print("run = ", self.val_range)
@@ -35,8 +30,10 @@ class ScanTool(Thread):
             print(self.device.id, "<--", val)
             #x = self.device.set_value(val)
             time.sleep(self.timeout)
+            self.doocs_vals.append(val)
+            self.peak_list_vals.append(self.parent.peak_ev_list)
 
-        print("Background finished")
+        print("Scanning finished")
 
     def stop(self):
         print("stop")
@@ -56,9 +53,21 @@ class ScanInterface:
         # self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
 
         self.scanning = None
+        self.plot_timer = pg.QtCore.QTimer()
+        self.plot_timer.timeout.connect(self.plot_scan)
+
+        self.watch_dog_timer = pg.QtCore.QTimer()
+        self.watch_dog_timer.timeout.connect(self.check_scanning)
+        self.watch_dog_timer.start(500)
+
         self.ui.pb_start_scan.clicked.connect(self.start_stop_scan)
         self.ui.pb_check_range.clicked.connect(self.check_range)
 
+
+    def check_scanning(self):
+        if self.scanning is not None and not self.scanning.isAlive():
+            self.ui.pb_start_scan.setStyleSheet("color: rgb(255, 0, 0);")
+            self.ui.pb_start_scan.setText("Start")
 
     def check_range(self):
         str_range = str(self.ui.le_scan_range.text())
@@ -69,18 +78,30 @@ class ScanInterface:
             self.parent.error_box("incorrect range")
             return
 
-
+    def plot_scan(self):
+        x = self.scanning.doocs_vals
+        peaks = self.scanning.peak_list_vals
+        for i in range(self.ui.sb_num_peaks.value()):
+            if len(peaks) > 0 and len(peaks[0]) > i:
+                y = [peaks[i] for peaks in peaks]
+                self.peak_lines[i].setData(x, y)
+            else:
+                self.peak_lines[i].setData([], [])
 
     def start_stop_scan(self):
         if self.ui.pb_start_scan.text() == "Stop":
             #self.timer_live.stop()
             if self.scanning is not None:
                 self.scanning.kill = True
-
+            self.plot_timer.stop()
             self.ui.pb_start_scan.setStyleSheet("color: rgb(255, 0, 0);")
             self.ui.pb_start_scan.setText("Start")
             self.scanning = None
         else:
+            if self.ui.pb_start.text() == "Start":
+                self.parent.error_box("Launch Spectrometer first")
+                return
+
             doocs_channel = str(self.ui.le_scan_doocs.text())
             print("DOOCS", doocs_channel)
             str_range = str(self.ui.le_scan_range.text())
@@ -94,9 +115,13 @@ class ScanInterface:
 
 
             self.scanning = ScanTool(mi=self.mi, device=Device(eid=doocs_channel))
+            self.scanning.parent = self.parent
             self.scanning.timeout = self.ui.sbox_scan_wait.value()
             self.scanning.val_range = val_range
             self.scanning.start()
+
+            self.plot_timer.start(self.ui.sbox_scan_wait.value()*500)
+
             self.ui.pb_start_scan.setText("Stop")
             self.ui.pb_start_scan.setStyleSheet("color: rgb(85, 255, 127);")
 
@@ -130,14 +155,17 @@ class ScanInterface:
         pen = pg.mkPen(color, width=2)
         self.single = pg.PlotCurveItem(name='single')
 
-        self.plot1.addItem(self.single)
-
-        color = QtGui.QColor(255, 0, 0)
-        pen = pg.mkPen((255, 0, 0), width=2)
-        # self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
-        self.average = pg.PlotCurveItem(pen=pen, name='average')
-
-        self.plot1.addItem(self.average)
+        self.peak_lines = []
+        self.peak_lines.append(pg.PlotCurveItem(pen=pg.mkPen((255, 51, 51), width=3), name='1-st peak', antialias=True))
+        self.peak_lines.append(pg.PlotCurveItem(pen=pg.mkPen((51, 255, 51), width=3), name='2-st peak', antialias=True))
+        self.peak_lines.append(pg.PlotCurveItem(pen=pg.mkPen((255, 255, 51), width=3), name='3-st peak', antialias=True))
+        #self.peak_lines.append(pg.PlotCurveItem(pen=pg.mkPen((255, 255, 255), width=3), name='4-st peak', antialias=True))
+        #self.peak_lines.append(pg.PlotCurveItem(pen=pg.mkPen((0, 255, 0), width=3), name='5-st peak', antialias=True))
+        self.plot1.addItem(self.peak_lines[0])
+        self.plot1.addItem(self.peak_lines[1])
+        self.plot1.addItem(self.peak_lines[2])
+        #self.plot1.addItem(self.peak_lines[3])
+        #self.plot1.addItem(self.peak_lines[4])
 
         pen = pg.mkPen((0, 255, 255), width=2)
 

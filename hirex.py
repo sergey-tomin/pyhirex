@@ -19,6 +19,7 @@ from mint.xfel_interface import *
 from gui.settings_gui import *
 from mint.devices import Spectrometer, BunchNumberCTRL
 from scan import ScanInterface
+from scipy import ndimage
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -294,17 +295,20 @@ class SpectrometerWindow(QMainWindow):
         if len(self.spectrum_list) > n_av:
             self.spectrum_list = self.spectrum_list[:n_av]
 
-        peaks, _ = find_peaks(self.ave_spectrum)
-        indx = np.argsort(self.ave_spectrum[peaks])
+        filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
+        peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
+                               height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.)
+        self.peak_ev_list = self.x_axis[peaks]
 
         single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
         ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
 
         self.peak_ev = self.x_axis[np.argmax(self.ave_spectrum)]
 
+
         self.single.setData(self.x_axis, spectrum)
         self.average.setData(x=self.x_axis, y=self.ave_spectrum)
-
+        #self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
         
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
 
@@ -421,7 +425,8 @@ class SpectrometerWindow(QMainWindow):
         self.plot1.addItem(self.single)
 
         color = QtGui.QColor(255, 0, 0)
-        pen = pg.mkPen((255, 0, 0), width=2)
+        # pen = pg.mkPen((255, 0, 0), width=2)
+        pen = pg.mkPen((51, 255, 51), width=2)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
         self.average = pg.PlotCurveItem( pen=pen, name='average')
 
