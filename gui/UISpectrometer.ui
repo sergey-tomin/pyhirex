@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1159</width>
-    <height>760</height>
+    <width>1353</width>
+    <height>918</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_6">
     <item row="0" column="1">
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="scan_tab">
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -389,8 +389,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>290</width>
+            <width>340</width>
             <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>340</width>
+            <height>16777215</height>
            </size>
           </property>
          </widget>
@@ -504,18 +510,148 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>Correlation</string>
+        <string>Scan</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_15">
-        <item row="1" column="3">
-         <widget class="QGroupBox" name="groupBox_10">
+       <layout class="QGridLayout" name="gridLayout_18">
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox_11">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>GroupBox</string>
           </property>
          </widget>
         </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_12">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>GroupBox</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_19">
+           <item row="1" column="1" colspan="4">
+            <widget class="QLineEdit" name="le_scan_doocs"/>
+           </item>
+           <item row="2" column="4">
+            <widget class="QPushButton" name="pb_check_range">
+             <property name="text">
+              <string>check</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Waiting time after step</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Select HIREX property</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="3">
+            <widget class="QLineEdit" name="le_scan_range"/>
+           </item>
+           <item row="4" column="2">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string> sec </string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QDoubleSpinBox" name="sbox_scan_wait">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="locale">
+              <locale language="English" country="UnitedStates"/>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>2.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="4">
+            <widget class="QComboBox" name="combo_hirex_prop"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Scanning range (numpy)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>DOOCS channel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3" colspan="2">
+            <widget class="QPushButton" name="pb_start_scan">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">color: rgb(255, 0, 0); font-size: 14pt;</string>
+             </property>
+             <property name="text">
+              <string>Start</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QWidget" name="widget_scan" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Correlation</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_15">
         <item row="1" column="2">
          <widget class="QGroupBox" name="groupBox_8">
           <property name="title">
@@ -527,6 +663,26 @@
            </item>
           </layout>
          </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QWidget" name="widget_correl" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QGroupBox" name="groupBox_10">
+          <property name="title">
+           <string>GroupBox</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="2">
+         <widget class="QWidget" name="widget_hist" native="true"/>
         </item>
         <item row="1" column="0" colspan="2">
          <widget class="QGroupBox" name="groupBox_7">
@@ -550,19 +706,6 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QWidget" name="widget_correl" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2" colspan="2">
-         <widget class="QWidget" name="widget_hist" native="true"/>
-        </item>
        </layout>
       </widget>
      </widget>
@@ -574,7 +717,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1159</width>
+     <width>1353</width>
      <height>22</height>
     </rect>
    </property>

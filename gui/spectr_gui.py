@@ -103,6 +103,7 @@ class MainWindow(Ui_MainWindow):
         # load in the dark theme style sheet
         #if self.style_file != "standard.css":
         self.le_a.editingFinished.connect(self.check_address)
+        self.le_scan_doocs.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_scan_doocs))
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
         self.loadStyleSheet(filename=self.Form.gui_dir +"colinDark.css")

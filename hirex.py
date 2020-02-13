@@ -18,6 +18,7 @@ from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
 from mint.devices import Spectrometer, BunchNumberCTRL
+from scan import ScanInterface
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -49,6 +50,7 @@ class Background(Thread):
             self.background = np.loadtxt("background.txt")
         except Exception as ex:
             print("Problem with background: {}. Exception was: {}".format("background.txt", ex))
+
         return self.background
     
     def run(self):
@@ -114,6 +116,8 @@ class SpectrometerWindow(QMainWindow):
         except:
             self.run_settings_window()
             self.settings.apply_settings()
+
+        self.scantool = ScanInterface(parent=self)
 
         self.load_objects()
 
@@ -278,7 +282,11 @@ class SpectrometerWindow(QMainWindow):
 
         spectrum = self.spectrometer.get_value()
         if self.ui.chb_a.isChecked():
-            spectrum -= self.background
+            if len(self.background) != len(spectrum):
+                self.error_box("Take Background")
+                self.ui.chb_a.setChecked(False)
+            else:
+                spectrum -= self.background
         self.spectrum_list.insert(0, spectrum)
         self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
 
@@ -315,7 +323,7 @@ class SpectrometerWindow(QMainWindow):
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
-            self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 255);")
+            self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0);")
             self.ui.pb_start.setText("Start")
         else:
 
