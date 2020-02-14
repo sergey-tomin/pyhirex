@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1362</width>
-    <height>918</height>
+    <width>1256</width>
+    <height>907</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -515,20 +515,34 @@
         <string>Scan</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_18">
-        <item row="0" column="0" colspan="2">
-         <widget class="QWidget" name="widget_scan" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
+        <item row="0" column="0" colspan="7">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QWidget" name="widget_map" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_scan" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="1" column="0">
+        <item row="1" column="0" colspan="6">
          <widget class="QGroupBox" name="groupBox_12">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -553,8 +567,11 @@
            </item>
            <item row="0" column="5">
             <widget class="QPushButton" name="pb_show_map">
+             <property name="styleSheet">
+              <string notr="true">color: rgb(85, 255, 255); font-size: 14pt;</string>
+             </property>
              <property name="text">
-              <string>Map</string>
+              <string>Hide Map</string>
              </property>
             </widget>
            </item>
@@ -566,13 +583,34 @@
             </widget>
            </item>
            <item row="2" column="1" colspan="4">
-            <widget class="QLineEdit" name="le_scan_range"/>
+            <widget class="QLineEdit" name="le_scan_range">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item row="1" column="1" colspan="5">
-            <widget class="QLineEdit" name="le_scan_doocs"/>
+            <widget class="QLineEdit" name="le_scan_doocs">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item row="0" column="1" colspan="4">
-            <widget class="QComboBox" name="combo_hirex_prop"/>
+            <widget class="QComboBox" name="combo_hirex_prop">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_9">
@@ -639,20 +677,10 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="2">
-         <widget class="QWidget" name="widget_map" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
+        <item row="1" column="6">
          <widget class="QGroupBox" name="groupBox_11">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -663,6 +691,12 @@
           <layout class="QGridLayout" name="gridLayout_20">
            <item row="1" column="1">
             <widget class="QDoubleSpinBox" name="sb_gauss_filter">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="locale">
               <locale language="English" country="UnitedStates"/>
              </property>
@@ -686,6 +720,12 @@
            </item>
            <item row="2" column="1">
             <widget class="QDoubleSpinBox" name="sb_low_thresh">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="decimals">
               <number>0</number>
              </property>
@@ -714,15 +754,14 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_15">
-             <property name="text">
-              <string>Minimum distance between peaks</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="1">
             <widget class="QSpinBox" name="sb_mkn_dist_peaks">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="maximum">
               <number>200</number>
              </property>
@@ -733,11 +772,24 @@
            </item>
            <item row="0" column="1">
             <widget class="QSpinBox" name="sb_num_peaks">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="maximum">
               <number>3</number>
              </property>
              <property name="value">
               <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Minimum distance between peaks</string>
              </property>
             </widget>
            </item>
@@ -816,7 +868,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1362</width>
+     <width>1256</width>
      <height>22</height>
     </rect>
    </property>

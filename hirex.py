@@ -363,7 +363,8 @@ class SpectrometerWindow(QMainWindow):
     def closeEvent(self, event):
         #if self.orbit.adaptive_feedback is not None:
         #    self.orbit.adaptive_feedback.close()c
-        self.scantool.scanning.kill = True
+        if self.scantool.scanning is not None:
+            self.scantool.scanning.kill = True
         if 1:
             self.ui.save_state(self.config_file)
         logger.info("close")

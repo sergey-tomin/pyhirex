@@ -8,9 +8,9 @@ from scipy import ndimage
 from matplotlib import cm
 
 
-class ScanTool(Thread):
+class ScanTool_old(Thread):
     def __init__(self, mi, device):
-        super(ScanTool, self).__init__()
+        super(ScanTool_old, self).__init__()
         self.mi = mi
         self.parent = None
         self.devmode = False
@@ -40,29 +40,50 @@ class ScanTool(Thread):
         self._stop_event.set()
 
 
-class ScanToolContinues(Thread):
+class ScanTool(Thread):
     def __init__(self, mi, device):
-        super(ScanToolContinues, self).__init__()
+        super(ScanTool, self).__init__()
         self.mi = mi
         self.parent = None
         self.devmode = False
         self.device = device
-
+        self.cont_mode = True
         self.timeout = 2
         self.val_range = []
         self.kill = False
         self._stop_event = Event()
         self.doocs_vals = []
         self.spectrums = []
+        self.peak_list_vals = []
 
-    def run(self):
+    def continues_scan(self):
         self.spectrums = np.empty([1, self.parent.hrx_n_px])
         while not self.kill:
             x = self.device.get_value()
             self.doocs_vals.append(x)
-            print(np.shape(self.spectrums), np.shape(self.parent.ave_spectrum))
+            print(self.device.id, " --> ", x)
             self.spectrums = np.append(self.spectrums, self.parent.ave_spectrum.reshape(1, -1), axis=0)
+            self.peak_list_vals.append(self.parent.peak_ev_list)
             time.sleep(self.timeout)
+
+    def step_scan(self):
+        self.spectrums = np.empty([1, self.parent.hrx_n_px])
+        for val in self.val_range:
+            if self.kill:
+                return
+            print(self.device.id, "<--", val)
+            # self.device.set_value(val)
+            time.sleep(self.timeout)
+            self.doocs_vals.append(val)
+            self.peak_list_vals.append(self.parent.peak_ev_list)
+            self.spectrums = np.append(self.spectrums, self.parent.ave_spectrum.reshape(1, -1), axis=0)
+
+
+    def run(self):
+        if self.cont_mode:
+            self.continues_scan()
+        else:
+            self.step_scan()
 
         print("Scanning finished")
 
@@ -94,6 +115,7 @@ class ScanInterface:
 
         self.ui.pb_start_scan.clicked.connect(self.start_stop_scan)
         self.ui.pb_check_range.clicked.connect(self.check_range)
+        self.ui.pb_show_map.clicked.connect(self.show_hide_map)
 
 
     def check_scanning(self):
@@ -112,7 +134,7 @@ class ScanInterface:
 
     def plot_scan(self):
         x = self.scanning.doocs_vals
-        # peaks = self.scanning.peak_list_vals
+        peaks = self.scanning.peak_list_vals
 
 
         # scale_coef_xaxis = (x[0] - x[-1]) / len(x)
@@ -124,12 +146,12 @@ class ScanInterface:
 
         self.img.setImage(self.scanning.spectrums)
 
-        # for i in range(self.ui.sb_num_peaks.value()):
-        #     if len(peaks) > 0 and len(peaks[0]) > i:
-        #         y = [peaks[i] for peaks in peaks]
-        #         self.peak_lines[i].setData(x, y)
-        #     else:
-        #         self.peak_lines[i].setData([], [])
+        for i in range(self.ui.sb_num_peaks.value()):
+            if len(peaks) > 0 and len(peaks[0]) > i:
+                y = [peaks[i] for peaks in peaks]
+                self.peak_lines[i].setData(x, y)
+            else:
+                self.peak_lines[i].setData([], [])
 
     def start_stop_scan(self):
         if self.ui.pb_start_scan.text() == "Stop":
@@ -156,12 +178,10 @@ class ScanInterface:
                 self.parent.error_box("incorrect range")
                 return
 
-
-            # self.scanning = ScanTool(mi=self.mi, device=Device(eid=doocs_channel))
             dev = Device(eid=doocs_channel)
             dev.mi = self.mi
-            self.scanning = ScanToolContinues(mi=self.mi, device=dev)
-
+            self.scanning = ScanTool(mi=self.mi, device=dev)
+            self.scanning.cont_mode = True
             self.scanning.parent = self.parent
             self.scanning.timeout = self.ui.sbox_scan_wait.value()
             self.scanning.val_range = val_range
@@ -171,6 +191,19 @@ class ScanInterface:
 
             self.ui.pb_start_scan.setText("Stop")
             self.ui.pb_start_scan.setStyleSheet("color: rgb(85, 255, 127);")
+
+    def show_hide_map(self):
+        if self.ui.pb_show_map.text() == "Hide Map":
+            self.ui.pb_show_map.setStyleSheet("color: rgb(85, 255, 255);")
+            self.ui.pb_show_map.setText("Show Map")
+            self.ui.widget_map.hide()
+            self.ui.widget_scan.show()
+
+        else:
+            self.ui.pb_show_map.setText("Hide Map")
+            self.ui.pb_show_map.setStyleSheet("color: rgb(85, 255, 127);")
+            self.ui.widget_map.show()
+            self.ui.widget_scan.hide()
 
     def add_image_widget(self):
         win = pg.GraphicsLayoutWidget()
@@ -185,8 +218,8 @@ class ScanInterface:
     def add_image_item(self):
         self.img_plot.clear()
 
-        self.img_plot.setLabel('left', "eV", units='')
-        self.img_plot.setLabel('bottom', "", units='Angle [deg]')
+        self.img_plot.setLabel('left', "", units='eV')
+        self.img_plot.setLabel('bottom', "", units='deg')
 
         self.img = pg.ImageItem()
 
@@ -212,8 +245,8 @@ class ScanInterface:
         self.label2 = pg.LabelItem(justify='right')
         win.addItem(self.label2, row=0, col=0)
 
-        self.plot1.setLabel('left', "A", units='au')
-        self.plot1.setLabel('bottom', "", units='eV')
+        self.plot1.setLabel('left', "", units='eV')
+        self.plot1.setLabel('bottom', "", units='deg')
 
         self.plot1.showGrid(1, 1, 1)
 
