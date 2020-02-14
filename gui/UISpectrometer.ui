@@ -798,7 +798,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tab_corr">
        <attribute name="title">
         <string>Correlation</string>
        </attribute>
@@ -809,8 +809,28 @@
            <string>GroupBox</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_17">
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="sb_n_shots">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+             <property name="singleStep">
+              <number>100</number>
+             </property>
+             <property name="value">
+              <number>1000</number>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
-            <widget class="QSpinBox" name="spinBox"/>
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Num of Shots</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -841,18 +861,32 @@
            <string>GroupBox</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_16">
-           <item row="0" column="0">
-            <widget class="QLineEdit" name="le_doocs_ch">
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="le_doocs_ch_cor">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
             </widget>
            </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="cb_corel_spect"/>
+           </item>
            <item row="1" column="0">
-            <widget class="QComboBox" name="cb_ch"/>
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>DOOCS </string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>Spectrometer prop</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>

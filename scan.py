@@ -8,38 +8,6 @@ from scipy import ndimage
 from matplotlib import cm
 
 
-class ScanTool_old(Thread):
-    def __init__(self, mi, device):
-        super(ScanTool_old, self).__init__()
-        self.mi = mi
-        self.parent = None
-        self.devmode = False
-        self.device = device
-        self.timeout = 2
-        self.val_range = []
-        self.kill = False
-        self._stop_event = Event()
-        self.doocs_vals = []
-        self.peak_list_vals = []
-
-    def run(self):
-        print("run = ", self.val_range)
-        for val in self.val_range:
-            if self.kill:
-                return
-            print(self.device.id, "<--", val)
-            #x = self.device.set_value(val)
-            time.sleep(self.timeout)
-            self.doocs_vals.append(val)
-            self.peak_list_vals.append(self.parent.peak_ev_list)
-
-        print("Scanning finished")
-
-    def stop(self):
-        print("stop")
-        self._stop_event.set()
-
-
 class ScanTool(Thread):
     def __init__(self, mi, device):
         super(ScanTool, self).__init__()

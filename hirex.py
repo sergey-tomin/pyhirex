@@ -19,6 +19,7 @@ from mint.xfel_interface import *
 from gui.settings_gui import *
 from mint.devices import Spectrometer, BunchNumberCTRL
 from scan import ScanInterface
+from correlation import CorrelInterface
 from scipy import ndimage
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -119,7 +120,7 @@ class SpectrometerWindow(QMainWindow):
             self.settings.apply_settings()
 
         self.scantool = ScanInterface(parent=self)
-
+        self.corretool = CorrelInterface(parent=self)
         self.load_objects()
 
         self.add_plot()
@@ -155,7 +156,6 @@ class SpectrometerWindow(QMainWindow):
         self.ui.actionSettings.triggered.connect(self.run_settings_window)
         self.ui.pb_cross_calib.clicked.connect(self.cross_calibrate)
         self.calib_energy_coef = 1
-        self.add_corel_plot()
         self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
         #proxy = pg.SignalProxy(self.plot1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
 
@@ -305,15 +305,21 @@ class SpectrometerWindow(QMainWindow):
         self.peak_ev = self.x_axis[np.argmax(self.ave_spectrum)]
 
 
-        self.single.setData(self.x_axis, spectrum)
-        self.average.setData(x=self.x_axis, y=self.ave_spectrum)
-        #self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
+
         
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
 
         self.data_2d[:, 0] = spectrum# single_sig_wo_noise
 
-        self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
+        # if tab is not active plotting paused
+        if self.ui.scan_tab.currentIndex() == 0:
+            self.single.setData(self.x_axis, spectrum)
+            self.average.setData(x=self.x_axis, y=self.ave_spectrum)
+            # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
+
+            self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
+
+
         #if not self.is_txt_item:
         #    self.plot1.addItem(self.textItem)
         #    self.is_txt_item = True
@@ -489,42 +495,6 @@ class SpectrometerWindow(QMainWindow):
 
         # Apply the colormap
         self.img.setLookupTable(lut)
-
-    def add_corel_plot(self):
-
-        win = pg.GraphicsLayoutWidget()
-
-        self.plot_cor = win.addPlot(row=0, col=0)
-        self.plot_cor.setLabel('left', "A", units='au')
-        self.plot_cor.setLabel('bottom', "", units='eV')
-
-        self.plot_cor.showGrid(1, 1, 1)
-
-        self.plot_cor.getAxis('left').enableAutoSIPrefix(enable=False)  # stop the auto unit scaling on y axes
-        layout = QtGui.QGridLayout()
-        self.ui.widget_correl.setLayout(layout)
-        layout.addWidget(win, 0, 0)
-
-        self.plot_cor.setAutoVisible(y=True)
-
-        self.plot_cor.addLegend()
-        self.single_scatter = pg.ScatterPlotItem(name='single')
-
-        self.plot_cor.addItem(self.single_scatter)
-
-        pen = pg.mkPen((255, 0, 0), width=2)
-        # self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
-        self.average_scatter = pg.ScatterPlotItem(pen=pen, name='average')
-
-        self.plot_cor.addItem(self.average_scatter)
-
-        pen = pg.mkPen((0, 255, 255), width=2)
-
-        self.fit_func_scatteer = pg.PlotCurveItem(pen=pen, name='Gauss Fit')
-
-        # self.plot1.addItem(self.fit_func)
-        self.plot_cor.enableAutoRange(False)
-        #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
 
 
     def error_box(self, message):
