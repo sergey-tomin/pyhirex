@@ -105,6 +105,8 @@ class MainWindow(Ui_MainWindow):
         self.le_a.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_a))
         self.le_scan_doocs.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_scan_doocs))
         self.le_doocs_ch_cor.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_cor))
+
+        self.le_doocs_ch_hist.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_hist))
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
         self.loadStyleSheet(filename=self.Form.gui_dir +"colinDark.css")

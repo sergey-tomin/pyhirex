@@ -18,17 +18,25 @@ class CorrelInterface:
         self.mi = self.parent.mi
 
         self.add_corel_plot()
-        #self.add_image_widget()
+        self.add_hist_plot()
         #self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
         self.ui.cb_corel_spect.addItem("Peak")
-
-        self.doocs_dev = self.get_device()
+        self.doocs_dev = None
+        self.doocs_dev_hist = None
+        self.get_device()
         self.ui.le_doocs_ch_cor.editingFinished.connect(self.get_device)
+        self.ui.le_doocs_ch_hist.editingFinished.connect(self.get_device)
         self.plot_timer = pg.QtCore.QTimer()
         self.plot_timer.timeout.connect(self.plot_correl)
         self.plot_timer.start(100)
+
+        self.plot_timer_hist = pg.QtCore.QTimer()
+        self.plot_timer_hist.timeout.connect(self.plot_histogram)
+        self.plot_timer_hist.start(100)
+
         self.peak = []
         self.doocs_vals = []
+        self.doocs_vals_hist = []
 
 
 
@@ -37,8 +45,6 @@ class CorrelInterface:
         # self.ui.pb_show_map.clicked.connect(self.show_hide_map)
 
     def get_device(self):
-
-
         if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor):
             eid = self.ui.le_doocs_ch_cor.text()
             self.doocs_dev = Device(eid=eid)
@@ -46,9 +52,35 @@ class CorrelInterface:
         else:
             self.doocs_dev = None
 
+        if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_hist):
+            eid = self.ui.le_doocs_ch_hist.text()
+            self.doocs_dev_hist = Device(eid=eid)
+            self.doocs_dev_hist.mi = self.mi
+        else:
+            self.doocs_dev_hist = None
+
+
+
+    def plot_histogram(self):
+        #current_mode = self.ui.cb_corel_spect.currentText()
+        if self.ui.pb_start.text() == "Start" or self.parent.peak_ev is None:
+            return
+        if self.doocs_dev_hist is not None:
+            #self.peak.insert(0, self.parent.peak_ev)
+            self.doocs_vals_hist.insert(0, self.doocs_dev_hist.get_value())
+            n_shots = int(self.ui.sb_n_shots_hist.value())
+            if len(self.doocs_vals_hist) > n_shots:
+                #self.peak = self.peak[:n_shots]
+                self.doocs_vals_hist = self.doocs_vals_hist[:n_shots]
+
+            if self.ui.scan_tab.currentIndex() == 2:
+                y, x = np.histogram(self.doocs_vals_hist, bins=np.linspace(0, 1, 10))
+                self.plot_hist.plot(x, y, stepMode=True,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+
     def plot_correl(self):
         current_mode = self.ui.cb_corel_spect.currentText()
-
+        if self.ui.pb_start.text() == "Start" or self.parent.peak_ev is None:
+            return
         if current_mode == "Peak" and self.doocs_dev is not None:
             self.peak.insert(0, self.parent.peak_ev)
             self.doocs_vals.insert(0, self.doocs_dev.get_value())
@@ -96,4 +128,35 @@ class CorrelInterface:
 
         # self.plot1.addItem(self.fit_func)
         self.plot_cor.enableAutoRange(False)
+        #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
+
+    def add_hist_plot(self):
+
+        win = pg.GraphicsLayoutWidget()
+
+        self.plot_hist = win.addPlot(row=0, col=0)
+        self.plot_hist.setLabel('left', "A", units='au')
+        self.plot_hist.setLabel('bottom', "", units='eV')
+        self.plot_hist.showGrid(1, 1, 1)
+        #self.plot_hist.getAxis('left').enableAutoSIPrefix(enable=False)  # stop the auto unit scaling on y axes
+        layout = QtGui.QGridLayout()
+        self.ui.widget_hist.setLayout(layout)
+        layout.addWidget(win, 0, 0)
+
+        #self.plot_hist.setAutoVisible(y=True)
+        #self.plot_hist.setAutoVisible(x=True)
+        self.plot_hist.addLegend()
+        pen = pg.mkPen((255, 0, 0), width=2)
+        self.hist_item = pg.PlotDataItem(pen=pen, name='Gauss Fit') #[0,0],[0], stepMode=True, fillLevel=0, brush=(0,0,255,150), name='single')
+
+        self.plot_hist.addItem(self.hist_item)
+
+
+
+        #pen = pg.mkPen((255, 255, 255), width=2)
+
+        #self.fit_func_hist = pg.PlotCurveItem(pen=pen, name='Gauss Fit')
+
+        # self.plot1.addItem(self.fit_func)
+        #self.plot_hist.enableAutoRange(False)
         #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))

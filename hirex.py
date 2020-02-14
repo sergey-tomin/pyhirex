@@ -138,6 +138,7 @@ class SpectrometerWindow(QMainWindow):
         self.ui.pb_background.clicked.connect(self.take_background)
         self.spectrum_list = []
         self.ave_spectrum = []
+        self.peak_ev = None
         self.background = self.back_taker.load()
             
         self.ui.sb_ev_px.valueChanged.connect(self.calibrate_axis)
@@ -296,8 +297,12 @@ class SpectrometerWindow(QMainWindow):
 
         filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
         peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
-                               height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.)
+                               height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.,
+                              #prominence=0.5
+                              )
+
         self.peak_ev_list = self.x_axis[peaks]
+        #print(self.peak_ev_list)
 
         single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
         ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
