@@ -20,7 +20,8 @@ class CorrelInterface:
         self.add_corel_plot()
         self.add_hist_plot()
         #self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
-        self.ui.cb_corel_spect.addItem("Peak")
+        self.ui.cb_corel_spect.addItem("Peak Pos")
+        self.ui.cb_corel_spect.addItem("Peak Ampl")
         self.doocs_dev = None
         self.doocs_dev_hist = None
         self.get_device()
@@ -74,15 +75,30 @@ class CorrelInterface:
                 self.doocs_vals_hist = self.doocs_vals_hist[:n_shots]
 
             if self.ui.scan_tab.currentIndex() == 2:
-                y, x = np.histogram(self.doocs_vals_hist, bins=np.linspace(0, 1, 10))
+                val_min = np.min(self.doocs_vals_hist)
+                val_max = np.max(self.doocs_vals_hist)
+                y, x = np.histogram(self.doocs_vals_hist, bins=np.linspace(val_min, val_max, 50))
                 self.plot_hist.plot(x, y, stepMode=True,  fillLevel=0,  brush=(0,0,255,150), clear=True)
 
     def plot_correl(self):
         current_mode = self.ui.cb_corel_spect.currentText()
         if self.ui.pb_start.text() == "Start" or self.parent.peak_ev is None:
             return
-        if current_mode == "Peak" and self.doocs_dev is not None:
+        if current_mode == "Peak Pos" and self.doocs_dev is not None:
             self.peak.insert(0, self.parent.peak_ev)
+        
+            self.doocs_vals.insert(0, self.doocs_dev.get_value())
+            n_shots = int(self.ui.sb_av_nbunch.value())
+            if len(self.peak) > n_shots:
+                self.peak = self.peak[:n_shots]
+                self.doocs_vals = self.doocs_vals[:n_shots]
+
+            if self.ui.scan_tab.currentIndex() == 2:
+                self.single_scatter.setData(self.peak, self.doocs_vals)
+                
+        if current_mode == "Peak Ampl" and self.doocs_dev is not None:
+            peak_max = np.max(self.parent.data_2d[:, 0])
+            self.peak.insert(0, peak_max)
             self.doocs_vals.insert(0, self.doocs_dev.get_value())
             n_shots = int(self.ui.sb_av_nbunch.value())
             if len(self.peak) > n_shots:
@@ -135,8 +151,8 @@ class CorrelInterface:
         win = pg.GraphicsLayoutWidget()
 
         self.plot_hist = win.addPlot(row=0, col=0)
-        self.plot_hist.setLabel('left', "A", units='au')
-        self.plot_hist.setLabel('bottom', "", units='eV')
+        self.plot_hist.setLabel('left', "N Events", units='')
+        self.plot_hist.setLabel('bottom', "", units='a.u.')
         self.plot_hist.showGrid(1, 1, 1)
         #self.plot_hist.getAxis('left').enableAutoSIPrefix(enable=False)  # stop the auto unit scaling on y axes
         layout = QtGui.QGridLayout()

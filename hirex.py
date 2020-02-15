@@ -3,7 +3,11 @@ import sys
 import os
 import argparse
 import time
-from scipy.signal import find_peaks
+try:
+    old_scipy = False
+    from scipy.signal import find_peaks
+except:
+    old_scipy = True
 
 import numpy as np
 import pyqtgraph as pg
@@ -139,6 +143,7 @@ class SpectrometerWindow(QMainWindow):
         self.spectrum_list = []
         self.ave_spectrum = []
         self.peak_ev = None
+        self.counter_spect = 0
         self.background = self.back_taker.load()
             
         self.ui.sb_ev_px.valueChanged.connect(self.calibrate_axis)
@@ -281,7 +286,7 @@ class SpectrometerWindow(QMainWindow):
 
     def live_spec(self):
 
-        spectrum = self.spectrometer.get_value()
+        spectrum = self.spectrometer.get_value().astype("float64")
         if self.ui.chb_a.isChecked():
             if len(self.background) != len(spectrum):
                 self.error_box("Take Background")
@@ -296,12 +301,15 @@ class SpectrometerWindow(QMainWindow):
             self.spectrum_list = self.spectrum_list[:n_av]
 
         filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
-        peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
+        if not old_scipy:
+            peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
                                height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.,
                               #prominence=0.5
                               )
 
-        self.peak_ev_list = self.x_axis[peaks]
+            self.peak_ev_list = self.x_axis[peaks]
+        else:
+            self.peak_ev_list = [self.x_axis[np.argmax(self.ave_spectrum)]]
         #print(self.peak_ev_list)
 
         single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
@@ -309,9 +317,6 @@ class SpectrometerWindow(QMainWindow):
 
         self.peak_ev = self.x_axis[np.argmax(self.ave_spectrum)]
 
-
-
-        
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
 
         self.data_2d[:, 0] = spectrum# single_sig_wo_noise
@@ -329,18 +334,22 @@ class SpectrometerWindow(QMainWindow):
         #    self.plot1.addItem(self.textItem)
         #    self.is_txt_item = True
         #self.update_text("Av = " + str(np.round(ave_integ, 1)) + " uJ \nEpk = " + str(np.round(self.peak_ev, 1)) + "eV")
-
-        self.label2.setText(
-        "<span style='font-size: 16pt', style='color: yellow'>%0.1f &mu;J   <span style='color: yellow'> @ %0.1f eV</span>" % (
-            ave_integ, self.peak_ev))
-
+        pulse_energy = self.mi.get_value(self.slow_xgm_signal)
+        if self.counter_spect % 10 == 0:
+            self.label2.setText(
+            "<span style='font-size: 16pt', style='color: green'>XGM: %0.1f &mu;J <span style='color: red'>HIREX: %0.1f &mu;J   <span style='color: yellow'> @ %0.1f eV</span>"%(
+            pulse_energy, ave_integ, self.peak_ev))
+		
+        self.counter_spect  += 1
+		
+		
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
             self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0);")
             self.ui.pb_start.setText("Start")
         else:
-
+            self.counter_spect = 0
             self.timer_live.start(100)
             self.ui.pb_start.setText("Stop")
             self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127);")
@@ -376,6 +385,7 @@ class SpectrometerWindow(QMainWindow):
         #    self.orbit.adaptive_feedback.close()c
         if self.scantool.scanning is not None:
             self.scantool.scanning.kill = True
+            self.scantool.scanning.crystal.stop()
         if 1:
             self.ui.save_state(self.config_file)
         logger.info("close")

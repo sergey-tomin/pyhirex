@@ -103,12 +103,13 @@ class MainWindow(Ui_MainWindow):
         # load in the dark theme style sheet
         #if self.style_file != "standard.css":
         self.le_a.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_a))
-        self.le_scan_doocs.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_scan_doocs))
+        #self.le_scan_doocs.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_scan_doocs))
         self.le_doocs_ch_cor.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_cor))
 
         self.le_doocs_ch_hist.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_hist))
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
+        self.actionSend_to_logbook.triggered.connect(lambda: self.logbook(self.Form))
         self.loadStyleSheet(filename=self.Form.gui_dir +"colinDark.css")
 
     def check_address(self):
@@ -154,9 +155,10 @@ class MainWindow(Ui_MainWindow):
         table["sb_nbunch_back"] = self.sb_nbunch_back.value()
 
         table["sbox_scan_wait"] = self.sbox_scan_wait.value()
-        table["le_scan_doocs"] = str(self.le_scan_doocs.text())
+        #table["le_scan_doocs"] = str(self.le_scan_doocs.text())
         table["le_scan_range"] = str(self.le_scan_range.text())
-
+        table["le_doocs_ch_hist"] = str(self.le_doocs_ch_hist.text())
+        table["le_doocs_ch_cor"] = str(self.le_doocs_ch_cor.text())
         with open(filename, 'w') as f:
             json.dump(table, f)
         # pickle.dump(table, filename)
@@ -198,9 +200,10 @@ class MainWindow(Ui_MainWindow):
             if "le_a" in table.keys(): self.le_a.setText(table["le_a"])
             #if "le_b" in table.keys(): self.le_b.setText(table["le_b"])
             if "sbox_scan_wait" in table.keys(): self.sbox_scan_wait.setValue(table["sbox_scan_wait"])
-            if "le_scan_doocs" in table.keys(): self.le_scan_doocs.setText(table["le_scan_doocs"])
+            #if "le_scan_doocs" in table.keys(): self.le_scan_doocs.setText(table["le_scan_doocs"])
             if "le_scan_range" in table.keys(): self.le_scan_range.setText(table["le_scan_range"])
-
+            if "le_doocs_ch_hist" in table.keys(): self.le_doocs_ch_hist.setText(table["le_doocs_ch_hist"])
+            if "le_doocs_ch_cor" in table.keys(): self.le_doocs_ch_cor.setText(table["le_doocs_ch_cor"])
             print("RESTORE STATE: OK")
         except:
             print("RESTORE STATE: ERROR")

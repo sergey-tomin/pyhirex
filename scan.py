@@ -8,13 +8,58 @@ from scipy import ndimage
 from matplotlib import cm
 
 
+class Crystal(Device):
+    def __init__(self, mi, doocs_stop, doocs_start, doocs_target, doocs_speed, doocs_actual):
+        self.mi = mi
+        self.doocs_stop = doocs_stop
+        self.doocs_target = doocs_target
+        self.doocs_speed = doocs_speed
+        self.doocs_start = doocs_start
+        self.doocs_actual = doocs_actual
+    
+    def stop(self):
+        print("STOP CRYSTAL")
+        self.mi.set_value(self.doocs_stop, 1)
+    
+    def start(self):
+        print("START")
+        if self.is_busy():
+            print("BUSY")
+        else:
+            self.mi.set_value(self.doocs_start, 1)
+
+    def get_actual_value(self):
+        x = self.mi.get_value(self.doocs_actual)
+        return x
+    
+    def set_speed(self, val):
+        print("SET speed: ", val)
+        self.mi.set_value(self.doocs_speed, val)
+    
+    def set_value(self, val):
+        print("SET val: ", val)
+        self.mi.set_value(self.doocs_target, val)
+    
+    def in_possition(self):
+        pass
+    
+    def is_busy(self):
+        ch = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/HW_STATE"
+        x = int(self.mi.get_value(ch))
+        if x & 0x04 == 0:
+            return False
+        else:
+            return True
+        
+
+
 class ScanTool(Thread):
-    def __init__(self, mi, device):
+    def __init__(self, mi, crystal):
         super(ScanTool, self).__init__()
         self.mi = mi
         self.parent = None
         self.devmode = False
-        self.device = device
+        self.crystal = crystal
         self.cont_mode = True
         self.timeout = 2
         self.val_range = []
@@ -26,20 +71,27 @@ class ScanTool(Thread):
 
     def continues_scan(self):
         self.spectrums = np.empty([1, self.parent.hrx_n_px])
-        while not self.kill:
-            x = self.device.get_value()
+        self.crystal.set_speed(self.parent.ui.sb_speed.value())
+        self.crystal.set_value(self.parent.ui.sb_target.value())
+        time.sleep(0.5)
+        self.crystal.start()
+        time.sleep(0.5)
+        while (not self.kill and self.crystal.is_busy()):
+            x = self.crystal.get_actual_value()
             self.doocs_vals.append(x)
-            print(self.device.id, " --> ", x)
             self.spectrums = np.append(self.spectrums, self.parent.ave_spectrum.reshape(1, -1), axis=0)
             self.peak_list_vals.append(self.parent.peak_ev_list)
             time.sleep(self.timeout)
+            print("busy", self.crystal.is_busy())
+            
+        self.crystal.stop()
+        print("EXIT from the loop" )
 
     def step_scan(self):
         self.spectrums = np.empty([1, self.parent.hrx_n_px])
         for val in self.val_range:
             if self.kill:
                 return
-            print(self.device.id, "<--", val)
             # self.device.set_value(val)
             time.sleep(self.timeout)
             self.doocs_vals.append(val)
@@ -84,6 +136,40 @@ class ScanInterface:
         self.ui.pb_start_scan.clicked.connect(self.start_stop_scan)
         self.ui.pb_check_range.clicked.connect(self.check_range)
         self.ui.pb_show_map.clicked.connect(self.show_hide_map)
+        
+        self.ui.cb_crystal_select.addItem("Pitch Angle")
+        self.doocs_start_crystal = None
+        self.doocs_stop_crystal = None
+        self.actual_angle = None
+        self.doocs_target = None
+        self.doocs_speed = None
+        self.crystal = None
+        self.get_properties()
+        
+    
+    def get_properties(self):
+        if 1:
+            doocs_actual_angle = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE"
+            doocs_min_angle = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/MINANGLE"
+            doocs_max_angle = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/MAXANGLE"
+            doocs_speed = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/SPEED.SET"
+            doocs_start_crystal = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/CONTROL.START XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/CONTROL.START"
+            doocs_stop_crystal = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/CONTROL.STOP XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/CONTROL.STOP"
+            doocs_target = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE.SET"
+            
+            self.crystal = Crystal(mi=self.mi, 
+                                   doocs_stop=doocs_stop_crystal,
+                                   doocs_start=doocs_start_crystal, 
+                                   doocs_target=doocs_target, 
+                                   doocs_speed=doocs_speed, 
+                                   doocs_actual=doocs_actual_angle)
+        
+        min_angle = self.mi.get_value(doocs_min_angle)
+        max_angle = self.mi.get_value(doocs_max_angle)
+        actual_angle = self.crystal.get_actual_value()
+        self.ui.sb_target.setMinimum(min_angle)
+        self.ui.sb_target.setMaximum(max_angle)
+        self.ui.sb_target.setValue(actual_angle)
 
 
     def check_scanning(self):
@@ -103,6 +189,8 @@ class ScanInterface:
     def plot_scan(self):
         x = self.scanning.doocs_vals
         peaks = self.scanning.peak_list_vals
+        #print("x = ", x)
+        #print("peaks = ", peaks)
 
 
         # scale_coef_xaxis = (x[0] - x[-1]) / len(x)
@@ -111,20 +199,24 @@ class ScanInterface:
         # self.img.scale(scale_coef_xaxis, 1)
         # self.img.translate(translate_coef_xaxis, 0)
         # print(np.shape(self.scanning.spectrums))
-
+        # print(self.scanning.spectrums)
         self.img.setImage(self.scanning.spectrums)
 
         for i in range(self.ui.sb_num_peaks.value()):
             if len(peaks) > 0 and len(peaks[0]) > i:
                 y = [peaks[i] for peaks in peaks]
-                self.peak_lines[i].setData(x, y)
+                if len(x) == len(y):
+                    self.peak_lines[i].setData(x, y)
             else:
                 self.peak_lines[i].setData([], [])
+        
+        self.ui.label_10.setText(str(self.crystal.get_actual_value()))
 
     def start_stop_scan(self):
         if self.ui.pb_start_scan.text() == "Stop":
             #self.timer_live.stop()
             if self.scanning is not None:
+                #self.crystal.stop()
                 self.scanning.kill = True
             self.plot_timer.stop()
             self.ui.pb_start_scan.setStyleSheet("color: rgb(255, 0, 0);")
@@ -135,24 +227,22 @@ class ScanInterface:
                 self.parent.error_box("Launch Spectrometer first")
                 return
 
-            doocs_channel = str(self.ui.le_scan_doocs.text())
-            print("DOOCS", doocs_channel)
-            str_range = str(self.ui.le_scan_range.text())
-            print("range = ", str_range)
-            try:
-                val_range = eval(str_range)
-                print(val_range)
-            except:
-                self.parent.error_box("incorrect range")
-                return
 
-            dev = Device(eid=doocs_channel)
-            dev.mi = self.mi
-            self.scanning = ScanTool(mi=self.mi, device=dev)
+            #str_range = str(self.ui.le_scan_range.text())
+            #print("range = ", str_range)
+            #try:
+            #    val_range = eval(str_range)
+            #    print(val_range)
+            #except:
+            #    self.parent.error_box("incorrect range")
+            #    return
+
+
+            self.scanning = ScanTool(mi=self.mi, crystal=self.crystal)
             self.scanning.cont_mode = True
             self.scanning.parent = self.parent
             self.scanning.timeout = self.ui.sbox_scan_wait.value()
-            self.scanning.val_range = val_range
+            #self.scanning.val_range = val_range
             self.scanning.start()
 
             self.plot_timer.start(self.ui.sbox_scan_wait.value()*500)
