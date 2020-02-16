@@ -44,11 +44,19 @@ class Crystal(Device):
         pass
     
     def is_busy(self):
-        ch = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/HW_STATE"
+        parts = self.doocs_actual.split("/")
+        tmp = parts[:-1]
+        tmp.append("HW_STATE")
+        ch = "/".join(tmp)
+        #ch = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/HW_STATE"
+        #print("busy chennel", ch_re, ch, ch == ch_re)
+        
         x = int(self.mi.get_value(ch))
         if x & 0x04 == 0:
+            print("Crystal not busy", x)
             return False
         else:
+            print("Crystal busy", x)
             return True
         
 
@@ -75,7 +83,9 @@ class ScanTool(Thread):
         self.crystal.set_value(self.parent.ui.sb_target.value())
         time.sleep(0.5)
         self.crystal.start()
-        time.sleep(0.5)
+        
+        #self.crystal.is_busy()
+        time.sleep(0.1)
         while (not self.kill and self.crystal.is_busy()):
             x = self.crystal.get_actual_value()
             self.doocs_vals.append(x)
@@ -163,10 +173,13 @@ class ScanInterface:
                                    doocs_target=doocs_target, 
                                    doocs_speed=doocs_speed, 
                                    doocs_actual=doocs_actual_angle)
-        
-        min_angle = self.mi.get_value(doocs_min_angle)
-        max_angle = self.mi.get_value(doocs_max_angle)
-        actual_angle = self.crystal.get_actual_value()
+        try:
+            min_angle = self.mi.get_value(doocs_min_angle)
+            max_angle = self.mi.get_value(doocs_max_angle)
+            actual_angle = self.crystal.get_actual_value()
+        except:
+            self.crystal = None
+            return 
         self.ui.sb_target.setMinimum(min_angle)
         self.ui.sb_target.setMaximum(max_angle)
         self.ui.sb_target.setValue(actual_angle)
@@ -185,6 +198,16 @@ class ScanInterface:
         except:
             self.parent.error_box("incorrect range")
             return
+
+    def image_scale(self):
+
+        scale_coef_xaxis = (self.parent.x_axis[-1] - self.parent.x_axis[0]) / (
+                        len(self.parent.x_axis))
+        translate_coef_xaxis = self.parent.x_axis[0] / scale_coef_xaxis
+
+
+        self.img.scale(1, scale_coef_xaxis)
+        self.img.translate(0, translate_coef_xaxis)
 
     def plot_scan(self):
         x = self.scanning.doocs_vals
@@ -210,7 +233,8 @@ class ScanInterface:
             else:
                 self.peak_lines[i].setData([], [])
         
-        self.ui.label_10.setText(str(self.crystal.get_actual_value()))
+        self.ui.label_10.setText(str(np.round(self.crystal.get_actual_value(), 3)))
+        self.ui.label_10.setStyleSheet('color: green')
 
     def start_stop_scan(self):
         if self.ui.pb_start_scan.text() == "Stop":
@@ -226,8 +250,11 @@ class ScanInterface:
             if self.ui.pb_start.text() == "Start":
                 self.parent.error_box("Launch Spectrometer first")
                 return
-
-
+            #self.get_properties()
+            if self.crystal is None:
+                self.parent.error_box("Somethig wrong with crystal control server")
+                return 
+            self.image_scale()
             #str_range = str(self.ui.le_scan_range.text())
             #print("range = ", str_range)
             #try:

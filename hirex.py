@@ -25,6 +25,7 @@ from mint.devices import Spectrometer, BunchNumberCTRL
 from scan import ScanInterface
 from correlation import CorrelInterface
 from scipy import ndimage
+import json
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -117,15 +118,14 @@ class SpectrometerWindow(QMainWindow):
 
         self.settings = None
         #self.load_settings()
-        try:
-            self.load_settings()
-        except:
-            self.run_settings_window()
-            self.settings.apply_settings()
+        self.ui.combo_hirex.addItem("SASE2 HIREX")
+        self.ui.combo_hirex.addItem("SASE1 HIREX")
+        self.ui.combo_hirex.currentIndexChanged.connect(self.reload_objects_settings)
+        self.reload_objects_settings()
 
         self.scantool = ScanInterface(parent=self)
         self.corretool = CorrelInterface(parent=self)
-        self.load_objects()
+
 
         self.add_plot()
         self.add_image_widget()
@@ -164,6 +164,15 @@ class SpectrometerWindow(QMainWindow):
         self.calib_energy_coef = 1
         self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
         #proxy = pg.SignalProxy(self.plot1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
+
+    def reload_objects_settings(self):
+        try:
+            self.load_settings()
+        except:
+            self.run_settings_window()
+            self.settings.apply_settings()
+        self.load_objects()
+
 
     def load_objects(self):
 
@@ -446,6 +455,7 @@ class SpectrometerWindow(QMainWindow):
         self.plot1.addItem(self.single)
 
         pen = pg.mkPen((51, 255, 51), width=2)
+        pen = pg.mkPen((255, 0, 0), width=2)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
         self.average = pg.PlotCurveItem( pen=pen, name='average')
 
@@ -544,14 +554,31 @@ class SpectrometerWindow(QMainWindow):
         logger.debug("load settings ... ")
         with open(self.settings_file, 'r') as f:
             table = json.load(f)
+        current_hirex = self.ui.combo_hirex.currentText()
 
-        self.hirex_doocs_ch = table["le_hirex_ch"]
-        self.transmission__doocs_ch = table["le_trans_ch"]
-        self.hrx_n_px = table["sb_hrx_npx"]
+        if current_hirex == "SASE2 HIREX":
+
+            self.hirex_doocs_ch = table["le_hirex_ch"]
+            self.transmission__doocs_ch = table["le_trans_ch"]
+            self.hrx_n_px = table["sb_hrx_npx"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch"]
+            self.fast_xgm_signal = table["le_fast_xgm"]
+            self.slow_xgm_signal = table["le_slow_xgm"]
+
+        elif current_hirex == "SASE1 HIREX":
+            self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
+            self.transmission__doocs_ch = table["le_trans_ch_sa1"]
+            self.hrx_n_px = table["sb_hrx_npx_sa1"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa1"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa1"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa1"]
+
+        else:
+            print("WRONG HIREX")
+
         self.logbook = table["logbook"]
-        self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch"]
-        self.fast_xgm_signal = table["le_fast_xgm"]
-        self.slow_xgm_signal = table["le_slow_xgm"]
         if "server" in table.keys():
             self.server = table["server"]
         else:

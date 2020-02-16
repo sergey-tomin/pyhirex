@@ -61,6 +61,12 @@ class HirexSettings(QWidget):
         table["style"] = self.ui.cb_style_def.currentIndex()
         table["style_file"] = self.ui.cb_style_def.currentText()
 
+        table["le_trans_ch_sa1"] = self.ui.le_trans_ch_sa1.text()
+        table["le_hirex_ch_sa1"] = self.ui.le_hirex_ch_sa1.text()
+        table["sb_hrx_npx_sa1"] = self.ui.sb_hrx_npx_sa1.value()
+        table["le_ctrl_num_bunch_sa1"] = self.ui.le_ctrl_num_bunch_sa1.text()
+        table["le_fast_xgm_sa1"] = self.ui.le_fast_xgm_sa1.text()
+        table["le_slow_xgm_sa1"] = self.ui.le_slow_xgm_sa1.text()
 
         with open(filename, 'w') as f:
             json.dump(table, f)
@@ -93,6 +99,15 @@ class HirexSettings(QWidget):
 
         if "le_fast_xgm" in table.keys(): self.ui.le_fast_xgm.setText(table["le_fast_xgm"])
         if "le_slow_xgm" in table.keys(): self.ui.le_slow_xgm.setText(table["le_slow_xgm"])
+
+
+
+        if "le_hirex_ch_sa1" in table.keys(): self.ui.le_hirex_ch_sa1.setText(table["le_hirex_ch_sa1"])
+        if "le_trans_ch_sa1" in table.keys(): self.ui.le_trans_ch_sa1.setText(table["le_trans_ch_sa1"])
+        if "sb_hrx_npx_sa1" in table.keys():  self.ui.sb_hrx_npx_sa1.setValue(table["sb_hrx_npx_sa1"])
+        if "le_ctrl_num_bunch_sa1" in table.keys(): self.ui.le_ctrl_num_bunch_sa1.setText(table["le_ctrl_num_bunch_sa1"])
+        if "le_fast_xgm_sa1" in table.keys(): self.ui.le_fast_xgm_sa1.setText(table["le_fast_xgm_sa1"])
+        if "le_slow_xgm_sa1" in table.keys(): self.ui.le_slow_xgm_sa1.setText(table["le_slow_xgm_sa1"])
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))

@@ -102,7 +102,7 @@ class MainWindow(Ui_MainWindow):
         self.Form = Form
         # load in the dark theme style sheet
         #if self.style_file != "standard.css":
-        self.le_a.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_a))
+
         #self.le_scan_doocs.editingFinished.connect(lambda : self.is_le_addr_ok(self.le_scan_doocs))
         self.le_doocs_ch_cor.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_cor))
 
@@ -146,7 +146,6 @@ class MainWindow(Ui_MainWindow):
         table["sb_bnumber"] = self.sb_bnumber.value()
         table["sb_av_nbunch"] = self.sb_av_nbunch.value()
         table["sb_transmission"] = self.sb_transmission.value()
-        table["le_a"] = str(self.le_a.text())
         #table["le_b"] = str(self.le_b.text())
 
         table["sb_px1"] = self.sb_px1.value()
@@ -196,9 +195,6 @@ class MainWindow(Ui_MainWindow):
             if "sb_ev_px" in table.keys(): self.sb_ev_px.setValue(table["sb_ev_px"])
             if "sb_nbunch_back" in table.keys(): self.sb_nbunch_back.setValue(table["sb_nbunch_back"])
             
-            
-            if "le_a" in table.keys(): self.le_a.setText(table["le_a"])
-            #if "le_b" in table.keys(): self.le_b.setText(table["le_b"])
             if "sbox_scan_wait" in table.keys(): self.sbox_scan_wait.setValue(table["sbox_scan_wait"])
             #if "le_scan_doocs" in table.keys(): self.le_scan_doocs.setText(table["le_scan_doocs"])
             if "le_scan_range" in table.keys(): self.le_scan_range.setText(table["le_scan_range"])
