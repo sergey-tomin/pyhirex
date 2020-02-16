@@ -1,3 +1,4 @@
+#!/opt/anaconda4/bin/python
 from PyQt5.QtWidgets import QFrame, QMainWindow
 import sys
 import os
@@ -346,12 +347,12 @@ class SpectrometerWindow(QMainWindow):
         pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         if self.counter_spect % 10 == 0:
             self.label2.setText(
-            "<span style='font-size: 16pt', style='color: green'>XGM: %0.1f &mu;J <span style='color: red'>HIREX: %0.1f &mu;J   <span style='color: yellow'> @ %0.1f eV</span>"%(
+            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>HIREX: %0.2f &mu;J   <span style='color: yellow'> @ %0.1f eV</span>"%(
             pulse_energy, ave_integ, self.peak_ev))
-		
+
         self.counter_spect  += 1
-		
-		
+
+
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
@@ -455,7 +456,7 @@ class SpectrometerWindow(QMainWindow):
         self.plot1.addItem(self.single)
 
         pen = pg.mkPen((51, 255, 51), width=2)
-        pen = pg.mkPen((255, 0, 0), width=2)
+        pen = pg.mkPen((255, 0, 0), width=3)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
         self.average = pg.PlotCurveItem( pen=pen, name='average')
 
