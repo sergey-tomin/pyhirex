@@ -14,7 +14,7 @@ class Ui_Form(object):
         Form.resize(619, 726)
         Form.setMinimumSize(QtCore.QSize(0, 0))
         Form.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        Form.setStyleSheet("background-color: white")
+        #Form.setStyleSheet("background-color: white")
         self.gridLayout_2 = QtWidgets.QGridLayout(Form)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
