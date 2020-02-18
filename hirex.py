@@ -112,8 +112,9 @@ class SpectrometerWindow(QMainWindow):
         self.config_file = self.config_dir + "config.json"
         self.settings_file = self.config_dir + "settings.json"
         self.gui_dir = self.path + DIR_NAME + os.sep + "gui" + os.sep
-        self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
         self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
+        self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
+
         # initialize
         QFrame.__init__(self)
         self.ui = MainWindow(self)
@@ -596,14 +597,6 @@ class SpectrometerWindow(QMainWindow):
 
         logger.debug("load settings ... OK")
 
-    def loadStyleSheet(self):
-        """ Sets the dark GUI theme from a css file."""
-        try:
-            self.cssfile = "gui/style.css"
-            with open(self.cssfile, "r") as f:
-                self.setStyleSheet(f.read())
-        except IOError:
-            logger.error('No style sheet found!')
 
 
     def save_data_as(self, type):

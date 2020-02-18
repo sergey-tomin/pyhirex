@@ -242,7 +242,7 @@ class MainWindow(Ui_MainWindow):
         # pvs = self.ui.widget.pvs
         # check if file here
         if not os.path.isfile(self.settings_file):
-            return
+            return 0
 
         with open(self.settings_file, 'r') as f:
             table = json.load(f)
