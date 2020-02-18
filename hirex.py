@@ -111,8 +111,9 @@ class SpectrometerWindow(QMainWindow):
         self.config_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         self.config_file = self.config_dir + "config.json"
         self.settings_file = self.config_dir + "settings.json"
-        self.gui_dir = self.path + DIR_NAME + os.sep + "gui"+ os.sep
-
+        self.gui_dir = self.path + DIR_NAME + os.sep + "gui" + os.sep
+        self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
+        self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         # initialize
         QFrame.__init__(self)
         self.ui = MainWindow(self)
@@ -133,7 +134,7 @@ class SpectrometerWindow(QMainWindow):
         self.ui.restore_state(self.config_file)
 
         self.actual_n_bunchs = self.bunch_num_ctrl.get_value()
-        self.data_2d = np.random.rand(self.spectrometer.num_px, 1000)
+        self.data_2d = np.zeros((self.spectrometer.num_px, 1000))
 
         self.timer_live = pg.QtCore.QTimer()
         self.timer_live.timeout.connect(self.live_spec)
@@ -165,6 +166,9 @@ class SpectrometerWindow(QMainWindow):
         self.calib_energy_coef = 1
         self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
         #proxy = pg.SignalProxy(self.plot1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
+
+        self.ui.actionSave_Data.triggered.connect(self.save_data_as)
+
 
     def reload_objects_settings(self):
         try:
@@ -347,7 +351,7 @@ class SpectrometerWindow(QMainWindow):
         pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         if self.counter_spect % 10 == 0:
             self.label2.setText(
-            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>HIREX: %0.2f &mu;J   <span style='color: yellow'> @ %0.1f eV</span>"%(
+            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>HIREX: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
             pulse_energy, ave_integ, self.peak_ev))
 
         self.counter_spect  += 1
@@ -421,8 +425,14 @@ class SpectrometerWindow(QMainWindow):
         if len(others) != 0:
             self.tool_args = parser_mi.parse_args(others, namespace=self.tool_args)
 
-
     def add_plot(self):
+        gui_index = self.ui.get_style_name_index()
+        if "standard" in self.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            single_pen = pg.mkPen("k")
+        else:
+            single_pen = pg.mkPen("w")
 
         win = pg.GraphicsLayoutWidget()
         #justify='right',,
@@ -449,9 +459,8 @@ class SpectrometerWindow(QMainWindow):
         self.plot1.setAutoVisible(y=True)
 
         self.plot1.addLegend()
-        color = QtGui.QColor(0, 255, 255)
-        pen = pg.mkPen(color, width=2)
-        self.single = pg.PlotCurveItem(name='single')
+
+        self.single = pg.PlotCurveItem(pen=single_pen, name='single')
 
         self.plot1.addItem(self.single)
 
@@ -595,6 +604,15 @@ class SpectrometerWindow(QMainWindow):
                 self.setStyleSheet(f.read())
         except IOError:
             logger.error('No style sheet found!')
+
+
+    def save_data_as(self, type):
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Data',
+                                                     self.data_dir, "txt (*.npz)", None,
+                                                     QtGui.QFileDialog.DontUseNativeDialog)[0]
+
+        np.savez(filename, e_axis=self.x_axis, average=self.ave_spectrum, map=self.data_2d)
+
 
 
 def main():

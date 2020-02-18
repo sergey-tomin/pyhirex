@@ -23,9 +23,10 @@ class HirexSettings(QWidget):
         self.ui.pb_apply.clicked.connect(self.apply_settings)
 
         self.ui.pb_cancel.clicked.connect(self.close)
-        self.ui.cb_style_def.addItem("standard.css")
-        self.ui.cb_style_def.addItem("colinDark.css")
-        self.ui.cb_style_def.addItem("dark.css")
+        self.ui.cb_style_def.addItems(self.master.gui_styles)
+        #self.ui.cb_style_def.addItem("standard.css")
+        #self.ui.cb_style_def.addItem("colinDark.css")
+        #self.ui.cb_style_def.addItem("dark.css")
         self.style_file = None
         self.load_state(filename=self.master.settings_file)
         #except:

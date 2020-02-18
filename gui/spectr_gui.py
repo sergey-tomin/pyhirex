@@ -100,6 +100,7 @@ class MainWindow(Ui_MainWindow):
         self.menubar.setNativeMenuBar(False)
         #self.mainToolBar.setVisible(False)
         self.Form = Form
+        self.settings_file = self.Form.settings_file
         # load in the dark theme style sheet
         #if self.style_file != "standard.css":
 
@@ -110,12 +111,10 @@ class MainWindow(Ui_MainWindow):
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
         self.actionSend_to_logbook.triggered.connect(lambda: self.logbook(self.Form))
-        self.loadStyleSheet(filename=self.Form.gui_dir +"colinDark.css")
+        style_index = self.get_style_name_index()
+        style_name = self.Form.gui_styles[style_index]
 
-    def check_address(self):
-        self.is_le_addr_ok(self.le_a)
-        #self.is_le_addr_ok(self.le_b)
-
+        self.loadStyleSheet(filename=self.Form.gui_dir + style_name)
 
     def is_le_addr_ok(self, line_edit):
         if not line_edit.isEnabled():
@@ -239,14 +238,29 @@ class MainWindow(Ui_MainWindow):
         widget.save(screeshot_buffer, "png")
         return screenshot_tmp.toBase64().data().decode()
 
+    def get_style_name_index(self):
+        # pvs = self.ui.widget.pvs
+        # check if file here
+        if not os.path.isfile(self.settings_file):
+            return
+
+        with open(self.settings_file, 'r') as f:
+            table = json.load(f)
+        if "style" in table.keys():
+
+            return table["style"]
+        else:
+            return 0
+
+
     def loadStyleSheet(self, filename="dark.css"):
         """
         Sets the dark GUI theme from a css file.
         :return:
         """
         try:
-
             self.cssfile = filename
+            print("cssfile" , self.cssfile)
             with open(self.cssfile, "r") as f:
                 self.Form.setStyleSheet(f.read())
         except IOError:

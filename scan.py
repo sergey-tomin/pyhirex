@@ -319,6 +319,15 @@ class ScanInterface:
 
 
     def add_plot(self):
+
+        gui_index = self.ui.get_style_name_index()
+        if "standard" in self.parent.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            single_pen = pg.mkPen("k")
+        else:
+            single_pen = pg.mkPen("w")
+
         win = pg.GraphicsLayoutWidget()
         # justify='right',,
         self.label = pg.LabelItem(justify='left', row=0, col=0)

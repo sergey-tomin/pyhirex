@@ -63,6 +63,7 @@ class CorrelInterface:
 
 
     def plot_histogram(self):
+
         #current_mode = self.ui.cb_corel_spect.currentText()
         if self.ui.pb_start.text() == "Start" or self.parent.peak_ev is None:
             return
@@ -81,6 +82,7 @@ class CorrelInterface:
                 self.plot_hist.plot(x, y, stepMode=True,  fillLevel=0,  brush=(0,0,255,150), clear=True)
 
     def plot_correl(self):
+
         current_mode = self.ui.cb_corel_spect.currentText()
         if self.ui.pb_start.text() == "Start" or self.parent.peak_ev is None:
             return
@@ -110,6 +112,13 @@ class CorrelInterface:
 
 
     def add_corel_plot(self):
+        gui_index = self.ui.get_style_name_index()
+        if "standard" in self.parent.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            single_pen = pg.mkPen("k")
+        else:
+            single_pen = pg.mkPen("w")
 
         win = pg.GraphicsLayoutWidget()
 
@@ -147,7 +156,13 @@ class CorrelInterface:
         #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
 
     def add_hist_plot(self):
-
+        gui_index = self.ui.get_style_name_index()
+        if "standard" in self.parent.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            single_pen = pg.mkPen("k")
+        else:
+            single_pen = pg.mkPen("w")
         win = pg.GraphicsLayoutWidget()
 
         self.plot_hist = win.addPlot(row=0, col=0)
