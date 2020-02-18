@@ -62,7 +62,7 @@ class XFELMachineInterface(MachineInterface):
         :param val: value
         :return: None
         """
-        pydoocs.write(channel, float(val))
+        pydoocs.write(channel, val)
         return
 
 

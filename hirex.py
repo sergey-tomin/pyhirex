@@ -63,14 +63,17 @@ class Background(Thread):
     
     def run(self):
         Y = []
-        for i in range(self.nshots):
+        for i in range(self.nshots + 1):
             x = self.device.get_value()
             if self.devmode:
                 x = np.zeros_like(x) + 3 * np.exp(-np.linspace(-10, 10, num=len(x)) ** 2 / ((1 * 2)))
+            if i == 0:
+                continue
             Y.append(x)
             time.sleep(0.1)
         self.background = np.mean(Y, axis=0)
         np.savetxt("background.txt", self.background)
+        #time.sleep(0.5)
         print("Background finished")
 
     def stop(self):
@@ -112,9 +115,8 @@ class SpectrometerWindow(QMainWindow):
         self.config_file = self.config_dir + "config.json"
         self.settings_file = self.config_dir + "settings.json"
         self.gui_dir = self.path + DIR_NAME + os.sep + "gui" + os.sep
-        self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
-
+        self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         # initialize
         QFrame.__init__(self)
         self.ui = MainWindow(self)
@@ -290,9 +292,9 @@ class SpectrometerWindow(QMainWindow):
             self.back_taker = Background(mi=self.mi, device=self.spectrometer)
             self.back_taker.devmode = self.dev_mode
             self.bunch_num_ctrl.set_value(0)
-            time.sleep(0.15)
+            time.sleep(0.5)
             self.back_taker.nshots = int(self.ui.sb_nbunch_back.value())
-            self.back_taker.doocs_channel = str(self.ui.le_a.text())
+            # self.back_taker.doocs_channel = str(self.ui.le_a.text())
             if not self.back_taker.is_alive():
                 self.back_taker.start()
                 self.back_taker_status.start()
@@ -341,6 +343,8 @@ class SpectrometerWindow(QMainWindow):
             self.single.setData(self.x_axis, spectrum)
             self.average.setData(x=self.x_axis, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
+            
+            self.back_plot.setData(self.x_axis, self.background)
 
             self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
 
@@ -365,6 +369,9 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setText("Start")
         else:
             self.counter_spect = 0
+            self.data_2d = np.zeros((self.spectrometer.num_px, 1000))
+            self.spectrum_list = []
+            self.ave_spectrum = []
             self.timer_live.start(100)
             self.ui.pb_start.setText("Stop")
             self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127);")
@@ -480,6 +487,12 @@ class SpectrometerWindow(QMainWindow):
         #self.plot1.enableAutoRange(False)
         #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
         # self.textItem.setPos(10, 10)
+
+        pen = pg.mkPen((0, 100, 0), width=1)
+        #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
+        self.back_plot = pg.PlotCurveItem( pen=pen, name='background')
+
+        self.plot1.addItem(self.back_plot)
 
         # cross hair
         self.vLine = pg.InfiniteLine(angle=90, movable=False)
@@ -597,6 +610,14 @@ class SpectrometerWindow(QMainWindow):
 
         logger.debug("load settings ... OK")
 
+    def loadStyleSheet(self):
+        """ Sets the dark GUI theme from a css file."""
+        try:
+            self.cssfile = "gui/style.css"
+            with open(self.cssfile, "r") as f:
+                self.setStyleSheet(f.read())
+        except IOError:
+            logger.error('No style sheet found!')
 
 
     def save_data_as(self, type):
