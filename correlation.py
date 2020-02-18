@@ -75,7 +75,7 @@ class CorrelInterface:
                 #self.peak = self.peak[:n_shots]
                 self.doocs_vals_hist = self.doocs_vals_hist[:n_shots]
 
-            if self.ui.scan_tab.currentIndex() == 2:
+            if self.ui.scan_tab.currentIndex() == 1:
                 val_min = np.min(self.doocs_vals_hist)
                 val_max = np.max(self.doocs_vals_hist)
                 y, x = np.histogram(self.doocs_vals_hist, bins=np.linspace(val_min, val_max, 50))
@@ -95,7 +95,7 @@ class CorrelInterface:
                 self.peak = self.peak[:n_shots]
                 self.doocs_vals = self.doocs_vals[:n_shots]
 
-            if self.ui.scan_tab.currentIndex() == 2:
+            if self.ui.scan_tab.currentIndex() == 1:
                 self.single_scatter.setData(self.peak, self.doocs_vals)
                 
         if current_mode == "Peak Ampl" and self.doocs_dev is not None:
@@ -107,7 +107,7 @@ class CorrelInterface:
                 self.peak = self.peak[:n_shots]
                 self.doocs_vals = self.doocs_vals[:n_shots]
 
-            if self.ui.scan_tab.currentIndex() == 2:
+            if self.ui.scan_tab.currentIndex() == 1:
                 self.single_scatter.setData(self.peak, self.doocs_vals)
 
 
