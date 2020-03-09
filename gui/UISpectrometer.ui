@@ -426,7 +426,7 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_11">
-             <item row="1" column="0">
+             <item row="0" column="0" colspan="2">
               <widget class="QPushButton" name="pb_start">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -435,15 +435,12 @@
                 </sizepolicy>
                </property>
                <property name="styleSheet">
-                <string notr="true">color: rgb(255, 0, 0); font-size: 14pt;</string>
+                <string notr="true">color: rgb(255, 0, 0); font-size: 18pt;</string>
                </property>
                <property name="text">
                 <string>Start</string>
                </property>
               </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QComboBox" name="comboBox"/>
              </item>
             </layout>
            </item>
@@ -482,17 +479,24 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_13">
-             <item row="1" column="0">
-              <widget class="QPushButton" name="pb_cross_calib">
+             <item row="0" column="1">
+              <widget class="QPushButton" name="pb_logbook">
                <property name="text">
-                <string>Cross-calibration with XGM</string>
+                <string>Logbook</string>
                </property>
               </widget>
              </item>
              <item row="0" column="0">
-              <widget class="QPushButton" name="pb_logbook">
+              <widget class="QPushButton" name="pb_hide_show_backplot">
                <property name="text">
-                <string>Logbook</string>
+                <string>Hide Background</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QPushButton" name="pb_cross_calib">
+               <property name="text">
+                <string>Cross-calibration with XGM</string>
                </property>
               </widget>
              </item>

@@ -141,7 +141,6 @@ class MainWindow(Ui_MainWindow):
         table = {}
         table["chb_a"] = self.chb_a.checkState()
         table["chb_show_fit"] = self.chb_show_fit.checkState()
-        table["comboBox"] = self.comboBox.currentIndex()
         table["sb_bnumber"] = self.sb_bnumber.value()
         table["sb_av_nbunch"] = self.sb_av_nbunch.value()
         table["sb_transmission"] = self.sb_transmission.value()
@@ -184,7 +183,6 @@ class MainWindow(Ui_MainWindow):
 
             if "chb_a" in table.keys(): self.chb_a.setCheckState(table["chb_a"])
             if "chb_show_fit" in table.keys(): self.chb_show_fit.setCheckState(table["chb_show_fit"])
-            if "comboBox" in table.keys(): self.comboBox.setCurrentIndex(table["comboBox"])
             if "sb_bnumber" in table.keys(): self.sb_bnumber.setValue(table["sb_bnumber"])
             if "sb_av_nbunch" in table.keys(): self.sb_av_nbunch.setValue(table["sb_av_nbunch"])
             if "sb_transmission" in table.keys(): self.sb_transmission.setValue(table["sb_transmission"])

@@ -171,6 +171,7 @@ class SpectrometerWindow(QMainWindow):
         #proxy = pg.SignalProxy(self.plot1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
 
         self.ui.actionSave_Data.triggered.connect(self.save_data_as)
+        self.ui.pb_hide_show_backplot.clicked.connect(self.show_hide_background)
 
 
     def reload_objects_settings(self):
@@ -359,13 +360,24 @@ class SpectrometerWindow(QMainWindow):
             "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>HIREX: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
             pulse_energy, ave_integ, self.peak_ev))
 
-        self.counter_spect  += 1
+        self.counter_spect += 1
 
+    def show_hide_background(self):
+        if self.ui.pb_hide_show_backplot.text() == "Hide Background":
+            self.plot1.removeItem(self.back_plot)
+            self.plot1.legend.removeItem(self.back_plot.name())
+            #self.ui.pb_hide_show_backplot.setStyleSheet("color: rgb(85, 255, 255);")
+            self.ui.pb_hide_show_backplot.setText("Show Background")
+        else:
+            self.ui.pb_hide_show_backplot.setText("Hide Background")
+            #self.ui.pb_hide_show_backplot.setStyleSheet("color: rgb(255, 0, 0);")
+            self.plot1.addItem(self.back_plot)
+            #self.update_plot()
 
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
-            self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0);")
+            self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0); font-size: 18pt")
             self.ui.pb_start.setText("Start")
         else:
             self.counter_spect = 0
@@ -374,7 +386,10 @@ class SpectrometerWindow(QMainWindow):
             self.ave_spectrum = []
             self.timer_live.start(100)
             self.ui.pb_start.setText("Stop")
-            self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127);")
+
+            #self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127); font-size: 18pt")
+            self.ui.pb_start.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
+
             px1 = int(self.ui.sb_px1.value())
             img_idx1 = int(px1 - 250)
             img_idx2 = int(px1 + 250)
