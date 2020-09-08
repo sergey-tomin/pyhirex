@@ -86,9 +86,7 @@ class ScanTool(Thread):
         
         #self.crystal.is_busy()
         time.sleep(0.1)
-        print("before while:", self.kill, self.crystal.is_busy())
         while (not self.kill and self.crystal.is_busy()):
-            print("in the loop:", self.kill, self.crystal.is_busy())
             x = self.crystal.get_actual_value()
             self.doocs_vals.append(x)
             self.spectrums = np.append(self.spectrums, self.parent.ave_spectrum.reshape(1, -1), axis=0)

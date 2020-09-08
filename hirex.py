@@ -172,7 +172,19 @@ class SpectrometerWindow(QMainWindow):
 
         self.ui.actionSave_Data.triggered.connect(self.save_data_as)
         self.ui.pb_hide_show_backplot.clicked.connect(self.show_hide_background)
+        
+        self.check_doocs_permission()
 
+    def check_doocs_permission(self):
+        self.doocs_permit = True
+        try:
+            self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_PY", 0.0)
+        except:
+            self.doocs_permit = False
+        if not self.doocs_permit:
+            self.ui.groupBox_5.setTitle("Control: no permission to write to DOOCS")
+            self.ui.groupBox_5.setStyleSheet('QGroupBox  {color: red;}')
+            
 
     def reload_objects_settings(self):
         try:
@@ -311,6 +323,11 @@ class SpectrometerWindow(QMainWindow):
                 self.ui.chb_a.setChecked(False)
             else:
                 spectrum -= self.background
+            
+        # send maximum to doocs
+        #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/SASE1_2.3A/Z_POS", np.max(spectrum[350:450]))
+        #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.sum(spectrum))
+        
         self.spectrum_list.insert(0, spectrum)
         self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
 
@@ -318,8 +335,9 @@ class SpectrometerWindow(QMainWindow):
         if len(self.spectrum_list) > n_av:
             self.spectrum_list = self.spectrum_list[:n_av]
 
-        filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
         if not old_scipy:
+            filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
+
             peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
                                height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.,
                               #prominence=0.5
@@ -330,9 +348,12 @@ class SpectrometerWindow(QMainWindow):
             self.peak_ev_list = [self.x_axis[np.argmax(self.ave_spectrum)]]
         #print(self.peak_ev_list)
 
-        single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
+        # single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
         ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
-
+        if self.doocs_permit:
+            self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_INTEG", ave_integ)
+            self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_AMPL", np.max(self.ave_spectrum))
+        #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.max(self.ave_spectrum[570:580]))
         self.peak_ev = self.x_axis[np.argmax(self.ave_spectrum)]
 
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
