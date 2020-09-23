@@ -319,6 +319,7 @@ class SpectrometerWindow(QMainWindow):
         spectrum = self.spectrometer.get_value().astype("float64")
         if self.ui.chb_a.isChecked():
             if len(self.background) != len(spectrum):
+                self.background = np.zeros_like(spectrum)
                 self.error_box("Take Background")
                 self.ui.chb_a.setChecked(False)
             else:
