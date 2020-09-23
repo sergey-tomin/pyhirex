@@ -137,6 +137,37 @@ class Spectrometer():
         stop = E0 + (self.num_px - px1) * ev_px
         self.x_axis = np.linspace(start, stop, num=self.num_px)
         return self.x_axis
+        
+
+class DummyHirex(Spectrometer):
+
+    def __init__(self, *args, **kwargs):
+        super(DummyHirex, self).__init__(*args, **kwargs)
+    
+    def actuator(self):
+        return np.sin(time.time()/5)
+    
+    def get_value(self):
+        """
+        basic method to get value/spectrum via DOOCS server
+        :return:
+        """
+        
+        spectrum_phen = np.linspace(8800, 9200, 1280)
+        
+        sase_center = 9000
+        sase_sigma = 20
+        
+        seed_center = 9020 + 10 * self.actuator()
+        seed_power = np.exp(-(seed_center - sase_center - 10)**2 / (2 * sase_sigma/2)**2) * np.abs(np.random.randn(1)[0])
+        seed_sigma = 1
+        
+        spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
+        spectrum_seed = np.exp(-(spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
+        spectrum_noise = np.random.rand(len(spectrum_phen))
+
+        val =  3 * spectrum_sase + 20 * seed_power * spectrum_seed + spectrum_noise * 3
+        return val
 
 
 class BunchNumberCTRL():

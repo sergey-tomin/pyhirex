@@ -1,0 +1,7 @@
+*.pyc
+*.swp
+.project
+.pydevproject
+.vscode/
+**.ipynb_checkpoints/
+background.txt

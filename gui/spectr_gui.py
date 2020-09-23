@@ -144,6 +144,7 @@ class MainWindow(Ui_MainWindow):
         table["sb_bnumber"] = self.sb_bnumber.value()
         table["sb_av_nbunch"] = self.sb_av_nbunch.value()
         table["sb_transmission"] = self.sb_transmission.value()
+        table["sb_transmission_override"] = self.sb_transmission_override.isChecked()
         #table["le_b"] = str(self.le_b.text())
 
         table["sb_px1"] = self.sb_px1.value()
@@ -186,6 +187,7 @@ class MainWindow(Ui_MainWindow):
             if "sb_bnumber" in table.keys(): self.sb_bnumber.setValue(table["sb_bnumber"])
             if "sb_av_nbunch" in table.keys(): self.sb_av_nbunch.setValue(table["sb_av_nbunch"])
             if "sb_transmission" in table.keys(): self.sb_transmission.setValue(table["sb_transmission"])
+            if "sb_transmission_override" in table.keys(): self.sb_transmission_override.setChecked(table["sb_transmission_override"])
 
             if "sb_px1" in table.keys(): self.sb_px1.setValue(table["sb_px1"])
             if "sb_E0" in table.keys(): self.sb_E0.setValue(table["sb_E0"])

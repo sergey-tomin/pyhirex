@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>619</width>
-    <height>726</height>
+    <height>806</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -171,11 +171,6 @@
             </item>
             <item row="8" column="1" colspan="2">
              <widget class="QLineEdit" name="le_ctrl_num_bunch">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="locale">
                <locale language="English" country="UnitedStates"/>
               </property>
@@ -186,11 +181,6 @@
             </item>
             <item row="2" column="1" colspan="2">
              <widget class="QLineEdit" name="le_hirex_ch">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>XFEL.EXP/DAQ.GOTTHARD_MASTER/SA2_XTD6_HIREX/ADC</string>
               </property>
@@ -198,11 +188,6 @@
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label_4">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>HIREX signal</string>
               </property>
@@ -210,11 +195,6 @@
             </item>
             <item row="4" column="0">
              <widget class="QLabel" name="label_20">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>Transmission DOOCS </string>
               </property>
@@ -249,13 +229,7 @@
              </widget>
             </item>
             <item row="6" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_slow_xgm">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-             </widget>
+             <widget class="QLineEdit" name="le_slow_xgm"/>
             </item>
            </layout>
           </widget>
@@ -270,6 +244,34 @@
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_3">
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Fast XGM signal</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Transmission DOOCS </string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Slow XGM signal</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>HIREX N pixels</string>
+              </property>
+             </widget>
+            </item>
             <item row="5" column="0">
              <widget class="QLabel" name="label_12">
               <property name="text">
@@ -290,40 +292,14 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Fast XGM signal</string>
-              </property>
-             </widget>
+            <item row="0" column="1" colspan="2">
+             <widget class="QLineEdit" name="le_hirex_ch_sa1"/>
             </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>HIREX N pixels</string>
-              </property>
-             </widget>
+            <item row="1" column="1" colspan="2">
+             <widget class="QLineEdit" name="le_trans_ch_sa1"/>
             </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Transmission DOOCS </string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>Slow XGM signal</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>HIREX sgnal</string>
-              </property>
-             </widget>
+            <item row="3" column="1" colspan="2">
+             <widget class="QLineEdit" name="le_slow_xgm_sa1"/>
             </item>
             <item row="4" column="1">
              <spacer name="horizontalSpacer_4">
@@ -338,17 +314,15 @@
               </property>
              </spacer>
             </item>
-            <item row="3" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_slow_xgm_sa1"/>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>HIREX sgnal</string>
+              </property>
+             </widget>
             </item>
             <item row="2" column="1" colspan="2">
              <widget class="QLineEdit" name="le_fast_xgm_sa1"/>
-            </item>
-            <item row="1" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_trans_ch_sa1"/>
-            </item>
-            <item row="0" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_hirex_ch_sa1"/>
             </item>
             <item row="5" column="1" colspan="2">
              <widget class="QLineEdit" name="le_ctrl_num_bunch_sa1"/>
@@ -361,18 +335,13 @@
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
-          <string>GroupBox</string>
+          <string>Interface</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_7">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_6">
             <item row="1" column="0">
              <widget class="QLabel" name="label_15">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>Server</string>
               </property>
@@ -380,11 +349,6 @@
             </item>
             <item row="1" column="2">
              <widget class="QLineEdit" name="le_server">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>XFEL, XFEL_SIM</string>
               </property>
@@ -395,11 +359,6 @@
             </item>
             <item row="0" column="2">
              <widget class="QLineEdit" name="le_logbook">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>xfellog</string>
               </property>
@@ -420,11 +379,6 @@
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label_5">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>LogBook</string>
               </property>
@@ -433,6 +387,39 @@
            </layout>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string/>
+         </property>
+         <widget class="QWidget" name="gridLayoutWidget">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>541</width>
+            <height>41</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>History size</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="le_2d_hist_size">
+             <property name="text">
+              <string>1000</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -470,7 +457,6 @@
          <property name="font">
           <font>
            <family>Times</family>
-           <pointsize>14</pointsize>
            <italic>true</italic>
           </font>
          </property>
