@@ -73,13 +73,13 @@ class Correl2DInterface:
         
         min_val = sbin * (int(min(self.doocs_vals_hist) / sbin))
         max_val = max(self.doocs_vals_hist)
-        print('min_DOOCS_val', min_val)
-        print('max_DOOCS_val', max_val)
-        print('sbin', sbin)
+        # print('min_DOOCS_val', min_val)
+        # print('max_DOOCS_val', max_val)
+        # print('sbin', sbin)
         self.doocs_bins = np.arange(min_val, max_val, sbin)
         
         spec = np.array(self.spec_hist)
-        print('shape of spec array', spec.shape)
+        # print('shape of spec array', spec.shape)
         # print(self.doocs_bins)
         
         
@@ -102,20 +102,15 @@ class Correl2DInterface:
         self.spec_hist = []
         self.doocs_vals_hist = []
         
-
     def plot_correl(self):
 
-        # current_mode = self.ui.cb_corel_spect.currentText()
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked():
             return
-        # if current_mode == "Peak Pos" and self.doocs_dev is not None:
-        
-        
         
         self.phen = self.parent.x_axis
         
-        print('min_self.phen_val', min(self.phen))
-        print('max_self.phen_val', max(self.phen))
+        # print('min_self.phen_val', min(self.phen))
+        # print('max_self.phen_val', max(self.phen))
         
         self.spec_hist.append(self.parent.spectrum_event)
         
@@ -124,7 +119,7 @@ class Correl2DInterface:
         
             dummy_val = np.sin(time.time()/10)*7.565432 + 25
             self.doocs_vals_hist.append(dummy_val) #fix
-            print('dummy hirex value', dummy_val)
+            # print('dummy hirex value', dummy_val)
             self.doocs_address_label = 'dummy label'
         else:
             self.doocs_vals_hist.append(self.doocs_dev.get_value())
@@ -138,34 +133,7 @@ class Correl2DInterface:
             self.spec_hist = self.spec_hist[-n_shots:]
             self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
             
-        print(self.doocs_vals_hist[-1])
-        # print(len(self.spec_hist), len(self.doocs_vals_hist))
-        # print(min(self.doocs_vals_hist), max(self.doocs_vals_hist), self.ui.sb_corr2d_binning.value())
-        
-        
-        
-        
-        
-        # print('final shape', self.spec_binned.shape)
-        
-        
-
-        # if self.ui.scan_tab.currentIndex() == 1:
-            # self.single_scatter.setData(self.peak, self.doocs_vals)
-        
-
-        # peak_max = np.max(self.parent.data_2d[:, 0])
-        # self.peak.insert(0, peak_max)
-        # self.doocs_vals.insert(0, self.doocs_dev.get_value())
-        # n_shots = int(self.ui.sb_av_nbunch.value())
-        # if len(self.peak) > n_shots:
-            # self.peak = self.peak[:n_shots]
-            # self.doocs_vals = self.doocs_vals[:n_shots]
-            
-        # print(dir(self.ui.scan_tab.currentWidget()))
-        
-        
-        
+        # print(self.doocs_vals_hist[-1])
         
         if self.ui.scan_tab.currentIndex() == 2:
             
@@ -180,15 +148,13 @@ class Correl2DInterface:
             self.add_image_item()
             self.img.setImage(self.spec_binned)
             
-            # rect = QtCore.QRect(min(self.doocs_vals_hist), min(self.phen), max(self.doocs_vals_hist)-min(self.doocs_vals_hist), max(self.phen)-min(self.phen))
-            
+            #elegant but maybe wrong
+            # rect = QtCore.QRect(min(self.doocs_bins), min(self.phen), max(self.doocs_bins)-min(self.doocs_bins), max(self.phen)-min(self.phen))
             # self.img.setRect(rect)
             self.img.scale(scale_xaxis, scale_yaxis)
             self.img.translate(translate_xaxis, translate_yaxis)
         
-            
-            
-            
+
     def add_image_widget(self):
         win = pg.GraphicsLayoutWidget()
         layout = QtGui.QGridLayout()
@@ -214,58 +180,3 @@ class Correl2DInterface:
 
         # Apply the colormap
         self.img.setLookupTable(lut)
-
-
-    def add_corel2D_plot(self):
-        gui_index = self.ui.get_style_name_index()
-        if "standard" in self.parent.gui_styles[gui_index]:
-            pg.setConfigOption('background', 'w')
-            pg.setConfigOption('foreground', 'k')
-            single_pen = pg.mkPen("k")
-        else:
-            single_pen = pg.mkPen("w")
-
-        win = pg.GraphicsLayoutWidget()
-
-        self.plot_cor = win.addPlot(row=0, col=0)
-        self.plot_cor.setLabel('left', "E_ph", units='keV')
-        self.plot_cor.setLabel('bottom', self.doocs_address_label, units='')
-
-        self.plot_cor.showGrid(1, 1, 1)
-
-        self.plot_cor.getAxis('left').enableAutoSIPrefix(enable=False)  # stop the auto unit scaling on y axes
-        layout = QtGui.QGridLayout()
-        self.ui.widget_correl.setLayout(layout)
-        layout.addWidget(win, 0, 0)
-
-        self.plot_cor.setAutoVisible(y=True)
-
-        self.plot_cor.addLegend()
-        pen = pg.mkPen((255, 0, 0), width=2)
-        self.single_scatter = pg.ScatterPlotItem(pen=pen, name='')
-
-        self.plot_cor.addItem(self.single_scatter)
-
-        pen = pg.mkPen((255, 0, 0), width=2)
-        # self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
-        self.average_scatter = pg.ScatterPlotItem(pen=pen, name='average')
-
-        self.plot_cor.addItem(self.average_scatter)
-
-        pen = pg.mkPen((255, 255, 255), width=2)
-
-        self.fit_func_scatteer = pg.PlotCurveItem(pen=pen, name='Gauss Fit')
-
-        # self.plot1.addItem(self.fit_func)
-        self.plot_cor.enableAutoRange(False)
-        #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
-
-
-
-        #pen = pg.mkPen((255, 255, 255), width=2)
-
-        #self.fit_func_hist = pg.PlotCurveItem(pen=pen, name='Gauss Fit')
-
-        # self.plot1.addItem(self.fit_func)
-        #self.plot_hist.enableAutoRange(False)
-        #self.textItem = pg.TextItem(text="", border='w', fill=(0, 0, 0))
