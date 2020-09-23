@@ -49,6 +49,7 @@ class Correl2DInterface:
         # self.ui.pb_check_range.clicked.connect(self.check_range)
         # self.ui.pb_show_map.clicked.connect(self.show_hide_map)
         
+        self.doocs_address_label = '' #костыль
         self.add_image_widget()
 
     def get_device(self):
@@ -70,10 +71,10 @@ class Correl2DInterface:
         if sbin==0:
             sbin=1e10
         
-        min_val = sbin * (int(min(self.doocs_vals_hist) / sbin)-1)
+        min_val = sbin * (int(min(self.doocs_vals_hist) / sbin))
         max_val = max(self.doocs_vals_hist)
-        print('min_val', min_val)
-        print('max_val', max_val)
+        print('min_DOOCS_val', min_val)
+        print('max_DOOCS_val', max_val)
         print('sbin', sbin)
         self.doocs_bins = np.arange(min_val, max_val, sbin)
         
@@ -113,12 +114,15 @@ class Correl2DInterface:
         
         self.phen = self.parent.x_axis
         
+        print('min_self.phen_val', min(self.phen))
+        print('max_self.phen_val', max(self.phen))
+        
         self.spec_hist.append(self.parent.spectrum_event)
         
         #self.doocs_dev is None and
         if self.parent.ui.combo_hirex.currentText() == "DUMMY HIREX":
         
-            dummy_val = np.sin(time.time()/5)*7.565432
+            dummy_val = np.sin(time.time()/10)*7.565432 + 25
             self.doocs_vals_hist.append(dummy_val) #fix
             print('dummy hirex value', dummy_val)
             self.doocs_address_label = 'dummy label'
@@ -131,8 +135,8 @@ class Correl2DInterface:
         
         
         if len(self.spec_hist) > n_shots:
-            self.spec_hist = self.spec_hist[:n_shots]
-            self.doocs_vals_hist = self.doocs_vals_hist[:n_shots]
+            self.spec_hist = self.spec_hist[-n_shots:]
+            self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
             
         print(self.doocs_vals_hist[-1])
         # print(len(self.spec_hist), len(self.doocs_vals_hist))
@@ -140,9 +144,9 @@ class Correl2DInterface:
         
         
         
-        self.sort_and_bin()
         
-        print('final shape', self.spec_binned.shape)
+        
+        # print('final shape', self.spec_binned.shape)
         
         
 
@@ -164,12 +168,24 @@ class Correl2DInterface:
         
         
         if self.ui.scan_tab.currentIndex() == 2:
-        
-            # scale_xaxis = (self.phen[-1] - self.phen[0]) / len(self.phen)
-            # shift_xaxis = self.phen[0] / scale_xaxis
+            
+            self.sort_and_bin()
+            scale_yaxis = (self.phen[-1] - self.phen[0]) / len(self.phen)
+            translate_yaxis = self.phen[0] / scale_yaxis
+            
+            scale_xaxis = (max(self.doocs_bins) - min(self.doocs_bins)) / len(self.doocs_bins)
+            translate_xaxis = min(self.doocs_bins) / scale_xaxis
             # self.single_scatter.setData(self.peak, self.doocs_vals)
+            
+            self.add_image_item()
             self.img.setImage(self.spec_binned)
-            # self.img.scale(scale_xaxis, 1)
+            
+            # rect = QtCore.QRect(min(self.doocs_vals_hist), min(self.phen), max(self.doocs_vals_hist)-min(self.doocs_vals_hist), max(self.phen)-min(self.phen))
+            
+            # self.img.setRect(rect)
+            self.img.scale(scale_xaxis, scale_yaxis)
+            self.img.translate(translate_xaxis, translate_yaxis)
+        
             
             
             
@@ -185,8 +201,8 @@ class Correl2DInterface:
     def add_image_item(self):
         self.img_plot.clear()
 
-        # self.img_plot.setLabel('E_photon', "keV", units='')
-        # self.img_plot.setLabel('bottom', 'bottom', units='')
+        self.img_plot.setLabel('left', "E_ph", units='KeV')
+        self.img_plot.setLabel('bottom', self.doocs_address_label, units='')
 
         self.img = pg.ImageItem()
 

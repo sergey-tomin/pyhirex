@@ -145,7 +145,7 @@ class DummyHirex(Spectrometer):
         super(DummyHirex, self).__init__(*args, **kwargs)
     
     def actuator(self):
-        return np.sin(time.time()/5)
+        return np.sin(time.time()/10)*2
     
     def get_value(self):
         """

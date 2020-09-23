@@ -694,13 +694,6 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="2">
-          <widget class="QLineEdit" name="sb_corr2d_binning">
-           <property name="text">
-            <string>1e-3</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="3">
           <widget class="QLabel" name="label_27">
            <property name="text">
@@ -750,6 +743,13 @@
            </property>
            <property name="text">
             <string>Run</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="sb_corr2d_binning">
+           <property name="text">
+            <string>0.5</string>
            </property>
           </widget>
          </item>
