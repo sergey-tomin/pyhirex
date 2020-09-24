@@ -546,7 +546,7 @@ class SpectrometerWindow(QMainWindow):
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
         self.back_plot = pg.PlotCurveItem( pen=pen, name='background')
 
-        self.plot1.addItem(self.back_plot)
+        #self.plot1.addItem(self.back_plot) ##################################### SS removed, as typically we don;t need it once start pySpectrometer
 
         # cross hair
         self.vLine = pg.InfiniteLine(angle=90, movable=False)

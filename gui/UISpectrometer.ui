@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1270</width>
+    <width>1461</width>
     <height>1483</height>
    </rect>
   </property>
@@ -277,6 +277,9 @@
                <property name="text">
                 <string>Start</string>
                </property>
+               <property name="shortcut">
+                <string>Space</string>
+               </property>
               </widget>
              </item>
             </layout>
@@ -495,7 +498,7 @@
              <item row="0" column="0">
               <widget class="QPushButton" name="pb_hide_show_backplot">
                <property name="text">
-                <string>Hide Background</string>
+                <string>Show Background</string>
                </property>
               </widget>
              </item>
@@ -653,8 +656,8 @@
          <rect>
           <x>9</x>
           <y>19</y>
-          <width>1221</width>
-          <height>1211</height>
+          <width>1411</width>
+          <height>1161</height>
          </rect>
         </property>
        </widget>
@@ -662,9 +665,9 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>1250</y>
-          <width>1211</width>
-          <height>111</height>
+          <y>1200</y>
+          <width>1411</width>
+          <height>157</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -678,7 +681,11 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="le_doocs_ch_cor2d"/>
+            <widget class="QLineEdit" name="le_doocs_ch_cor2d">
+             <property name="text">
+              <string>event</string>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="sb_corr_2d_reset">
@@ -691,6 +698,9 @@
              </property>
              <property name="text">
               <string>Reset</string>
+             </property>
+             <property name="shortcut">
+              <string>Backspace</string>
              </property>
             </widget>
            </item>
@@ -705,6 +715,9 @@
              </property>
              <property name="text">
               <string>Process</string>
+             </property>
+             <property name="shortcut">
+              <string>Space</string>
              </property>
             </widget>
            </item>
@@ -736,7 +749,7 @@
            <item>
             <widget class="QLineEdit" name="sb_corr2d_binning">
              <property name="text">
-              <string>0.5</string>
+              <string>1</string>
              </property>
             </widget>
            </item>
@@ -759,7 +772,7 @@
               <number>100</number>
              </property>
              <property name="value">
-              <number>10000</number>
+              <number>100000</number>
              </property>
             </widget>
            </item>
@@ -1169,7 +1182,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1270</width>
+     <width>1461</width>
      <height>31</height>
     </rect>
    </property>
@@ -1190,6 +1203,7 @@
      <string>Save</string>
     </property>
     <addaction name="actionSave_Data"/>
+    <addaction name="actionSave_Corelation"/>
    </widget>
    <addaction name="menuExpert"/>
    <addaction name="menuLogbook"/>
@@ -1208,7 +1222,7 @@
   </action>
   <action name="actionSave_Data">
    <property name="text">
-    <string>Save Data</string>
+    <string>Save Spectra</string>
    </property>
    <property name="shortcut">
     <string/>
@@ -1217,6 +1231,14 @@
   <action name="actionSave_Average_Spectrum">
    <property name="text">
     <string>Save Average Spectrum</string>
+   </property>
+  </action>
+  <action name="actionSave_Corelation">
+   <property name="text">
+    <string>Save Corelation</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+S</string>
    </property>
   </action>
  </widget>
