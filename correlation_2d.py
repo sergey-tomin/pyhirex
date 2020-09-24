@@ -63,6 +63,7 @@ class Correl2DInterface:
     
     def sort_and_bin(self):
         n_phens = self.parent.spectrum_event.size
+        
         try:
             sbin = float(self.ui.sb_corr2d_binning.text()) #bin size
         except ValueError:
@@ -70,33 +71,57 @@ class Correl2DInterface:
         
         if sbin==0:
             sbin=1e10
+            
+        try:
+            self.n_lag = int(self.ui.sb_corr2d_lag.text()) #bin size
+        except ValueError:
+            self.n_lag = 0
         
-        min_val = sbin * (int(min(self.doocs_vals_hist) / sbin))
-        max_val = max(self.doocs_vals_hist)
+        
+        if len(self.doocs_vals_hist) > abs(self.n_lag)+5:
+            if self.n_lag >= 0:
+                doocs_vals_hist_lagged = self.doocs_vals_hist[:len(self.doocs_vals_hist)-self.n_lag]
+                spec_lagged = np.array(self.spec_hist)[self.n_lag:, :]
+            else:
+                doocs_vals_hist_lagged = self.doocs_vals_hist[abs(self.n_lag):]
+                spec_lagged = np.array(self.spec_hist)[:len(self.doocs_vals_hist)-abs(self.n_lag), :]
+                
+        else:
+            doocs_vals_hist_lagged = self.doocs_vals_hist
+            spec_lagged = np.array(self.spec_hist)
+        
+        
+        
+        # spec = np.array(self.spec_hist)
+        # min_val = sbin * (int(min(self.doocs_vals_hist) / sbin))
+        # max_val = max(self.doocs_vals_hist)
+        min_val = sbin * (int(min(doocs_vals_hist_lagged) / sbin))
+        max_val = max(doocs_vals_hist_lagged)
+        
         # print('min_DOOCS_val', min_val)
         # print('max_DOOCS_val', max_val)
         # print('sbin', sbin)
         self.doocs_bins = np.arange(min_val, max_val, sbin)
         
-        spec = np.array(self.spec_hist)
+        
         # print('shape of spec array', spec.shape)
         # print(self.doocs_bins)
         
-        
-        bin_dest_idx = np.digitize(self.doocs_vals_hist, self.doocs_bins) - 1
+        bin_dest_idx = np.digitize(doocs_vals_hist_lagged, self.doocs_bins) - 1
         self.spec_binned = np.zeros((len(self.doocs_bins), n_phens))
         
         for i in np.unique(bin_dest_idx):
             idx = np.where(i == bin_dest_idx)[0]
             # print('sorting', i, idx)
             if len(idx) > 1:
-                self.spec_binned[i, :] = np.mean(spec[idx, :], axis=0)
+                self.spec_binned[i, :] = np.mean(spec_lagged[idx, :], axis=0)
                 # print(spectra[:, idx].shape)
             elif len(idx) == 1:
                 # print('singe', i, idx)
-                self.spec_binned[i, :] = spec[idx[0], :]
+                self.spec_binned[i, :] = spec_lagged[idx[0], :]
             else:
                 pass
+                
                 
     def reset(self):
         self.spec_hist = []
@@ -108,10 +133,8 @@ class Correl2DInterface:
             return
         
         self.phen = self.parent.x_axis
-        
         # print('min_self.phen_val', min(self.phen))
         # print('max_self.phen_val', max(self.phen))
-        
         self.spec_hist.append(self.parent.spectrum_event)
         
         #self.doocs_dev is None and
@@ -128,15 +151,12 @@ class Correl2DInterface:
         n_shots = int(self.ui.sb_n_shots_2d.value())
         
         
-        
-        if len(self.spec_hist) > n_shots:
+        if len(self.spec_hist) > n_shots: #add lag value
             self.spec_hist = self.spec_hist[-n_shots:]
             self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
-            
         # print(self.doocs_vals_hist[-1])
         
         if self.ui.scan_tab.currentIndex() == 2:
-            
             self.sort_and_bin()
             scale_yaxis = (self.phen[-1] - self.phen[0]) / len(self.phen)
             translate_yaxis = self.phen[0] / scale_yaxis
@@ -171,7 +191,6 @@ class Correl2DInterface:
         self.img_plot.setLabel('bottom', self.doocs_address_label, units='')
 
         self.img = pg.ImageItem()
-
         self.img_plot.addItem(self.img)
 
         colormap = cm.get_cmap('viridis') #"nipy_spectral")  # cm.get_cmap("CMRmap")
