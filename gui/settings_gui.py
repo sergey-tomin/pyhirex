@@ -68,6 +68,8 @@ class HirexSettings(QWidget):
         table["le_ctrl_num_bunch_sa1"] = self.ui.le_ctrl_num_bunch_sa1.text()
         table["le_fast_xgm_sa1"] = self.ui.le_fast_xgm_sa1.text()
         table["le_slow_xgm_sa1"] = self.ui.le_slow_xgm_sa1.text()
+        
+        table["le_2d_hist_size"] = int(self.ui.le_2d_hist_size.text())
 
         with open(filename, 'w') as f:
             json.dump(table, f)
@@ -109,6 +111,8 @@ class HirexSettings(QWidget):
         if "le_ctrl_num_bunch_sa1" in table.keys(): self.ui.le_ctrl_num_bunch_sa1.setText(table["le_ctrl_num_bunch_sa1"])
         if "le_fast_xgm_sa1" in table.keys(): self.ui.le_fast_xgm_sa1.setText(table["le_fast_xgm_sa1"])
         if "le_slow_xgm_sa1" in table.keys(): self.ui.le_slow_xgm_sa1.setText(table["le_slow_xgm_sa1"])
+        
+        if "le_2d_hist_size" in table.keys(): self.ui.le_2d_hist_size.setText(str(table["le_2d_hist_size"]))
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))
