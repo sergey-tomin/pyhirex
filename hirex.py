@@ -22,7 +22,7 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
@@ -43,7 +43,7 @@ DIR_NAME = "hirex"
 
 
 class Background(Thread):
-    def __init__(self, mi, device):
+    def __init__(self, mi, device, dev_name):
         super(Background, self).__init__()
         self.mi = mi
         self.devmode = False
@@ -51,14 +51,14 @@ class Background(Thread):
         self.nshots = 100
         self.background = []
         self._stop_event = Event()
-        
+        self.dev_name = dev_name
 
     def load(self):
         self.background = np.array([])
         try:
-            self.background = np.loadtxt("background.txt")
+            self.background = np.loadtxt(self.dev_name + "_background.txt")
         except Exception as ex:
-            print("Problem with background: {}. Exception was: {}".format("background.txt", ex))
+            print("Problem with background: {}. Exception was: {}".format(self.dev_name + "_background.txt", ex))
 
         return self.background
     
@@ -73,7 +73,7 @@ class Background(Thread):
             Y.append(x)
             time.sleep(0.1)
         self.background = np.mean(Y, axis=0)
-        np.savetxt("background.txt", self.background)
+        np.savetxt(self.dev_name + "_background.txt", self.background)
         #time.sleep(0.5)
         print("Background finished")
 
@@ -210,13 +210,15 @@ class SpectrometerWindow(QMainWindow):
             self.spectrometer = Spectrometer(self.mi, eid=self.hirex_doocs_ch)
             self.spectrometer.num_px = self.hrx_n_px
             self.spectrometer.devmode = self.dev_mode
-            self.back_taker = Background(mi=self.mi, device=self.spectrometer)
-
+            self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
+            
+            
         elif current_source in ["DUMMY HIREX"]:
-            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch) # delete
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
 
             self.spectrometer = DummyHirex(self.mi, eid=self.hirex_doocs_ch)
-            self.back_taker = Background(mi=self.mi, device=self.spectrometer)
+            self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
+        self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
@@ -308,7 +310,7 @@ class SpectrometerWindow(QMainWindow):
             self.bunch_num_ctrl.set_value(self.actual_n_bunchs)
 
     def take_background(self):
-    
+        current_source = self.ui.combo_hirex.currentText()
         if self.ui.pb_background.text() == "Taking ...              ":
             self.ui.pb_background.setStyleSheet("color: rgb(85, 255, 255);")
             self.ui.pb_background.setText("Take Background")
@@ -320,7 +322,7 @@ class SpectrometerWindow(QMainWindow):
                 self.error_box("Start HIREX first")
                 return
             self.actual_n_bunchs = self.bunch_num_ctrl.get_value()
-            self.back_taker = Background(mi=self.mi, device=self.spectrometer)
+            self.back_taker = Background(mi=self.mi, device=self.spectrometer, dev_name=current_source)
             self.back_taker.devmode = self.dev_mode
             self.bunch_num_ctrl.set_value(0)
             time.sleep(0.5)
@@ -395,7 +397,7 @@ class SpectrometerWindow(QMainWindow):
         #    self.plot1.addItem(self.textItem)
         #    self.is_txt_item = True
         #self.update_text("Av = " + str(np.round(ave_integ, 1)) + " uJ \nEpk = " + str(np.round(self.peak_ev, 1)) + "eV")
-        pulse_energy = self.mi.get_value(self.slow_xgm_signal)
+        pulse_energy = self.xgm.get_value()
         if self.counter_spect % 10 == 0:
             self.label2.setText(
             "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>HIREX: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
