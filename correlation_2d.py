@@ -28,9 +28,16 @@ class Correl2DInterface:
         self.get_device()
         self.ui.le_doocs_ch_cor2d.editingFinished.connect(self.get_device)
         
+        
+        
+        
         self.plot_timer = pg.QtCore.QTimer()
         self.plot_timer.timeout.connect(self.plot_correl)
         self.plot_timer.start(100)
+        
+        self.plot_timer_hist_event = pg.QtCore.QTimer()
+        self.plot_timer_hist_event.timeout.connect(self.plot_hist_event)
+        self.plot_timer_hist_event.start(100)
 
         # self.plot_timer_hist = pg.QtCore.QTimer()
         # self.plot_timer_hist.timeout.connect(self.plot_histogram)
@@ -42,6 +49,17 @@ class Correl2DInterface:
         
         self.spec_binned = []
         self.doocs_bins = []
+        self.doocs_event_counts = []
+        self.doocs_vals_hist_lagged = []
+        
+        self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
+        
+        self.channel_timer = pg.QtCore.QTimer()
+        if self.doocs_address_label != self.ui.le_doocs_ch_cor2d.text():
+            self.reset()
+            self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
+        self.channel_timer.start(100)
+        
         
         self.ui.sb_corr_2d_reset.clicked.connect(self.reset)
 
@@ -50,7 +68,8 @@ class Correl2DInterface:
         # self.ui.pb_show_map.clicked.connect(self.show_hide_map)
         
         self.doocs_address_label = '' #костыль
-        self.add_image_widget()
+        self.add_corr2d_image_widget()
+        self.add_hist_event_widget()
         
         self.ui.actionSave_Corelation.triggered.connect(self.save_corr2d_data_as)
 
@@ -82,14 +101,14 @@ class Correl2DInterface:
         
         if len(self.doocs_vals_hist) > abs(self.n_lag)+5:
             if self.n_lag >= 0:
-                doocs_vals_hist_lagged = self.doocs_vals_hist[:len(self.doocs_vals_hist)-self.n_lag]
+                self.doocs_vals_hist_lagged = self.doocs_vals_hist[:len(self.doocs_vals_hist)-self.n_lag]
                 spec_lagged = np.array(self.spec_hist)[self.n_lag:, :]
             else:
-                doocs_vals_hist_lagged = self.doocs_vals_hist[abs(self.n_lag):]
+                self.doocs_vals_hist_lagged = self.doocs_vals_hist[abs(self.n_lag):]
                 spec_lagged = np.array(self.spec_hist)[:len(self.doocs_vals_hist)-abs(self.n_lag), :]
                 
         else:
-            doocs_vals_hist_lagged = self.doocs_vals_hist
+            self.doocs_vals_hist_lagged = self.doocs_vals_hist
             spec_lagged = np.array(self.spec_hist)
         
         
@@ -97,8 +116,8 @@ class Correl2DInterface:
         # spec = np.array(self.spec_hist)
         # min_val = sbin * (int(min(self.doocs_vals_hist) / sbin))
         # max_val = max(self.doocs_vals_hist)
-        min_val = sbin * (int(min(doocs_vals_hist_lagged) / sbin)) #ensures the minimum value is integer of bin width and figure does not jitter
-        max_val = max(doocs_vals_hist_lagged)
+        min_val = sbin * (int(min(self.doocs_vals_hist_lagged) / sbin)) #ensures the minimum value is integer of bin width and figure does not jitter
+        max_val = max(self.doocs_vals_hist_lagged) + sbin
         
         if min_val == max_val:
             max_val = 1.001 * min_val #ensures there is at least one bin
@@ -107,6 +126,9 @@ class Correl2DInterface:
         # print('max_DOOCS_val', max_val)
         # print('sbin', sbin)
         self.doocs_bins = np.arange(min_val, max_val, sbin)
+        
+        self.doocs_event_counts, self.doocs_bins = np.histogram(self.doocs_vals_hist_lagged, bins=self.doocs_bins)
+        
         # print('len spec_hist',len(self.spec_hist))
         # print('len doocs_vals_hist',len(self.doocs_vals_hist))
         
@@ -114,11 +136,11 @@ class Correl2DInterface:
         # print('shape of doocs_bins', self.doocs_bins.shape)
         # print('doocs_bins',self.doocs_bins)
         
-        bin_dest_idx = np.digitize(doocs_vals_hist_lagged, self.doocs_bins) - 1
-        self.spec_binned = np.zeros((len(self.doocs_bins), n_phens))
+        self.bin_dest_idx = np.digitize(self.doocs_vals_hist_lagged, self.doocs_bins)-1
+        self.spec_binned = np.zeros((len(self.doocs_bins)-1, n_phens))
         
-        for i in np.unique(bin_dest_idx):
-            idx = np.where(i == bin_dest_idx)[0]
+        for i in np.unique(self.bin_dest_idx):
+            idx = np.where(i == self.bin_dest_idx)[0]
             # print('sorting', i, idx)
             if len(idx) > 1:
                 self.spec_binned[i, :] = np.mean(spec_lagged[idx, :], axis=0)
@@ -128,23 +150,28 @@ class Correl2DInterface:
                 self.spec_binned[i, :] = spec_lagged[idx[0], :]
             else:
                 pass
-                
+        
+        # self.doocs_event_counts = np.unique(self.bin_dest_idx, return_counts=1)[1]
+        
                 
     def reset(self):
         self.spec_hist = []
         self.doocs_vals_hist = []
+        self.hist_event.clear()
+        self.img_corr2d.clear()
         
     def plot_correl(self):
 
-        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked():
+        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event is None:
             return
         
         self.phen = self.parent.x_axis
         # print('min_self.phen_val', min(self.phen))
         # print('max_self.phen_val', max(self.phen))
+        
         self.spec_hist.append(self.parent.spectrum_event)
         
-        self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
+        
         #print(self.doocs_address_label)
         
         if self.doocs_address_label == 'event':
@@ -176,9 +203,10 @@ class Correl2DInterface:
             translate_xaxis = min(self.doocs_bins) / scale_xaxis
             # self.single_scatter.setData(self.peak, self.doocs_vals)
             
-            self.add_image_item()
+            self.add_corr2d_image_item()
             self.img.setImage(self.spec_binned)
-            
+            print('spec binned',len(self.spec_binned))
+            print('doocs_bins',len(self.doocs_bins))
             #elegant but maybe wrong
             # rect = QtCore.QRect(min(self.doocs_bins), min(self.phen), max(self.doocs_bins)-min(self.doocs_bins), max(self.phen)-min(self.phen))
             # self.img.setRect(rect)
@@ -186,30 +214,73 @@ class Correl2DInterface:
             self.img.translate(translate_xaxis, translate_yaxis)
         
 
-    def add_image_widget(self):
+    def add_corr2d_image_widget(self):
         win = pg.GraphicsLayoutWidget()
         layout = QtGui.QGridLayout()
         self.ui.widget_corr2d.setLayout(layout)
         layout.addWidget(win)
 
-        self.img_plot = win.addPlot()
-        self.add_image_item()
+        self.img_corr2d = win.addPlot()
+        self.add_corr2d_image_item()
         
-    def add_image_item(self):
-        self.img_plot.clear()
+    def add_hist_event_widget(self):
+        gui_index = self.ui.get_style_name_index()
+        if "standard" in self.parent.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            single_pen = pg.mkPen("k")
+        else:
+            single_pen = pg.mkPen("w")
+        win = pg.GraphicsLayoutWidget()
+        
+        layout = QtGui.QGridLayout()
+        self.ui.widget_corr_event.setLayout(layout)
+        layout.addWidget(win)
 
-        self.img_plot.setLabel('left', "E_ph", units='eV')
-        self.img_plot.setLabel('bottom', self.doocs_address_label, units='_')
+        self.hist_event = win.addPlot()
+        self.hist_event.setLabel('left', "N Events", units='')
+        self.hist_event.showGrid(1, 1, 1)
+        self.hist_event.setLabel('bottom', self.doocs_address_label, units='_')
+        # self.add_corr_event_image_item()
+        
+    def add_corr2d_image_item(self):
+        self.img_corr2d.clear()
+
+        self.img_corr2d.setLabel('left', "E_ph", units='eV')
+        self.img_corr2d.setLabel('bottom', self.doocs_address_label, units='_')
 
         self.img = pg.ImageItem()
-        self.img_plot.addItem(self.img)
+        self.img_corr2d.addItem(self.img)
 
         colormap = cm.get_cmap('viridis') #"nipy_spectral")  # cm.get_cmap("CMRmap")
         colormap._init()
         lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
-
         # Apply the colormap
         self.img.setLookupTable(lut)
+        
+    def plot_hist_event(self):
+    
+        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked():
+            return
+        
+        # if len(self.doocs_vals_hist_lagged) < 2:
+            # return
+            
+        if self.ui.scan_tab.currentIndex() == 2:
+            self.hist_event.clear()
+            
+            print('bins', self.doocs_bins)
+            print('events', self.doocs_event_counts)
+            
+            if len(self.doocs_bins) > 1:
+                self.hist_event.plot(self.doocs_bins, self.doocs_event_counts, stepMode=True,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+        # self.img = pg.ImageItem()
+        # self.hist_event.addItem(self.img)
+
+        # colormap = cm.get_cmap('viridis') #"nipy_spectral")  # cm.get_cmap("CMRmap")
+        # colormap._init()
+        # lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
+        # Apply the colormap
         
     def save_corr2d_data_as(self):
         filename = QtGui.QFileDialog.getSaveFileName(self.parent, 'Save Correlation&Spectrum Data',
