@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1461</width>
-    <height>1342</height>
+    <height>1019</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -502,10 +502,17 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0" colspan="2">
+             <item row="1" column="0">
               <widget class="QPushButton" name="pb_cross_calib">
                <property name="text">
                 <string>Cross-calibration with XGM</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QCheckBox" name="cb_doocs_send_data">
+               <property name="text">
+                <string>DOOCS: Send Data</string>
                </property>
               </widget>
              </item>
@@ -1432,7 +1439,7 @@
      <x>0</x>
      <y>0</y>
      <width>1461</width>
-     <height>31</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">

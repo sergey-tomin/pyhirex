@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui\UISpectrometer.ui'
+# Form implementation generated from reading ui file 'UISpectrometer.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1461, 1342)
+        MainWindow.resize(1461, 1019)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_6 = QtWidgets.QGridLayout(self.centralwidget)
@@ -230,7 +230,10 @@ class Ui_MainWindow(object):
         self.gridLayout_13.addWidget(self.pb_hide_show_backplot, 0, 0, 1, 1)
         self.pb_cross_calib = QtWidgets.QPushButton(self.groupBox_6)
         self.pb_cross_calib.setObjectName("pb_cross_calib")
-        self.gridLayout_13.addWidget(self.pb_cross_calib, 1, 0, 1, 2)
+        self.gridLayout_13.addWidget(self.pb_cross_calib, 1, 0, 1, 1)
+        self.cb_doocs_send_data = QtWidgets.QCheckBox(self.groupBox_6)
+        self.cb_doocs_send_data.setObjectName("cb_doocs_send_data")
+        self.gridLayout_13.addWidget(self.cb_doocs_send_data, 1, 1, 1, 1)
         self.gridLayout_14.addLayout(self.gridLayout_13, 0, 0, 1, 1)
         self.gridLayout_10.addWidget(self.groupBox_6, 1, 2, 1, 1)
         self.scan_tab.addTab(self.tab, "")
@@ -686,7 +689,7 @@ class Ui_MainWindow(object):
         self.gridLayout_6.addWidget(self.scan_tab, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1461, 31))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1461, 22))
         self.menubar.setObjectName("menubar")
         self.menuExpert = QtWidgets.QMenu(self.menubar)
         self.menuExpert.setObjectName("menuExpert")
@@ -747,6 +750,7 @@ class Ui_MainWindow(object):
         self.pb_logbook.setShortcut(_translate("MainWindow", "Ctrl+P"))
         self.pb_hide_show_backplot.setText(_translate("MainWindow", "Show Background"))
         self.pb_cross_calib.setText(_translate("MainWindow", "Cross-calibration with XGM"))
+        self.cb_doocs_send_data.setText(_translate("MainWindow", "DOOCS: Send Data"))
         self.scan_tab.setTabText(self.scan_tab.indexOf(self.tab), _translate("MainWindow", "Main"))
         self.groupBox_7.setTitle(_translate("MainWindow", "Correlation"))
         self.label_17.setText(_translate("MainWindow", "DOOCS "))
