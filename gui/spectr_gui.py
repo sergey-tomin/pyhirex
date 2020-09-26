@@ -157,6 +157,11 @@ class MainWindow(Ui_MainWindow):
         table["le_scan_range"] = str(self.le_scan_range.text())
         table["le_doocs_ch_hist"] = str(self.le_doocs_ch_hist.text())
         table["le_doocs_ch_cor"] = str(self.le_doocs_ch_cor.text())
+        # correlation
+        table["le_doocs_ch_cor2d"] = self.le_doocs_ch_cor2d.text()
+        table["sb_emin"] = self.sb_emin.value()
+        table["sb_emax"] = self.sb_emax.value()
+        
         with open(filename, 'w') as f:
             json.dump(table, f)
         # pickle.dump(table, filename)
@@ -199,6 +204,11 @@ class MainWindow(Ui_MainWindow):
             if "le_scan_range" in table.keys(): self.le_scan_range.setText(table["le_scan_range"])
             if "le_doocs_ch_hist" in table.keys(): self.le_doocs_ch_hist.setText(table["le_doocs_ch_hist"])
             if "le_doocs_ch_cor" in table.keys(): self.le_doocs_ch_cor.setText(table["le_doocs_ch_cor"])
+            # correlation
+            if "le_doocs_ch_cor2d" in table.keys(): self.le_doocs_ch_cor2d.setText(table["le_doocs_ch_cor2d"])
+            if "sb_emin" in table.keys(): self.sb_emin.setValue(table["sb_emin"])
+            if "sb_emax" in table.keys(): self.sb_emax.setValue(table["sb_emax"])
+            
             print("RESTORE STATE: OK")
         except:
             print("RESTORE STATE: ERROR")

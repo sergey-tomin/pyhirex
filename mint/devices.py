@@ -229,7 +229,7 @@ class BunchNumberCTRL():
 
     def get_value(self):
         if self.doocs_ch is None:
-            return 0
+            return 1
         val = self.mi.get_value(self.doocs_ch)
         return val
 

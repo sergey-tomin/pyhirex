@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1461</width>
-    <height>1342</height>
+    <height>1019</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -502,10 +502,17 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0" colspan="2">
+             <item row="1" column="0">
               <widget class="QPushButton" name="pb_cross_calib">
                <property name="text">
                 <string>Cross-calibration with XGM</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QCheckBox" name="cb_doocs_send_data">
+               <property name="text">
+                <string>DOOCS: Send Data</string>
                </property>
               </widget>
              </item>
@@ -669,7 +676,7 @@
           <item>
            <widget class="QWidget" name="widget_corr2d" native="true">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -752,7 +759,7 @@
           <property name="minimumSize">
            <size>
             <width>10</width>
-            <height>50</height>
+            <height>88</height>
            </size>
           </property>
           <property name="maximumSize">
@@ -763,7 +770,7 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>7</pointsize>
+            <pointsize>13</pointsize>
            </font>
           </property>
           <property name="title">
@@ -816,7 +823,7 @@
               <widget class="QLineEdit" name="le_doocs_ch_cor2d">
                <property name="font">
                 <font>
-                 <pointsize>6</pointsize>
+                 <pointsize>15</pointsize>
                 </font>
                </property>
                <property name="text">
@@ -836,6 +843,11 @@
              </item>
              <item>
               <widget class="QSpinBox" name="sb_n_shots_max">
+               <property name="font">
+                <font>
+                 <pointsize>15</pointsize>
+                </font>
+               </property>
                <property name="minimum">
                 <number>1</number>
                </property>
@@ -860,7 +872,7 @@
                </property>
                <property name="font">
                 <font>
-                 <pointsize>12</pointsize>
+                 <pointsize>13</pointsize>
                  <weight>75</weight>
                  <italic>false</italic>
                  <bold>true</bold>
@@ -879,7 +891,7 @@
               <widget class="QPushButton" name="sb_corr_2d_reset">
                <property name="font">
                 <font>
-                 <pointsize>12</pointsize>
+                 <pointsize>13</pointsize>
                  <weight>75</weight>
                  <bold>true</bold>
                 </font>
@@ -902,7 +914,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>50</height>
+            <height>60</height>
            </size>
           </property>
           <property name="maximumSize">
@@ -913,7 +925,7 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>7</pointsize>
+            <pointsize>13</pointsize>
            </font>
           </property>
           <property name="title">
@@ -943,6 +955,11 @@
              </item>
              <item>
               <widget class="QSpinBox" name="sb_corr2d_lag">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="minimum">
                 <number>-1000</number>
                </property>
@@ -966,6 +983,11 @@
                  <height>16777215</height>
                 </size>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>1</string>
                </property>
@@ -986,6 +1008,11 @@
              </item>
              <item>
               <widget class="QLabel" name="label_26">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Eph range (eV)</string>
                </property>
@@ -993,6 +1020,14 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="sb_emin">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
                <property name="keyboardTracking">
                 <bool>true</bool>
                </property>
@@ -1019,6 +1054,14 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="sb_emax">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
                <property name="decimals">
                 <number>4</number>
                </property>
@@ -1432,7 +1475,7 @@
      <x>0</x>
      <y>0</y>
      <width>1461</width>
-     <height>31</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">
