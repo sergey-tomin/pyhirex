@@ -124,11 +124,13 @@ class SpectrometerWindow(QMainWindow):
 
         self.settings = None
         #self.load_settings()
+        is_spectrometer = False
         for hirex in AVAILABLE_SPECTROMETERS:
             if self.tool_args.__dict__[hirex]:
-                print(hirex)
+                is_spectrometer = True
                 self.ui.combo_hirex.addItem(hirex)
-        #self.ui.combo_hirex.addItem("DUMMY HIREX")
+        if not is_spectrometer:
+            self.ui.combo_hirex.addItem("DUMMY")
         #self.ui.combo_hirex.addItem("SASE2 HIREX")
         #self.ui.combo_hirex.addItem("SASE1 HIREX")
         
@@ -491,7 +493,6 @@ class SpectrometerWindow(QMainWindow):
         for mi in AVAILABLE_MACHINE_INTERFACES:
             mi_parser = subparser.add_parser(mi.__name__, help='{} arguments'.format(mi.__name__))
             mi.add_args(mi_parser)
-
 
         for hirex in AVAILABLE_SPECTROMETERS:
             hirex_agr = "--" + hirex
