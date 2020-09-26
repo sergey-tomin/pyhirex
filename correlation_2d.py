@@ -7,6 +7,9 @@ from mint.opt_objects import Device
 from scipy import ndimage
 from matplotlib import cm
 
+def find_nearest_idx(array, value):
+    idx = np.abs(array - value).argmin()
+    return idx
 
 class Correl2DInterface:
     """
@@ -29,8 +32,6 @@ class Correl2DInterface:
         self.ui.le_doocs_ch_cor2d.editingFinished.connect(self.get_device)
         
         
-        
-        
         self.plot_timer = pg.QtCore.QTimer()
         self.plot_timer.timeout.connect(self.plot_correl)
         self.plot_timer.start(100)
@@ -39,9 +40,13 @@ class Correl2DInterface:
         self.plot_timer_hist_event.timeout.connect(self.plot_hist_event)
         self.plot_timer_hist_event.start(100)
         
-        # self.plot_timer_Ipk_event = pg.QtCore.QTimer()
-        # self.plot_timer_Ipk_event.timeout.connect(self.plot_Ipk_event)
-        # self.plot_timer_Ipk_event.start(100)
+        self.plot_timer_Ipk_event = pg.QtCore.QTimer()
+        self.plot_timer_Ipk_event.timeout.connect(self.plot_Ipk_event)
+        self.plot_timer_Ipk_event.start(100)
+        
+        self.plot_timer_Isum_event = pg.QtCore.QTimer()
+        self.plot_timer_Isum_event.timeout.connect(self.plot_Isum_event)
+        self.plot_timer_Isum_event.start(100)
 
         # self.plot_timer_hist = pg.QtCore.QTimer()
         # self.plot_timer_hist.timeout.connect(self.plot_histogram)
@@ -57,6 +62,8 @@ class Correl2DInterface:
         self.doocs_bins = []
         self.doocs_event_counts = []
         self.doocs_vals_hist_lagged = []
+        
+        self.event_counter = 0
         
         self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
         
@@ -80,6 +87,7 @@ class Correl2DInterface:
         self.add_corrIsum_widget()
         
         self.ui.actionSave_Corelation.triggered.connect(self.save_corr2d_data_as)
+        
 
     def get_device(self):
         if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor2d):
@@ -91,21 +99,56 @@ class Correl2DInterface:
             
     
     def sort_and_bin(self):
-        n_phens = self.parent.spectrum_event.size
+        
         
         try:
-            sbin = float(self.ui.sb_corr2d_binning.text()) #bin size
+            bin_doocs = float(self.ui.sb_corr2d_binning.text()) #bin size
         except ValueError:
-            sbin = 0
-        
-        if sbin==0:
-            sbin=1e10
+            bin_doocs = 0
             
         try:
-            self.n_lag = int(self.ui.sb_corr2d_lag.text()) #lag size
+            phen_min = self.ui.sb_emin.value()
+        except ValueError:
+            phen_min = -np.inf
+            
+        self.phen_orig = self.parent.x_axis
+            
+        try:
+            phen_max = self.ui.sb_emax.value()
+        except ValueError:
+            phen_max = np.inf
+            
+        # print('phen_max',phen_max)
+        # print('phen_min',phen_min)
+        
+        d2, d1 = 0, 0
+        
+        if phen_max > phen_min:
+            d1 = find_nearest_idx(self.phen_orig/1000, phen_min)
+            d2 = find_nearest_idx(self.phen_orig/1000, phen_max)
+        # else:
+        if d2 <= d1:
+            d1 = 0
+            d2 = len(self.phen_orig)
+        
+        
+        
+        print('d1, d2', d1, d2)
+        self.phen = self.phen_orig[d1:d2]
+        n_phens = len(self.phen)
+        
+        print('self.phen_orig',len(self.phen_orig))
+        print('self.phen',len(self.phen))
+        
+        if bin_doocs==0:
+            bin_doocs=1e10
+            
+        try:
+            self.n_lag = int(self.ui.sb_corr2d_lag.value()) #lag size
         except ValueError:
             self.n_lag = 0
         
+        print('len(self.doocs_vals_hist)', len(self.doocs_vals_hist))
         if len(self.doocs_vals_hist) > abs(self.n_lag)+5:
             if self.n_lag >= 0:
                 self.doocs_vals_hist_lagged = self.doocs_vals_hist[:len(self.doocs_vals_hist)-self.n_lag]
@@ -121,27 +164,27 @@ class Correl2DInterface:
         
         
         # spec = np.array(self.spec_hist)
-        # min_val = sbin * (int(min(self.doocs_vals_hist) / sbin))
+        # min_val = bin_doocs * (int(min(self.doocs_vals_hist) / bin_doocs))
         # max_val = max(self.doocs_vals_hist)
-        min_val = sbin * (int(min(self.doocs_vals_hist_lagged) / sbin)) #ensures the minimum value is integer of bin width and figure does not jitter
-        max_val = max(self.doocs_vals_hist_lagged) + sbin * 1.01
+        min_val = bin_doocs * (int(min(self.doocs_vals_hist_lagged) / bin_doocs)) #ensures the minimum value is integer of bin width and figure does not jitter
+        max_val = max(self.doocs_vals_hist_lagged) + bin_doocs * 1.01
         
-        if max_val - min_val <= sbin:
-            max_val = min_val + 1.01 * sbin #ensures there is at least one bin (two bin values)
+        if max_val - min_val <= bin_doocs:
+            max_val = min_val + 1.01 * bin_doocs #ensures there is at least one bin (two bin values)
         
         # if min_val == max_val:
             # max_val = 1.001 * min_val #ensures there is at least one bin
         
         print('min_DOOCS_val', min_val)
         print('max_DOOCS_val', max_val)
-        print('sbin', sbin)
-        self.doocs_bins = np.arange(min_val, max_val, sbin)
-        print('shape of created doocs_bins', self.doocs_bins.shape)
+        # print('bin_doocs', bin_doocs)
+        self.doocs_bins = np.arange(min_val, max_val, bin_doocs)
+        # print('shape of created doocs_bins', self.doocs_bins.shape)
         
         self.doocs_event_counts, _ = np.histogram(self.doocs_vals_hist_lagged, bins=self.doocs_bins)
         
-        # print('len spec_hist',len(self.spec_hist))
-        # print('len doocs_vals_hist',len(self.doocs_vals_hist))
+        print('len spec_hist',len(self.spec_hist))
+        print('len doocs_vals_hist',len(self.doocs_vals_hist))
         
         print('shape of spec_lagged array', spec_lagged.shape)
         print('shape of doocs_bins', self.doocs_bins.shape)
@@ -150,26 +193,30 @@ class Correl2DInterface:
         self.bin_dest_idx = np.digitize(self.doocs_vals_hist_lagged, self.doocs_bins)-1
         self.spec_binned = np.zeros((len(self.doocs_bins)-1, n_phens))
         
-        # print('self.bin_dest_idx', self.bin_dest_idx)
-        # print('self.spec_binned', self.spec_binned)
+        print('self.bin_dest_idx', self.bin_dest_idx)
+        print('self.spec_binned', len(self.spec_binned), self.spec_binned)
+        print('spec_lagged', len(spec_lagged), spec_lagged)
+        print('self.doocs_vals_hist_lagged', len(self.doocs_vals_hist_lagged), self.doocs_vals_hist_lagged)
         
         for i in np.unique(self.bin_dest_idx):
             idx = np.where(i == self.bin_dest_idx)[0]
             # print('sorting', i, idx)
             if len(idx) > 1:
-                self.spec_binned[i, :] = np.mean(spec_lagged[idx, :], axis=0)
+                self.spec_binned[i, :] = np.mean(spec_lagged[idx, d1:d2], axis=0)
                 print('multiple', i, idx, len(self.spec_binned))
             elif len(idx) == 1:
                 print('singe', i, idx, len(self.spec_binned))
                 # if len(self.spec_binned) != 0:
-                self.spec_binned[i, :] = spec_lagged[idx[0], :]
+                print('self.spec_binned[i, :]', self.spec_binned[i, :])
+                print('spec_lagged[idx[0], d1:d2]', spec_lagged[idx[0], d1:d2])
+                self.spec_binned[i, :] = spec_lagged[idx[0], d1:d2]
                 # else:
                     # self.spec_binned = np.array([spec_lagged[idx[0], :]])
             else:
                 pass
         
         print('self.spec_binned', self.spec_binned)
-        # print('self.doocs_bins', self.doocs_bins)
+        print('self.doocs_bins', self.doocs_bins)
         # if 
         
         # self.doocs_event_counts = np.unique(self.bin_dest_idx, return_counts=1)[1]
@@ -183,18 +230,25 @@ class Correl2DInterface:
         self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
         
     def plot_correl(self):
-
+        
+        self.event_counter += 1
+        
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event is None:
             return
             
-        print('DOOCS LABEL ',self.doocs_address_label)
+        # print('DOOCS LABEL ',self.doocs_address_label)
         if self.ui.le_doocs_ch_cor2d.text() != self.doocs_address_label:
             self.reset()
             return
         
-        self.phen = self.parent.x_axis
+        
         # print('min_self.phen_val', min(self.phen))
         # print('max_self.phen_val', max(self.phen))
+        
+        n_shots = int(self.ui.sb_n_shots_max.value())
+        if len(self.spec_hist) > n_shots: #add lag value
+            self.spec_hist = self.spec_hist[-n_shots:]
+            self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
         
         self.spec_hist.append(self.parent.spectrum_event)
         
@@ -202,23 +256,15 @@ class Correl2DInterface:
         #print(self.doocs_address_label)
         
         if self.doocs_address_label == 'event':
-            self.doocs_vals_hist.append(len(self.spec_hist))
-                
-        if self.parent.ui.combo_hirex.currentText() == "DUMMY HIREX":
-            dummy_val = np.sin(time.time()/10)*7.565432 + 25
-            if self.doocs_address_label != 'event':
-                self.doocs_vals_hist.append(dummy_val) #fix
-                self.doocs_address_label = 'dummy label'
-        else:
+            self.doocs_vals_hist.append(self.event_counter)
+        elif self.doocs_address_label == 'dummy label':
+            self.doocs_vals_hist.append(np.sin(time.time()/10)*7.565432 + 25)
+        elif self.parent.ui.combo_hirex.currentText() != "DUMMY HIREX":
             self.doocs_vals_hist.append(self.doocs_dev.get_value())
-            
-        
-        n_shots = int(self.ui.sb_n_shots_2d.value())
-        
-        
-        if len(self.spec_hist) > n_shots: #add lag value
-            self.spec_hist = self.spec_hist[-n_shots:]
-            self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
+        else:
+            self.doocs_address_label = 'event',
+            self.doocs_vals_hist.append(self.event_counter)
+
         # print(self.doocs_vals_hist[-1])
         
         if self.ui.scan_tab.currentIndex() == 2:
@@ -269,7 +315,7 @@ class Correl2DInterface:
 
         self.img_hist = win.addPlot()
         self.img_hist.setLabel('left', "N Events", units='')
-        self.img_hist.showGrid(1, 1, 1)
+        # self.img_hist.showGrid(1, 1, 1)
         self.img_hist.setLabel('bottom', self.doocs_address_label, units='_')
         
     def add_corr2d_image_item(self):
@@ -304,6 +350,7 @@ class Correl2DInterface:
             if len(self.doocs_bins) > 1:
                 self.img_hist.plot(self.doocs_bins, self.doocs_event_counts, stepMode=True,  fillLevel=0,  brush=(100,100,100,150), clear=True)
                 self.img_hist.setLabel('bottom', self.doocs_address_label, units=' ')
+                self.img_hist.setTitle('{} events'.format(len(self.doocs_vals_hist_lagged)))
         # self.img = pg.ImageItem()
         # self.img_hist.addItem(self.img)
 
@@ -333,29 +380,20 @@ class Correl2DInterface:
         self.img_Ipk.setLabel('bottom', self.doocs_address_label, units='_')
         
     def plot_Ipk_event(self):
-    
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked():
             return
-        
-        # if len(self.doocs_vals_hist_lagged) < 2:
-            # return
-            
         if self.ui.scan_tab.currentIndex() == 2:
             self.img_Ipk.clear()
-            
-            # print('bins', self.doocs_bins)
-            # print('events', self.doocs_event_counts)
-            
             if len(self.doocs_bins) > 1:
-                # if len(self.doocs_bins) > 2:
-                    # bin_step = self.doocs_bins[1] - self.doocs_bins[0]
-                    # interbin_values = self.doocs_bins[:-1] + bin_step/2
-                # else:
-                interbin_values = self.doocs_bins
-                print('plot_Ipk', len(interbin_values), len(self.spec_binned))
-                self.img_Ipk.plot(interbin_values, np.amax(self.spec_binned,axis=1), stepMode=False)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
                 
+                bin_step = self.doocs_bins[1] - self.doocs_bins[0]
+                interbin_values = self.doocs_bins[:-1] + bin_step/2
+                
+                # print('plot_Ipk', len(interbin_values), len(self.spec_binned))
+                pen=pg.mkPen(color=(255, 0, 0), width=3)
+                self.img_Ipk.plot(interbin_values, np.amax(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
                 self.img_Ipk.setLabel('bottom', self.doocs_address_label, units=' ')
+                # self.img_Ipk.setLimits(yMin=0)
         
     def add_corrIsum_widget(self):
         gui_index = self.ui.get_style_name_index()
@@ -373,8 +411,23 @@ class Correl2DInterface:
 
         self.img_Isum = win.addPlot()
         self.img_Isum.setLabel('left', "I (sum)", units='')
-        self.img_Isum.showGrid(1, 1, 1)
+        # self.img_Isum.showGrid(1, 1, 1)
         self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
+        
+    def plot_Isum_event(self):
+        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked():
+            return
+        if self.ui.scan_tab.currentIndex() == 2:
+            self.img_Isum.clear()
+            if len(self.doocs_bins) > 1:
+                
+                bin_step = self.doocs_bins[1] - self.doocs_bins[0]
+                interbin_values = self.doocs_bins[:-1] + bin_step/2
+                
+                # print('plot_Ipk', len(interbin_values), len(self.spec_binned))
+                pen=pg.mkPen(color=(0, 0, 255), width=3)
+                self.img_Isum.plot(interbin_values, np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+                self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
     def save_corr2d_data_as(self):
         filename = QtGui.QFileDialog.getSaveFileName(self.parent, 'Save Correlation&Spectrum Data',
