@@ -93,9 +93,11 @@ class Transmission(Thread):
         self.transmission = 1.
 
     def run(self):
-        if self.dev_ch is not None:
-            self.transmission = self.mi.get_value(self.dev_ch)
-        time.sleep(2)
+        while True:
+            if self.dev_ch is not None:
+                self.transmission = self.mi.get_value(self.dev_ch)
+
+            time.sleep(2)
 
     def stop(self):
         print("stop")
@@ -206,6 +208,7 @@ class SpectrometerWindow(QMainWindow):
         
         self.check_doocs_permission()
 
+
     def check_doocs_permission(self):
         self.doocs_permit = True
         try:
@@ -251,6 +254,7 @@ class SpectrometerWindow(QMainWindow):
         self.ui.restore_state(self.config_file)
         self.transmission_thread = Transmission(self.mi, self.transmission__doocs_ch)
         self.transmission_thread.start()
+        
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
