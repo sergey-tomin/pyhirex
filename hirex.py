@@ -27,19 +27,20 @@ from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
 from scipy import ndimage
+import pathlib
 import json
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-spec2d_pmpoints = 550
+WATERFLOW_ALL = True
 
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
 AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
-DIR_NAME = "hirex"
+DIR_NAME = "hirex-master"
 
 
 class Background(Thread):
@@ -109,11 +110,10 @@ class SpectrometerWindow(QMainWindow):
                 self.mi = XFELMachineInterface(args)
             else:
                 self.mi = globals()[class_name](args)
-
-
+        DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
+        print("PATH" , DIR_NAME)
         self.path = path[:path.find(DIR_NAME)]
         self.config_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
-        self.config_file = self.config_dir + "config.json"
         self.settings_file = self.config_dir + "settings.json"
         self.gui_dir = self.path + DIR_NAME + os.sep + "gui" + os.sep
         self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
@@ -133,7 +133,9 @@ class SpectrometerWindow(QMainWindow):
             self.ui.combo_hirex.addItem("DUMMY")
         #self.ui.combo_hirex.addItem("SASE2 HIREX")
         #self.ui.combo_hirex.addItem("SASE1 HIREX")
-        
+        current_source = self.ui.combo_hirex.currentText()
+        self.config_file = self.config_dir + current_source + "_config.json"
+
         self.ui.combo_hirex.currentIndexChanged.connect(self.reload_objects_settings)
         self.reload_objects_settings()
 
@@ -225,6 +227,9 @@ class SpectrometerWindow(QMainWindow):
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
         self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
         self.background = self.back_taker.load()
+        
+        self.config_file = self.config_dir + current_source + "_config.json"
+        self.ui.restore_state(self.config_file)
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
@@ -396,9 +401,11 @@ class SpectrometerWindow(QMainWindow):
             if len(self.background) != n_ppoints:
                 self.background = np.zeros(n_ppoints)
             self.back_plot.setData(self.x_axis, self.background)
-
-            # self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
-            self.img.setImage(self.data_2d) #SS: do not cut, limits window
+            if WATERFLOW_ALL:
+                self.img.setImage(self.data_2d) #SS: do not cut, limits window
+            else:
+                self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
+            
 
 
         #if not self.is_txt_item:
@@ -445,13 +452,17 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
             px1 = int(self.ui.sb_px1.value())
-            img_idx1 = int(px1 - spec2d_pmpoints)
-            img_idx2 = int(px1 + spec2d_pmpoints)
-            self.img_idx1 = img_idx1 if img_idx1 >= 0 else 0
-            self.img_idx2 = img_idx2 if img_idx2 < self.spectrometer.num_px else -1
-            scale_coef_xaxis = (self.x_axis[self.img_idx2] - self.x_axis[self.img_idx1]) / (
+            if WATERFLOW_ALL:
+                scale_coef_xaxis = (self.x_axis[-1] - self.x_axis[0]) / len(self.x_axis)
+                translate_coef_xaxis = self.x_axis[0] / scale_coef_xaxis
+            else:
+                img_idx1 = int(px1 - 250)
+                img_idx2 = int(px1 + 250)
+                self.img_idx1 = img_idx1 if img_idx1 >= 0 else 0
+                self.img_idx2 = img_idx2 if img_idx2 < self.spectrometer.num_px else -1
+                scale_coef_xaxis = (self.x_axis[self.img_idx2] - self.x_axis[self.img_idx1]) / (
                         self.img_idx2 - self.img_idx1)
-            translate_coef_xaxis = self.x_axis[self.img_idx1] / scale_coef_xaxis
+                translate_coef_xaxis = self.x_axis[self.img_idx1] / scale_coef_xaxis
 
             self.add_image_item()
 
@@ -477,6 +488,7 @@ class SpectrometerWindow(QMainWindow):
         if self.scantool.scanning is not None:
             self.scantool.scanning.kill = True
             self.scantool.scanning.crystal.stop()
+        print(self.config_file)
         if 1:
             self.ui.save_state(self.config_file)
         logger.info("close")
@@ -728,7 +740,8 @@ def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     #create the application
     app = QApplication(sys.argv)
-
+    path = os.path.join(os.path.dirname(sys.modules[__name__].__file__), 'gui/hirex.jpg')
+    app.setWindowIcon(QtGui.QIcon(path))
 
     window = SpectrometerWindow()
 
