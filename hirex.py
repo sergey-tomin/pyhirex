@@ -83,6 +83,25 @@ class Background(Thread):
         self._stop_event.set()
 
 
+class Transmission(Thread):
+    def __init__(self, mi, dev_ch):
+        super(Transmission, self).__init__()
+        self.mi = mi
+        self.devmode = False
+        self._stop_event = Event()
+        self.dev_ch = dev_ch
+        self.transmission = 1.
+
+    def run(self):
+        if self.dev_ch is not None:
+            self.transmission = self.mi.get_value(self.dev_ch)
+        time.sleep(2)
+
+    def stop(self):
+        print("stop")
+        self._stop_event.set()
+
+
 class SpectrometerWindow(QMainWindow):
     """ Main class for the GUI application """
     def __init__(self):
@@ -227,17 +246,22 @@ class SpectrometerWindow(QMainWindow):
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
         self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
         self.background = self.back_taker.load()
-        
+
         self.config_file = self.config_dir + current_source + "_config.json"
         self.ui.restore_state(self.config_file)
+        self.transmission_thread = Transmission(self.mi, self.transmission__doocs_ch)
+        self.transmission_thread.start()
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
+            self.ui.sb_transmission.setEnabled(True)
             value = self.ui.sb_transmission.value()
             if value == 0:
                 value = 0.0000001
         else:
-            value = 1 #TODO:put default channel here
+            value = self.transmission_thread.transmission
+            self.ui.sb_transmission.setValue(value)
+            self.ui.sb_transmission.setEnabled(False)
         return value
 
     def cross_calibrate(self):
@@ -684,7 +708,7 @@ class SpectrometerWindow(QMainWindow):
             
         elif current_source == "DUMMY":
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
-            self.transmission__doocs_ch = 1
+            self.transmission__doocs_ch = None
             self.hrx_n_px = 3000
 
             self.doocs_ctrl_num_bunch = None

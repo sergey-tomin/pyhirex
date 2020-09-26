@@ -90,7 +90,7 @@ class CorrelInterface:
             self.peak.insert(0, self.parent.peak_ev)
         
             self.doocs_vals.insert(0, self.doocs_dev.get_value())
-            n_shots = int(self.ui.sb_av_nbunch.value())
+            n_shots = int(self.ui.sb_n_shots.value())
             if len(self.peak) > n_shots:
                 self.peak = self.peak[:n_shots]
                 self.doocs_vals = self.doocs_vals[:n_shots]
@@ -102,7 +102,7 @@ class CorrelInterface:
             peak_max = np.max(self.parent.data_2d[:, 0])
             self.peak.insert(0, peak_max)
             self.doocs_vals.insert(0, self.doocs_dev.get_value())
-            n_shots = int(self.ui.sb_av_nbunch.value())
+            n_shots = int(self.ui.sb_n_shots.value())
             if len(self.peak) > n_shots:
                 self.peak = self.peak[:n_shots]
                 self.doocs_vals = self.doocs_vals[:n_shots]
