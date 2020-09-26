@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>727</width>
-    <height>816</height>
+    <width>847</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -298,7 +298,7 @@
            </widget>
           </item>
           <item row="7" column="2">
-           <widget class="QSpinBox" name="sb_hrx_npx">
+           <widget class="QSpinBox" name="sb_hrx_npx_sa2">
             <property name="locale">
              <locale language="English" country="UnitedStates"/>
             </property>
@@ -321,7 +321,7 @@
            </widget>
           </item>
           <item row="8" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_ctrl_num_bunch">
+           <widget class="QLineEdit" name="le_ctrl_num_bunch_sa2">
             <property name="locale">
              <locale language="English" country="UnitedStates"/>
             </property>
@@ -331,7 +331,7 @@
            </widget>
           </item>
           <item row="2" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_hirex_ch">
+           <widget class="QLineEdit" name="le_hirex_ch_sa2">
             <property name="text">
              <string>XFEL.EXP/DAQ.GOTTHARD_MASTER/SA2_XTD6_HIREX/ADC</string>
             </property>
@@ -352,7 +352,7 @@
            </widget>
           </item>
           <item row="4" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_trans_ch">
+           <widget class="QLineEdit" name="le_trans_ch_sa2">
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -371,7 +371,7 @@
            </widget>
           </item>
           <item row="5" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_fast_xgm">
+           <widget class="QLineEdit" name="le_fast_xgm_sa2">
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -380,42 +380,103 @@
            </widget>
           </item>
           <item row="6" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_slow_xgm"/>
+           <widget class="QLineEdit" name="le_slow_xgm_sa2"/>
           </item>
          </layout>
         </widget>
        </item>
        <item row="3" column="0">
         <widget class="QGroupBox" name="groupBox_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string/>
          </property>
-         <widget class="QWidget" name="gridLayoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>541</width>
-            <height>41</height>
-           </rect>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_8">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>History size</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="le_2d_hist_size">
-             <property name="text">
-              <string>1000</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout_8">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_14">
+              <property name="text">
+               <string>History size</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_36">
+            <property name="text">
+             <string>DOOCS:  integral(aver_spectrum)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QLineEdit" name="le_dynprop_max"/>
+          </item>
+          <item row="2" column="3">
+           <widget class="QSpinBox" name="sb_max_spec_min">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <number>1279</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_37">
+            <property name="text">
+             <string>DOOCS: max(aver_spectrum)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QSpinBox" name="sb_max_spec_max">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>1280</number>
+            </property>
+            <property name="value">
+             <number>1280</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" colspan="4">
+           <widget class="QLineEdit" name="le_dynprop_integ"/>
+          </item>
+          <item row="0" column="3" colspan="2">
+           <widget class="QSpinBox" name="sb_2d_hist_size">
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>100000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -427,6 +488,9 @@
       <layout class="QGridLayout" name="gridLayout_14">
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_5">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
            <horstretch>0</horstretch>
@@ -566,6 +630,9 @@
        </item>
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_6">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
            <horstretch>0</horstretch>
@@ -705,6 +772,9 @@
        </item>
        <item row="2" column="0">
         <widget class="QGroupBox" name="groupBox_7">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
            <horstretch>0</horstretch>

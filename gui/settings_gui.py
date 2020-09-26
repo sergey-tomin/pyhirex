@@ -47,17 +47,15 @@ class HirexSettings(QWidget):
         table = {}
 
         table["logbook"] = self.ui.le_logbook.text()
-
-        table["le_trans_ch"] = self.ui.le_trans_ch.text()
-        table["le_hirex_ch"] = self.ui.le_hirex_ch.text()
-        table["sb_hrx_npx"] = self.ui.sb_hrx_npx.value()
-        table["le_ctrl_num_bunch"] = self.ui.le_ctrl_num_bunch.text()
-
         table["server_list"] = self.string2list(self.ui.le_server.text())
         table["server"] = self.ui.combo_server.currentText()
 
-        table["le_fast_xgm"] = self.ui.le_fast_xgm.text()
-        table["le_slow_xgm"] = self.ui.le_slow_xgm.text()
+        table["le_trans_ch_sa2"] = self.ui.le_trans_ch_sa2.text()
+        table["le_hirex_ch_sa2"] = self.ui.le_hirex_ch_sa2.text()
+        table["sb_hrx_npx_sa2"] = self.ui.sb_hrx_npx_sa2.value()
+        table["le_ctrl_num_bunch_sa2"] = self.ui.le_ctrl_num_bunch_sa2.text()
+        table["le_fast_xgm_sa2"] = self.ui.le_fast_xgm_sa2.text()
+        table["le_slow_xgm_sa2"] = self.ui.le_slow_xgm_sa2.text()
 
         table["style"] = self.ui.cb_style_def.currentIndex()
         table["style_file"] = self.ui.cb_style_def.currentText()
@@ -69,8 +67,19 @@ class HirexSettings(QWidget):
         table["le_fast_xgm_sa1"] = self.ui.le_fast_xgm_sa1.text()
         table["le_slow_xgm_sa1"] = self.ui.le_slow_xgm_sa1.text()
         
-        table["le_2d_hist_size"] = int(self.ui.le_2d_hist_size.text())
 
+
+        table["le_dynprop_max"] = self.ui.le_dynprop_max.text()
+        table["le_dynprop_integ"] = self.ui.le_dynprop_integ.text()
+
+        table["le_trans_ch_sa3"] = self.ui.le_trans_ch_sa3.text()
+        table["le_hirex_ch_sa3"] = self.ui.le_hirex_ch_sa3.text()
+        table["sb_hrx_npx_sa3"] = self.ui.sb_hrx_npx_sa3.value()
+        table["le_ctrl_num_bunch_sa3"] = self.ui.le_ctrl_num_bunch_sa3.text()
+        table["le_fast_xgm_sa3"] = self.ui.le_fast_xgm_sa3.text()
+        table["le_slow_xgm_sa3"] = self.ui.le_slow_xgm_sa3.text()
+
+        table["sb_2d_hist_size"] = self.ui.sb_2d_hist_size.value()
         with open(filename, 'w') as f:
             json.dump(table, f)
         print("SAVE State")
@@ -92,17 +101,14 @@ class HirexSettings(QWidget):
 
         with open(filename, 'r') as f:
             table = json.load(f)
-
-        if "le_hirex_ch" in table.keys(): self.ui.le_hirex_ch.setText(table["le_hirex_ch"])
-        if "le_trans_ch" in table.keys(): self.ui.le_trans_ch.setText(table["le_trans_ch"])
-        if "sb_hrx_npx" in table.keys():  self.ui.sb_hrx_npx.setValue(table["sb_hrx_npx"])
-        if "le_ctrl_num_bunch" in table.keys(): self.ui.le_ctrl_num_bunch.setText(table["le_ctrl_num_bunch"])
-
         if "le_logbook" in table.keys(): self.ui.le_logbook.setText(table["le_logbook"])
 
-        if "le_fast_xgm" in table.keys(): self.ui.le_fast_xgm.setText(table["le_fast_xgm"])
-        if "le_slow_xgm" in table.keys(): self.ui.le_slow_xgm.setText(table["le_slow_xgm"])
-
+        if "le_hirex_ch_sa2" in table.keys(): self.ui.le_hirex_ch_sa2.setText(table["le_hirex_ch_sa2"])
+        if "le_trans_ch_sa2" in table.keys(): self.ui.le_trans_ch_sa2.setText(table["le_trans_ch_sa2"])
+        if "sb_hrx_npx_sa2" in table.keys():  self.ui.sb_hrx_npx_sa2.setValue(table["sb_hrx_npx_sa2"])
+        if "le_ctrl_num_bunch_sa2" in table.keys(): self.ui.le_ctrl_num_bunch_sa2.setText(table["le_ctrl_num_bunch_sa2"])
+        if "le_fast_xgm_sa2" in table.keys(): self.ui.le_fast_xgm_sa2.setText(table["le_fast_xgm_sa2"])
+        if "le_slow_xgm_sa2" in table.keys(): self.ui.le_slow_xgm_sa2.setText(table["le_slow_xgm_sa2"])
 
 
         if "le_hirex_ch_sa1" in table.keys(): self.ui.le_hirex_ch_sa1.setText(table["le_hirex_ch_sa1"])
@@ -111,8 +117,18 @@ class HirexSettings(QWidget):
         if "le_ctrl_num_bunch_sa1" in table.keys(): self.ui.le_ctrl_num_bunch_sa1.setText(table["le_ctrl_num_bunch_sa1"])
         if "le_fast_xgm_sa1" in table.keys(): self.ui.le_fast_xgm_sa1.setText(table["le_fast_xgm_sa1"])
         if "le_slow_xgm_sa1" in table.keys(): self.ui.le_slow_xgm_sa1.setText(table["le_slow_xgm_sa1"])
-        
-        if "le_2d_hist_size" in table.keys(): self.ui.le_2d_hist_size.setText(str(table["le_2d_hist_size"]))
+
+        if "le_hirex_ch_sa3" in table.keys(): self.ui.le_hirex_ch_sa3.setText(table["le_hirex_ch_sa3"])
+        if "le_trans_ch_sa3" in table.keys(): self.ui.le_trans_ch_sa3.setText(table["le_trans_ch_sa3"])
+        if "sb_hrx_npx_sa3" in table.keys():  self.ui.sb_hrx_npx_sa3.setValue(table["sb_hrx_npx_sa3"])
+        if "le_ctrl_num_bunch_sa3" in table.keys(): self.ui.le_ctrl_num_bunch_sa3.setText(table["le_ctrl_num_bunch_sa3"])
+        if "le_fast_xgm_sa3" in table.keys(): self.ui.le_fast_xgm_sa3.setText(table["le_fast_xgm_sa3"])
+        if "le_slow_xgm_sa3" in table.keys(): self.ui.le_slow_xgm_sa3.setText(table["le_slow_xgm_sa3"])
+
+        if "sb_2d_hist_size" in table.keys(): self.ui.sb_2d_hist_size.setValue(table["sb_2d_hist_size"])
+
+        if "le_dynprop_max" in table.keys(): self.ui.le_dynprop_max.setText(table["le_dynprop_max"])
+        if "le_dynprop_integ" in table.keys(): self.ui.le_dynprop_integ.setText(table["le_dynprop_integ"])
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))

@@ -36,7 +36,7 @@ spec2d_pmpoints = 550
 
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex"
@@ -124,9 +124,13 @@ class SpectrometerWindow(QMainWindow):
 
         self.settings = None
         #self.load_settings()
-        self.ui.combo_hirex.addItem("DUMMY HIREX")
-        self.ui.combo_hirex.addItem("SASE2 HIREX")
-        self.ui.combo_hirex.addItem("SASE1 HIREX")
+        for hirex in AVAILABLE_SPECTROMETERS:
+            if self.tool_args.__dict__[hirex]:
+                print(hirex)
+                self.ui.combo_hirex.addItem(hirex)
+        #self.ui.combo_hirex.addItem("DUMMY HIREX")
+        #self.ui.combo_hirex.addItem("SASE2 HIREX")
+        #self.ui.combo_hirex.addItem("SASE1 HIREX")
         
         self.ui.combo_hirex.currentIndexChanged.connect(self.reload_objects_settings)
         self.reload_objects_settings()
@@ -140,7 +144,7 @@ class SpectrometerWindow(QMainWindow):
         self.add_image_widget()
         self.ui.restore_state(self.config_file)
 
-        self.data_2d = np.zeros((self.spectrometer.num_px, int(self.le_2d_hist_size)))
+        self.data_2d = np.zeros((self.spectrometer.num_px, int(self.sb_2d_hist_size)))
 
         self.timer_live = pg.QtCore.QTimer()
         self.timer_live.timeout.connect(self.live_spec)
@@ -202,8 +206,8 @@ class SpectrometerWindow(QMainWindow):
     def load_objects(self):
 
         current_source = self.ui.combo_hirex.currentText()
-
-        if current_source in ["SASE2 HIREX", "SASE1 HIREX"]:
+        print("chirex", current_source)
+        if current_source in ["SASE2", "SASE1"]:
         
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
@@ -213,12 +217,13 @@ class SpectrometerWindow(QMainWindow):
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
             
             
-        elif current_source in ["DUMMY HIREX"]:
+        elif current_source in ["DUMMY"]:
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
 
             self.spectrometer = DummyHirex(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
         self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
+        self.background = self.back_taker.load()
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
@@ -303,7 +308,7 @@ class SpectrometerWindow(QMainWindow):
         :return:
         """
         if not self.back_taker.is_alive():
-            self.ui.pb_background.setStyleSheet("color: rgb(85, 255, 255);")
+            self.ui.pb_background.setStyleSheet("color: rgb(0, 0, 0);")
             self.ui.pb_background.setText("Take Background")
             self.background = self.back_taker.background
             self.back_taker_status.stop()
@@ -371,7 +376,7 @@ class SpectrometerWindow(QMainWindow):
 
         # single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
         ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
-        if self.doocs_permit:
+        if self.doocs_permit and self.ui.cb_doocs_send_data.isChecked():
             self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_INTEG", ave_integ)
             self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_AMPL", np.max(self.ave_spectrum))
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.max(self.ave_spectrum[570:580]))
@@ -386,7 +391,9 @@ class SpectrometerWindow(QMainWindow):
             self.single.setData(self.x_axis, self.spectrum_event)
             self.average.setData(x=self.x_axis, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
-            
+            n_ppoints = len(self.x_axis)
+            if len(self.background) != n_ppoints:
+                self.background = np.zeros(n_ppoints)
             self.back_plot.setData(self.x_axis, self.background)
 
             # self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
@@ -424,7 +431,7 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setText("Start")
         else:
             self.counter_spect = 0
-            self.data_2d = np.zeros((self.spectrometer.num_px, self.le_2d_hist_size))
+            self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
             self.ave_spectrum = []
             self.timer_live.start(100)
@@ -472,7 +479,7 @@ class SpectrometerWindow(QMainWindow):
         event.accept()  # let the window close
 
     def parse_arguments(self):
-        parser = argparse.ArgumentParser(description="Ocelot Orbit Correction",
+        parser = argparse.ArgumentParser(description="PySpectrometer",
                                          add_help=False)
         parser.set_defaults(mi='XFELMachineInterface')
         parser.add_argument('--devmode', action='store_true',
@@ -480,14 +487,17 @@ class SpectrometerWindow(QMainWindow):
 
         parser_mi = argparse.ArgumentParser()
 
-        mis = [mi.__class__.__name__ for mi in AVAILABLE_MACHINE_INTERFACES]
         subparser = parser_mi.add_subparsers(title='Machine Interface Options', dest="mi")
         for mi in AVAILABLE_MACHINE_INTERFACES:
             mi_parser = subparser.add_parser(mi.__name__, help='{} arguments'.format(mi.__name__))
             mi.add_args(mi_parser)
 
-        self.tool_args, others = parser.parse_known_args()
 
+        for hirex in AVAILABLE_SPECTROMETERS:
+            hirex_agr = "--" + hirex
+            parser.add_argument(hirex_agr, hirex_agr.upper(), help=hirex.upper() + " HIREX", action="store_true")
+
+        self.tool_args, others = parser.parse_known_args()
         if len(others) != 0:
             self.tool_args = parser_mi.parse_args(others, namespace=self.tool_args)
 
@@ -638,17 +648,17 @@ class SpectrometerWindow(QMainWindow):
             table = json.load(f)
         current_source = self.ui.combo_hirex.currentText()
 
-        if current_source == "SASE2 HIREX":
+        if current_source == "SASE2":
 
-            self.hirex_doocs_ch = table["le_hirex_ch"]
-            self.transmission__doocs_ch = table["le_trans_ch"]
-            self.hrx_n_px = table["sb_hrx_npx"]
+            self.hirex_doocs_ch = table["le_hirex_ch_sa2"]
+            self.transmission__doocs_ch = table["le_trans_ch_sa2"]
+            self.hrx_n_px = table["sb_hrx_npx_sa2"]
 
-            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch"]
-            self.fast_xgm_signal = table["le_fast_xgm"]
-            self.slow_xgm_signal = table["le_slow_xgm"]
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa2"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa2"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa2"]
 
-        elif current_source == "SASE1 HIREX":
+        elif current_source == "SASE1":
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = table["le_trans_ch_sa1"]
             self.hrx_n_px = table["sb_hrx_npx_sa1"]
@@ -657,7 +667,7 @@ class SpectrometerWindow(QMainWindow):
             self.fast_xgm_signal = table["le_fast_xgm_sa1"]
             self.slow_xgm_signal = table["le_slow_xgm_sa1"]
             
-        elif current_source == "DUMMY HIREX":
+        elif current_source == "DUMMY":
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = 1
             self.hrx_n_px = 3000
@@ -675,7 +685,7 @@ class SpectrometerWindow(QMainWindow):
         else:
             self.server = "XFEL"
             
-        self.le_2d_hist_size = table['le_2d_hist_size']
+        self.sb_2d_hist_size = table['sb_2d_hist_size']
 
         logger.debug("load settings ... OK")
 
