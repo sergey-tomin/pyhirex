@@ -208,7 +208,6 @@ class SpectrometerWindow(QMainWindow):
     def load_objects(self):
 
         current_source = self.ui.combo_hirex.currentText()
-        print("chirex", current_source)
         if current_source in ["SASE2", "SASE1"]:
         
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
@@ -379,8 +378,8 @@ class SpectrometerWindow(QMainWindow):
         # single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
         ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
         if self.doocs_permit and self.ui.cb_doocs_send_data.isChecked():
-            self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_INTEG", ave_integ)
-            self.mi.set_value("XFEL.UTIL/DYNPROP/MISC/HIREX_AMPL", np.max(self.ave_spectrum))
+            self.mi.set_value(self.dynprop_integ, ave_integ)
+            self.mi.set_value(self.dynprop_max, np.max(self.ave_spectrum[self.max_spec_min_inx: self.max_spec_max_inx]))
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.max(self.ave_spectrum[570:580]))
         self.peak_ev = self.x_axis[np.argmax(self.ave_spectrum)]
 
@@ -432,6 +431,9 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0); font-size: 18pt")
             self.ui.pb_start.setText("Start")
         else:
+            if self.bunch_num_ctrl.get_value() <= 0:
+                self.error_box("No Beam")
+                return 
             self.counter_spect = 0
             self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
@@ -679,7 +681,17 @@ class SpectrometerWindow(QMainWindow):
 
         else:
             print("WRONG HIREX")
-
+        self.dynprop_max = table["le_dynprop_max"]
+        self.dynprop_integ = table["le_dynprop_integ"]
+        self.max_spec_min_inx = table["sb_max_spec_min"]
+        self.max_spec_max_inx = table["sb_max_spec_max"]
+        
+        if self.max_spec_max_inx > self.hrx_n_px:
+            self.max_spec_max_inx = self.hrx_n_px
+        
+        if self.max_spec_min_inx >= self.max_spec_max_inx:
+            self.max_spec_min_inx = self.max_spec_max_inx - 1
+        
         self.logbook = table["logbook"]
         if "server" in table.keys():
             self.server = table["server"]

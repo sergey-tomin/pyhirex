@@ -80,6 +80,13 @@ class HirexSettings(QWidget):
         table["le_slow_xgm_sa3"] = self.ui.le_slow_xgm_sa3.text()
 
         table["sb_2d_hist_size"] = self.ui.sb_2d_hist_size.value()
+        
+        table["sb_max_spec_min"] = self.ui.sb_max_spec_min.value()
+        table["sb_max_spec_max"] = self.ui.sb_max_spec_max.value()
+
+        table["le_doocs_ch_cor2d"] = self.ui.le_doocs_ch_cor2d.text()
+        table["sb_emin"] = self.ui.sb_emin.value()
+        table["sb_emax"] = self.ui.sb_emax.value()
         with open(filename, 'w') as f:
             json.dump(table, f)
         print("SAVE State")
@@ -129,6 +136,14 @@ class HirexSettings(QWidget):
 
         if "le_dynprop_max" in table.keys(): self.ui.le_dynprop_max.setText(table["le_dynprop_max"])
         if "le_dynprop_integ" in table.keys(): self.ui.le_dynprop_integ.setText(table["le_dynprop_integ"])
+
+        if "sb_max_spec_min" in table.keys(): self.ui.sb_max_spec_min.setValue(table["sb_max_spec_min"])
+        if "sb_max_spec_max" in table.keys(): self.ui.sb_max_spec_max.setValue(table["sb_max_spec_max"])
+
+        # correlation
+        if "le_doocs_ch_cor2d" in table.keys(): self.ui.le_doocs_ch_cor2d.setText(table["le_doocs_ch_cor2d"])
+        if "sb_emin" in table.keys(): self.ui.sb_emin.setValue(table["sb_emin"])
+        if "sb_emax" in table.keys(): self.ui.sb_emax.setValue(table["sb_emax"])
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))
