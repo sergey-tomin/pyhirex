@@ -410,7 +410,7 @@ class Correl2DInterface:
         layout.addWidget(win)
 
         self.img_Isum = win.addPlot()
-        self.img_Isum.setLabel('left', "I (sum)", units='')
+        self.img_Isum.setLabel('left', "Ipk/Isum", units='')
         # self.img_Isum.showGrid(1, 1, 1)
         self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
@@ -426,7 +426,7 @@ class Correl2DInterface:
                 
                 # print('plot_Ipk', len(interbin_values), len(self.spec_binned))
                 pen=pg.mkPen(color=(0, 0, 255), width=3)
-                self.img_Isum.plot(interbin_values, np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+                self.img_Isum.plot(interbin_values, np.amax(self.spec_binned,axis=1)/np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
                 self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
     def save_corr2d_data_as(self):

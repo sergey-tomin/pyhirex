@@ -768,7 +768,7 @@ def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     #create the application
     app = QApplication(sys.argv)
-    path = os.path.join(os.path.dirname(sys.modules[__name__].__file__), 'gui/hirex.jpg')
+    path = os.path.join(os.path.dirname(sys.modules[__name__].__file__), 'gui/hirex.png')
     app.setWindowIcon(QtGui.QIcon(path))
 
     window = SpectrometerWindow()

@@ -468,7 +468,7 @@
            </size>
           </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string>Misc</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_14">
            <property name="leftMargin">
@@ -1078,6 +1078,20 @@
              </item>
             </layout>
            </item>
+           <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_logbook_cor2d">
+             <property name="text">
+              <string>Logbook</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -1489,6 +1503,7 @@
      <string>Logbook</string>
     </property>
     <addaction name="actionSend_to_logbook"/>
+    <addaction name="actionSend_cor2d_to_logbook"/>
    </widget>
    <widget class="QMenu" name="menuSave">
     <property name="title">
@@ -1531,6 +1546,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="actionSend_cor2d_to_logbook">
+   <property name="text">
+    <string>Send cor2d to logbook</string>
    </property>
   </action>
  </widget>
