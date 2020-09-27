@@ -21,7 +21,8 @@ from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QMessageBox, QApplication,QM
 from gui.UISpectrometer import Ui_MainWindow
 
 from PyQt5 import QtGui, QtCore
-
+from pathlib import Path
+import time
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -109,8 +110,12 @@ class MainWindow(Ui_MainWindow):
 
         self.le_doocs_ch_hist.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_hist))
         #self.le_b.editingFinished.connect(self.check_address)
-        self.pb_logbook.clicked.connect(lambda: self.logbook(self.Form))
-        self.actionSend_to_logbook.triggered.connect(lambda: self.logbook(self.Form))
+        self.pb_logbook.clicked.connect(lambda: self.log_waterflow(self.Form))
+        self.actionSend_to_logbook.triggered.connect(lambda: self.log_waterflow(self.Form))
+        
+        self.pb_logbook_cor2d.clicked.connect(lambda: self.log_cor2d(self.Form))
+        self.actionSend_cor2d_to_logbook.triggered.connect(lambda: self.log_cor2d(self.Form))
+        
         style_index = self.get_style_name_index()
         style_name = self.Form.gui_styles[style_index]
 
@@ -213,32 +218,44 @@ class MainWindow(Ui_MainWindow):
         except:
             print("RESTORE STATE: ERROR")
 
-    def logbook(self, widget):
+
+    def save_cor2d_file(self):
+        Path(self.Form.data_dir).mkdir(parents=True, exist_ok=True)
+        filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_cor2d.npz"
+        
+        cor2d_tab = self.Form.corre2dtool
+        np.savez(filename, phen_scale=cor2d_tab.phen, spec_hist=cor2d_tab.spec_hist, 
+                doocs_vals_hist=cor2d_tab.doocs_vals_hist, corr2d=cor2d_tab.spec_binned, 
+                doocs_scale = cor2d_tab.doocs_bins, doocs_channel=cor2d_tab.doocs_address_label)
+        return filename
+
+    def save_waterflow_file(self):
+        Path(self.Form.data_dir).mkdir(parents=True, exist_ok=True)
+        filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_waterflow.npz"
+        np.savez(filename, e_axis=self.Form.x_axis, average=self.Form.ave_spectrum, map=self.Form.data_2d)
+        return filename
+
+    def logbook(self, widget, text=""):
         """
         Method to send Optimization parameters + screenshot to eLogboob
         :return:
         """
-
-        filename = "screenshot"
-        filetype = "png"
-        #self.screenShot(filename, filetype)
-
-        # curr_time = datetime.now()
-        # timeString = curr_time.strftime("%Y-%m-%dT%H:%M:%S")
-        text = ""
-
-
-        #screenshot = open(self.Form.optimizer_path + filename + "." + filetype, 'rb')
-        
         screenshot = self.get_screenshot(widget)
-        #res = send_to_desy_elog(author="", title="OCELOT Correction tool", severity="INFO", text=text, elog=self.Form.logbook,
-        #                  image=screenshot.read())
-        
+
         res = send_to_desy_elog(author="", title="pySpectrometer", severity="INFO", text=text, elog=self.Form.mi.logbook_name,
                           image=screenshot)
-
         if not res:
             self.Form.error_box("error during eLogBook sending")
+
+    def log_waterflow(self, widget):
+        filename = self.save_waterflow_file()
+        text = "Waterflow data is saved in: " + filename
+        self.logbook(widget, text=text)
+
+    def log_cor2d(self, widget):
+        filename = self.save_cor2d_file()
+        text = "Correlation2D data is saved in: " + filename
+        self.logbook(widget, text=text)
 
     def get_screenshot(self, window_widget):
         screenshot_tmp = QtCore.QByteArray()

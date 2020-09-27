@@ -1,4 +1,9 @@
 #!/opt/anaconda4/bin/python
+"""
+Created on Sun Aug  9 17:33:30 2020
+
+@author: Sergey Tomin
+"""
 from PyQt5.QtWidgets import QFrame, QMainWindow
 import sys
 import os
@@ -16,7 +21,7 @@ from scipy.optimize import curve_fit
 from threading import Thread, Event
 path = os.path.realpath(__file__)
 indx = path.find("hirex.py")
-print("PATH to main file: " + os.path.realpath(__file__) + " path to folder: "+ path[:indx])
+#print("PATH to main file: " + os.path.realpath(__file__) + " path to folder: "+ path[:indx])
 sys.path.insert(0, path[:indx])
 from matplotlib import cm
 from gui.spectr_gui import *
@@ -42,6 +47,7 @@ AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY"]
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
 
+PY_SPECTROMETER_DIR = "pySpectrometer"
 
 class Background(Thread):
     def __init__(self, mi, device, dev_name):
@@ -138,7 +144,7 @@ class SpectrometerWindow(QMainWindow):
         self.settings_file = self.config_dir + "settings.json"
         self.gui_dir = self.path + DIR_NAME + os.sep + "gui" + os.sep
         self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
-        self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
+        #self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         # initialize
         QFrame.__init__(self)
         self.ui = MainWindow(self)
@@ -156,7 +162,9 @@ class SpectrometerWindow(QMainWindow):
         #self.ui.combo_hirex.addItem("SASE1 HIREX")
         current_source = self.ui.combo_hirex.currentText()
         self.config_file = self.config_dir + current_source + "_config.json"
-
+        
+        self.data_dir = path[:path.find("user")]  + "user" + os.sep + PY_SPECTROMETER_DIR + os.sep + current_source + os.sep
+        
         self.ui.combo_hirex.currentIndexChanged.connect(self.reload_objects_settings)
         self.reload_objects_settings()
 

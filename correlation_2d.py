@@ -259,7 +259,11 @@ class Correl2DInterface:
             self.doocs_vals_hist.append(self.event_counter)
         elif self.doocs_address_label == 'dummy label':
             self.doocs_vals_hist.append(np.sin(time.time()/10)*7.565432 + 25)
-        elif self.parent.ui.combo_hirex.currentText() != "DUMMY HIREX":
+        elif self.parent.ui.combo_hirex.currentText() != "DUMMY":
+            if self.doocs_dev is None:
+                self.ui.sb_corr_2d_run.setChecked(False)
+                self.parent.error_box("Wrong DOOCS channel")
+                return
             self.doocs_vals_hist.append(self.doocs_dev.get_value())
         else:
             self.doocs_address_label = 'event',
