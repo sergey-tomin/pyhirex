@@ -213,7 +213,7 @@ class SpectrometerWindow(QMainWindow):
 
         self.ui.actionSave_Data.triggered.connect(self.save_data_as)
         self.ui.pb_hide_show_backplot.clicked.connect(self.show_hide_background)
-        
+        self.ui.pb_hide_average.clicked.connect(self.show_hide_average)
         self.check_doocs_permission()
 
 
@@ -466,7 +466,15 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_hide_show_backplot.setText("Hide Background")
             #self.ui.pb_hide_show_backplot.setStyleSheet("color: rgb(255, 0, 0);")
             self.plot1.addItem(self.back_plot)
-            #self.update_plot()
+
+    def show_hide_average(self):
+        if self.ui.pb_hide_average.text() == "Hide Average":
+            self.plot1.removeItem(self.average)
+            self.plot1.legend.removeItem(self.average.name())
+            self.ui.pb_hide_average.setText("Show Average")
+        else:
+            self.ui.pb_hide_average.setText("Hide Average")
+            self.plot1.addItem(self.average)
 
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
