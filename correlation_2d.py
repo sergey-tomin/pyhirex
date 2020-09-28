@@ -87,7 +87,12 @@ class Correl2DInterface:
         self.add_corrIsum_widget()
         
         self.ui.actionSave_Corelation.triggered.connect(self.save_corr2d_data_as)
-        
+
+    def stop_timers(self):
+        self.plot_timer.stop()
+        self.plot_timer_hist_event.stop()
+        self.plot_timer_Ipk_event.stop()
+        self.plot_timer_Isum_event.stop()
 
     def get_device(self):
         if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor2d):

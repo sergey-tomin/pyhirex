@@ -97,16 +97,17 @@ class Transmission(Thread):
         self._stop_event = Event()
         self.dev_ch = dev_ch
         self.transmission = 1.
+        self.kill = False
 
     def run(self):
-        while True:
+        while not self.kill:
             if self.dev_ch is not None:
                 self.transmission = self.mi.get_value(self.dev_ch)
 
             time.sleep(2)
 
     def stop(self):
-        print("stop")
+        print("stop transmission thread")
         self._stop_event.set()
 
 
@@ -527,11 +528,20 @@ class SpectrometerWindow(QMainWindow):
         self.textItem.setPos(x, y)
 
     def closeEvent(self, event):
-        #if self.orbit.adaptive_feedback is not None:
-        #    self.orbit.adaptive_feedback.close()c
+        if self.transmission_thread.is_alive():
+            self.transmission_thread.kill = True
+            self.transmission_thread.stop()
+
+        if self.timer_live.isActive():
+            print("stop live spectrum")
+            self.timer_live.stop()
+
         if self.scantool.scanning is not None:
             self.scantool.scanning.kill = True
             self.scantool.scanning.crystal.stop()
+
+        if self.corre2dtool is not None:
+            self.corre2dtool.stop_timers()
         print(self.config_file)
         if 1:
             self.ui.save_state(self.config_file)
