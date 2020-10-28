@@ -166,7 +166,9 @@ class MainWindow(Ui_MainWindow):
         table["le_doocs_ch_cor2d"] = self.le_doocs_ch_cor2d.text()
         table["sb_emin"] = self.sb_emin.value()
         table["sb_emax"] = self.sb_emax.value()
-        
+        if not self.Form.doocs_permit:
+            print("Can not save State")
+            return 
         with open(filename, 'w') as f:
             json.dump(table, f)
         # pickle.dump(table, filename)
@@ -248,13 +250,19 @@ class MainWindow(Ui_MainWindow):
             self.Form.error_box("error during eLogBook sending")
 
     def log_waterflow(self, widget):
-        filename = self.save_waterflow_file()
-        text = "Waterflow data is saved in: " + filename
+        if self.Form.doocs_permit:
+            filename = self.save_waterflow_file()
+            text = "Waterflow data is saved in: " + filename
+        else:
+            text = ""
         self.logbook(widget, text=text)
 
     def log_cor2d(self, widget):
-        filename = self.save_cor2d_file()
-        text = "Correlation2D data is saved in: " + filename
+        if self.Form.doocs_permit:
+            filename = self.save_cor2d_file()
+            text = "Correlation2D data is saved in: " + filename
+        else:
+            text = ""
         self.logbook(widget, text=text)
 
     def get_screenshot(self, window_widget):

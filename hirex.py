@@ -370,9 +370,17 @@ class SpectrometerWindow(QMainWindow):
                 self.error_box("Start HIREX first")
                 return
             self.actual_n_bunchs = self.bunch_num_ctrl.get_value()
+            if self.actual_n_bunchs != 0:
+                try:
+                    self.bunch_num_ctrl.set_value(0)
+                except:
+                    self.error_box("No permission")
+                    return
+            
             self.back_taker = Background(mi=self.mi, device=self.spectrometer, dev_name=current_source)
             self.back_taker.devmode = self.dev_mode
-            self.bunch_num_ctrl.set_value(0)
+            
+            
             time.sleep(0.5)
             self.back_taker.nshots = int(self.ui.sb_nbunch_back.value())
             # self.back_taker.doocs_channel = str(self.ui.le_a.text())
@@ -484,8 +492,8 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setText("Start")
         else:
             if self.bunch_num_ctrl.get_value() <= 0:
-                self.error_box("No Beam")
-                return 
+                self.error_box("No Beam. It can cause some problems")
+                #return 
             self.counter_spect = 0
             self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
