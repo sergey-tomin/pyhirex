@@ -1,4 +1,9 @@
 #!/opt/anaconda4/bin/python
+"""
+Created on Sun Aug  9 17:33:30 2020
+
+@author: Sergey Tomin
+"""
 from PyQt5.QtWidgets import QFrame, QMainWindow
 import sys
 import os
@@ -16,7 +21,7 @@ from scipy.optimize import curve_fit
 from threading import Thread, Event
 path = os.path.realpath(__file__)
 indx = path.find("hirex.py")
-print("PATH to main file: " + os.path.realpath(__file__) + " path to folder: "+ path[:indx])
+#print("PATH to main file: " + os.path.realpath(__file__) + " path to folder: "+ path[:indx])
 sys.path.insert(0, path[:indx])
 from matplotlib import cm
 from gui.spectr_gui import *
@@ -42,6 +47,7 @@ AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY"]
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
 
+PY_SPECTROMETER_DIR = "pySpectrometer"
 
 class Background(Thread):
     def __init__(self, mi, device, dev_name):
@@ -91,16 +97,17 @@ class Transmission(Thread):
         self._stop_event = Event()
         self.dev_ch = dev_ch
         self.transmission = 1.
+        self.kill = False
 
     def run(self):
-        while True:
+        while not self.kill:
             if self.dev_ch is not None:
                 self.transmission = self.mi.get_value(self.dev_ch)
 
             time.sleep(2)
 
     def stop(self):
-        print("stop")
+        print("stop transmission thread")
         self._stop_event.set()
 
 
@@ -138,7 +145,7 @@ class SpectrometerWindow(QMainWindow):
         self.settings_file = self.config_dir + "settings.json"
         self.gui_dir = self.path + DIR_NAME + os.sep + "gui" + os.sep
         self.gui_styles = ["standard.css", "colinDark.css", "dark.css"]
-        self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
+        #self.data_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         # initialize
         QFrame.__init__(self)
         self.ui = MainWindow(self)
@@ -156,7 +163,9 @@ class SpectrometerWindow(QMainWindow):
         #self.ui.combo_hirex.addItem("SASE1 HIREX")
         current_source = self.ui.combo_hirex.currentText()
         self.config_file = self.config_dir + current_source + "_config.json"
-
+        
+        self.data_dir = path[:path.find("user")]  + "user" + os.sep + PY_SPECTROMETER_DIR + os.sep + current_source + os.sep
+        
         self.ui.combo_hirex.currentIndexChanged.connect(self.reload_objects_settings)
         self.reload_objects_settings()
 
@@ -205,7 +214,7 @@ class SpectrometerWindow(QMainWindow):
 
         self.ui.actionSave_Data.triggered.connect(self.save_data_as)
         self.ui.pb_hide_show_backplot.clicked.connect(self.show_hide_background)
-        
+        self.ui.pb_hide_average.clicked.connect(self.show_hide_average)
         self.check_doocs_permission()
 
 
@@ -361,9 +370,17 @@ class SpectrometerWindow(QMainWindow):
                 self.error_box("Start HIREX first")
                 return
             self.actual_n_bunchs = self.bunch_num_ctrl.get_value()
+            if self.actual_n_bunchs != 0:
+                try:
+                    self.bunch_num_ctrl.set_value(0)
+                except:
+                    self.error_box("No permission")
+                    return
+            
             self.back_taker = Background(mi=self.mi, device=self.spectrometer, dev_name=current_source)
             self.back_taker.devmode = self.dev_mode
-            self.bunch_num_ctrl.set_value(0)
+            
+            
             time.sleep(0.5)
             self.back_taker.nshots = int(self.ui.sb_nbunch_back.value())
             # self.back_taker.doocs_channel = str(self.ui.le_a.text())
@@ -458,7 +475,15 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_hide_show_backplot.setText("Hide Background")
             #self.ui.pb_hide_show_backplot.setStyleSheet("color: rgb(255, 0, 0);")
             self.plot1.addItem(self.back_plot)
-            #self.update_plot()
+
+    def show_hide_average(self):
+        if self.ui.pb_hide_average.text() == "Hide Average":
+            self.plot1.removeItem(self.average)
+            self.plot1.legend.removeItem(self.average.name())
+            self.ui.pb_hide_average.setText("Show Average")
+        else:
+            self.ui.pb_hide_average.setText("Hide Average")
+            self.plot1.addItem(self.average)
 
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
@@ -467,8 +492,8 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setText("Start")
         else:
             if self.bunch_num_ctrl.get_value() <= 0:
-                self.error_box("No Beam")
-                return 
+                self.error_box("No Beam. It can cause some problems")
+                #return 
             self.counter_spect = 0
             self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
@@ -511,11 +536,20 @@ class SpectrometerWindow(QMainWindow):
         self.textItem.setPos(x, y)
 
     def closeEvent(self, event):
-        #if self.orbit.adaptive_feedback is not None:
-        #    self.orbit.adaptive_feedback.close()c
+        if self.transmission_thread.is_alive():
+            self.transmission_thread.kill = True
+            self.transmission_thread.stop()
+
+        if self.timer_live.isActive():
+            print("stop live spectrum")
+            self.timer_live.stop()
+
         if self.scantool.scanning is not None:
             self.scantool.scanning.kill = True
             self.scantool.scanning.crystal.stop()
+
+        if self.corre2dtool is not None:
+            self.corre2dtool.stop_timers()
         print(self.config_file)
         if 1:
             self.ui.save_state(self.config_file)
@@ -768,7 +802,7 @@ def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     #create the application
     app = QApplication(sys.argv)
-    path = os.path.join(os.path.dirname(sys.modules[__name__].__file__), 'gui/hirex.jpg')
+    path = os.path.join(os.path.dirname(sys.modules[__name__].__file__), 'gui/hirex.png')
     app.setWindowIcon(QtGui.QIcon(path))
 
     window = SpectrometerWindow()

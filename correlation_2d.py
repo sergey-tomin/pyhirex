@@ -87,7 +87,12 @@ class Correl2DInterface:
         self.add_corrIsum_widget()
         
         self.ui.actionSave_Corelation.triggered.connect(self.save_corr2d_data_as)
-        
+
+    def stop_timers(self):
+        self.plot_timer.stop()
+        self.plot_timer_hist_event.stop()
+        self.plot_timer_Ipk_event.stop()
+        self.plot_timer_Isum_event.stop()
 
     def get_device(self):
         if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor2d):
@@ -259,7 +264,11 @@ class Correl2DInterface:
             self.doocs_vals_hist.append(self.event_counter)
         elif self.doocs_address_label == 'dummy label':
             self.doocs_vals_hist.append(np.sin(time.time()/10)*7.565432 + 25)
-        elif self.parent.ui.combo_hirex.currentText() != "DUMMY HIREX":
+        elif self.parent.ui.combo_hirex.currentText() != "DUMMY":
+            if self.doocs_dev is None:
+                self.ui.sb_corr_2d_run.setChecked(False)
+                self.parent.error_box("Wrong DOOCS channel")
+                return
             self.doocs_vals_hist.append(self.doocs_dev.get_value())
         else:
             self.doocs_address_label = 'event',
@@ -410,7 +419,7 @@ class Correl2DInterface:
         layout.addWidget(win)
 
         self.img_Isum = win.addPlot()
-        self.img_Isum.setLabel('left', "I (sum)", units='')
+        self.img_Isum.setLabel('left', "Ipk/Isum", units='')
         # self.img_Isum.showGrid(1, 1, 1)
         self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
@@ -426,7 +435,7 @@ class Correl2DInterface:
                 
                 # print('plot_Ipk', len(interbin_values), len(self.spec_binned))
                 pen=pg.mkPen(color=(0, 0, 255), width=3)
-                self.img_Isum.plot(interbin_values, np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+                self.img_Isum.plot(interbin_values, np.amax(self.spec_binned,axis=1)/np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
                 self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
     def save_corr2d_data_as(self):

@@ -80,22 +80,6 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="sb_bnumber">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="decimals">
-                <number>0</number>
-               </property>
-               <property name="maximum">
-                <double>1000.000000000000000</double>
-               </property>
-               <property name="value">
-                <double>1.000000000000000</double>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="1">
               <widget class="QDoubleSpinBox" name="sb_av_nbunch">
                <property name="locale">
@@ -115,6 +99,29 @@
                </property>
                <property name="value">
                 <double>10.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QPushButton" name="pb_hide_average">
+               <property name="text">
+                <string>Hide Average</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QDoubleSpinBox" name="sb_bnumber">
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="decimals">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <double>1000.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>1.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -468,7 +475,7 @@
            </size>
           </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string>Misc</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_14">
            <property name="leftMargin">
@@ -1078,6 +1085,20 @@
              </item>
             </layout>
            </item>
+           <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_logbook_cor2d">
+             <property name="text">
+              <string>Logbook</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -1489,6 +1510,7 @@
      <string>Logbook</string>
     </property>
     <addaction name="actionSend_to_logbook"/>
+    <addaction name="actionSend_cor2d_to_logbook"/>
    </widget>
    <widget class="QMenu" name="menuSave">
     <property name="title">
@@ -1531,6 +1553,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="actionSend_cor2d_to_logbook">
+   <property name="text">
+    <string>Send cor2d to logbook</string>
    </property>
   </action>
  </widget>
