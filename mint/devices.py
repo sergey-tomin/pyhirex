@@ -121,7 +121,7 @@ class Spectrometer():
         px1 = mu
         return px1
 
-    def calibrate_axis(self, ev_px, E0, px1):
+    def calibrate_axis(self, ev_px=None, E0=None, px1=None):
         """
         method to calibrate energy axis
 
@@ -140,11 +140,11 @@ class Spectrometer():
 
 
 class BraggCamera(Spectrometer):
-    def __init__(self, mi, energy_ch, intensity_ch):
-        super(BraggCamera, self).__init__(*args, **kwargs)
+    def __init__(self, mi, eid=None, energy_ch=None):
+        super(BraggCamera, self).__init__(mi=mi, eid=eid)
         self.mi = mi
         self.energy_ch = energy_ch
-        self.intensity_ch = intensity_ch
+        self.eid = eid
         self.num_px = 1079  # number of pixels
         self.x_axis = np.arange(self.num_px)
         self.spectrum = []
@@ -161,7 +161,30 @@ class BraggCamera(Spectrometer):
 
         self.x_axis = self.mi.get_value(self.energy_ch)
         return self.x_axis
-    
+
+class SpectrometerSA3(Spectrometer):
+    def __init__(self, mi, eid=None, energy_ch=None):
+        super(SpectrometerSA3, self).__init__(mi=mi, eid=eid)
+        self.mi = mi
+        self.energy_ch = energy_ch
+        self.eid = eid
+        self.num_px = 1079  # number of pixels
+        self.x_axis = np.arange(self.num_px)
+        self.spectrum = []
+        self.background = []
+        self.av_spectrum = []
+        self.update_background()
+        
+    def calibrate_axis(self, ev_px=None, E0=None, px1=None):
+        """
+        method to calibrate energy axis
+
+        :return: x_axis - array in [ev]
+        """
+        print(self.energy_ch)
+
+        self.x_axis = self.mi.get_value(self.energy_ch)
+        return self.x_axis
 
 
 class DummyHirex(Spectrometer):
@@ -206,7 +229,10 @@ class XGM():
         basic method to get value from XFGM        
         :return: val
         """
-        val = self.mi.get_value(self.eid)
+        try:
+            val = self.mi.get_value(self.eid)
+        except:
+            val = np.nan
         return val
 
 

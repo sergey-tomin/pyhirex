@@ -27,7 +27,7 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, SpectrometerSA3
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
@@ -42,7 +42,7 @@ WATERFLOW_ALL = True
 
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "DUMMY"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -101,7 +101,7 @@ class Transmission(Thread):
 
     def run(self):
         while not self.kill:
-            if self.dev_ch is not None:
+            if self.dev_ch is not None and self.dev_ch != "":
                 self.transmission = self.mi.get_value(self.dev_ch)
 
             time.sleep(2)
@@ -249,7 +249,15 @@ class SpectrometerWindow(QMainWindow):
             self.spectrometer.num_px = self.hrx_n_px
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
-            
+    
+        elif current_source in ["SASE3",]:
+        
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
+
+            self.spectrometer = SpectrometerSA3(self.mi, energy_ch=self.ph_energy_sa3, eid=self.hirex_doocs_ch)
+            self.spectrometer.num_px = self.hrx_n_px
+            self.spectrometer.devmode = self.dev_mode
+            self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
             
         elif current_source in ["DUMMY"]:
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
@@ -340,8 +348,12 @@ class SpectrometerWindow(QMainWindow):
         ev_px = self.ui.sb_ev_px.value()
         E0 = self.ui.sb_E0.value()
         px1 = self.ui.sb_px1.value()
-        self.x_axis = self.spectrometer.calibrate_axis(ev_px, E0, px1)
-
+        try:
+            self.x_axis = self.spectrometer.calibrate_axis(ev_px, E0, px1)
+        except:
+            self.error_box("WRONG channel or Device is not available")
+            
+            self.x_axis = np.arange(self.hrx_n_px)
 
     def is_back_taker_alive(self):
         """
@@ -724,7 +736,7 @@ class SpectrometerWindow(QMainWindow):
         with open(self.settings_file, 'r') as f:
             table = json.load(f)
         current_source = self.ui.combo_hirex.currentText()
-
+        self.hrx_n_px = 1000
         if current_source == "SASE2":
 
             self.hirex_doocs_ch = table["le_hirex_ch_sa2"]
@@ -743,7 +755,17 @@ class SpectrometerWindow(QMainWindow):
             self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa1"]
             self.fast_xgm_signal = table["le_fast_xgm_sa1"]
             self.slow_xgm_signal = table["le_slow_xgm_sa1"]
-            
+        
+        elif current_source == "SASE3":
+            self.hirex_doocs_ch = table["le_hirex_ch_sa3"]
+            self.ph_energy_sa3 = table["le_ph_energy_sa3"]
+            self.transmission__doocs_ch = table["le_trans_ch_sa3"]
+            self.hrx_n_px = table["sb_hrx_npx_sa3"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa3"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa3"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa3"]
+        
         elif current_source == "DUMMY":
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None

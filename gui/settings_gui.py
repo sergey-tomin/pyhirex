@@ -72,8 +72,10 @@ class HirexSettings(QWidget):
         table["le_dynprop_max"] = self.ui.le_dynprop_max.text()
         table["le_dynprop_integ"] = self.ui.le_dynprop_integ.text()
 
-        table["le_trans_ch_sa3"] = self.ui.le_trans_ch_sa3.text()
         table["le_hirex_ch_sa3"] = self.ui.le_hirex_ch_sa3.text()
+        table["le_ph_energy_sa3"] = self.ui.le_ph_energy_sa3.text()
+        table["le_trans_ch_sa3"] = self.ui.le_trans_ch_sa3.text()
+        
         table["sb_hrx_npx_sa3"] = self.ui.sb_hrx_npx_sa3.value()
         table["le_ctrl_num_bunch_sa3"] = self.ui.le_ctrl_num_bunch_sa3.text()
         table["le_fast_xgm_sa3"] = self.ui.le_fast_xgm_sa3.text()
@@ -125,6 +127,7 @@ class HirexSettings(QWidget):
         if "le_slow_xgm_sa1" in table.keys(): self.ui.le_slow_xgm_sa1.setText(table["le_slow_xgm_sa1"])
 
         if "le_hirex_ch_sa3" in table.keys(): self.ui.le_hirex_ch_sa3.setText(table["le_hirex_ch_sa3"])
+        if "le_ph_energy_sa3" in table.keys(): self.ui.le_ph_energy_sa3.setText(table["le_ph_energy_sa3"])
         if "le_trans_ch_sa3" in table.keys(): self.ui.le_trans_ch_sa3.setText(table["le_trans_ch_sa3"])
         if "sb_hrx_npx_sa3" in table.keys():  self.ui.sb_hrx_npx_sa3.setValue(table["sb_hrx_npx_sa3"])
         if "le_ctrl_num_bunch_sa3" in table.keys(): self.ui.le_ctrl_num_bunch_sa3.setText(table["le_ctrl_num_bunch_sa3"])
