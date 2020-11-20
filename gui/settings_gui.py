@@ -81,6 +81,17 @@ class HirexSettings(QWidget):
         table["le_fast_xgm_sa3"] = self.ui.le_fast_xgm_sa3.text()
         table["le_slow_xgm_sa3"] = self.ui.le_slow_xgm_sa3.text()
 
+
+        table["le_hirex_ch_sa3_scs"] = self.ui.le_hirex_ch_sa3_scs.text()
+        table["le_ph_energy_sa3_scs"] = self.ui.le_ph_energy_sa3_scs.text()
+        table["le_trans_ch_sa3_scs"] = self.ui.le_trans_ch_sa3_scs.text()
+        
+        table["sb_hrx_npx_sa3_scs"] = self.ui.sb_hrx_npx_sa3_scs.value()
+        table["le_ctrl_num_bunch_sa3_scs"] = self.ui.le_ctrl_num_bunch_sa3_scs.text()
+        table["le_fast_xgm_sa3_scs"] = self.ui.le_fast_xgm_sa3_scs.text()
+        table["le_slow_xgm_sa3_scs"] = self.ui.le_slow_xgm_sa3_scs.text()
+
+
         table["sb_2d_hist_size"] = self.ui.sb_2d_hist_size.value()
         
         table["sb_max_spec_min"] = self.ui.sb_max_spec_min.value()
@@ -133,6 +144,16 @@ class HirexSettings(QWidget):
         if "le_ctrl_num_bunch_sa3" in table.keys(): self.ui.le_ctrl_num_bunch_sa3.setText(table["le_ctrl_num_bunch_sa3"])
         if "le_fast_xgm_sa3" in table.keys(): self.ui.le_fast_xgm_sa3.setText(table["le_fast_xgm_sa3"])
         if "le_slow_xgm_sa3" in table.keys(): self.ui.le_slow_xgm_sa3.setText(table["le_slow_xgm_sa3"])
+
+
+        if "le_hirex_ch_sa3_scs" in table.keys(): self.ui.le_hirex_ch_sa3_scs.setText(table["le_hirex_ch_sa3_scs"])
+        if "le_ph_energy_sa3_scs" in table.keys(): self.ui.le_ph_energy_sa3_scs.setText(table["le_ph_energy_sa3_scs"])
+        if "le_trans_ch_sa3_scs" in table.keys(): self.ui.le_trans_ch_sa3_scs.setText(table["le_trans_ch_sa3_scs"])
+        if "sb_hrx_npx_sa3_scs" in table.keys():  self.ui.sb_hrx_npx_sa3_scs.setValue(table["sb_hrx_npx_sa3_scs"])
+        if "le_ctrl_num_bunch_sa3_scs" in table.keys(): self.ui.le_ctrl_num_bunch_sa3_scs.setText(table["le_ctrl_num_bunch_sa3_scs"])
+        if "le_fast_xgm_sa3_scs" in table.keys(): self.ui.le_fast_xgm_sa3_scs.setText(table["le_fast_xgm_sa3_scs"])
+        if "le_slow_xgm_sa3_scs" in table.keys(): self.ui.le_slow_xgm_sa3_scs.setText(table["le_slow_xgm_sa3_scs"])
+
 
         if "sb_2d_hist_size" in table.keys(): self.ui.sb_2d_hist_size.setValue(table["sb_2d_hist_size"])
 

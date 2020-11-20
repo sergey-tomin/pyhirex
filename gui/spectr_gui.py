@@ -252,7 +252,7 @@ class MainWindow(Ui_MainWindow):
     def log_waterflow(self, widget):
         if self.Form.doocs_permit:
             filename = self.save_waterflow_file()
-            text = "Waterflow data is saved in: " + filename
+            text = "Waterfall data is saved in: " + filename
         else:
             text = ""
         self.logbook(widget, text=text)

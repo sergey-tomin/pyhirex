@@ -42,7 +42,7 @@ WATERFLOW_ALL = True
 
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "DUMMY"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -241,6 +241,7 @@ class SpectrometerWindow(QMainWindow):
     def load_objects(self):
 
         current_source = self.ui.combo_hirex.currentText()
+        print(current_source)
         if current_source in ["SASE2", "SASE1"]:
         
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
@@ -250,7 +251,7 @@ class SpectrometerWindow(QMainWindow):
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
     
-        elif current_source in ["SASE3",]:
+        elif current_source in ["SASE3","SASE3_SCS"]:
         
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
@@ -760,12 +761,26 @@ class SpectrometerWindow(QMainWindow):
             self.hirex_doocs_ch = table["le_hirex_ch_sa3"]
             self.ph_energy_sa3 = table["le_ph_energy_sa3"]
             self.transmission__doocs_ch = table["le_trans_ch_sa3"]
+            print("self.transmission__doocs_ch", self.transmission__doocs_ch)
             self.hrx_n_px = table["sb_hrx_npx_sa3"]
 
             self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa3"]
             self.fast_xgm_signal = table["le_fast_xgm_sa3"]
             self.slow_xgm_signal = table["le_slow_xgm_sa3"]
+            
         
+        elif current_source == "SASE3_SCS":
+            self.hirex_doocs_ch = table["le_hirex_ch_sa3_scs"]
+            self.ph_energy_sa3 = table["le_ph_energy_sa3_scs"]
+            self.transmission__doocs_ch = table["le_trans_ch_sa3_scs"]
+            print("self.transmission__doocs_ch", self.transmission__doocs_ch)
+            self.hrx_n_px = table["sb_hrx_npx_sa3_scs"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa3_scs"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa3_scs"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa3_scs"]
+            
+            
         elif current_source == "DUMMY":
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None
