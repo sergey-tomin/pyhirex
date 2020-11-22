@@ -111,6 +111,39 @@ class Transmission(Thread):
         self._stop_event.set()
 
 
+class EnergyAxisWatcher(Thread):
+    def __init__(self, mi, dev_ch):
+        super(EnergyAxisWatcher, self).__init__()
+        self.mi = mi
+        self.devmode = False
+        self._stop_event = Event()
+        self.dev_ch = dev_ch
+        self.energy_axis = []
+        self.energy_axis_old = None
+        self.trigger = False
+        self.kill = False
+
+    def run(self):
+        while not self.kill:
+            if self.dev_ch is not None and self.dev_ch != "":
+                self.energy_axis = self.mi.get_value(self.dev_ch)
+                if self.energy_axis_old is None:
+                    self.energy_axis_old = self.energy_axis 
+            time.sleep(1)
+            d_ev = (self.energy_axis[1] - self.energy_axis[0])
+            if self.energy_axis[0] - d_ev/2. <= self.energy_axis_old[0] <= self.energy_axis[0] + d_ev/2:
+                self.trigger = False
+            else:
+                self.trigger = True
+                print("NOT EQUAL", self.energy_axis[0], self.energy_axis_old[1]-self.energy_axis[0] )
+            self.energy_axis_old = self.energy_axis 
+
+    def stop(self):
+        print("stop EnergyAxisWatcher thread")
+        self._stop_event.set()
+
+
+
 class SpectrometerWindow(QMainWindow):
     """ Main class for the GUI application """
     def __init__(self):
@@ -260,6 +293,7 @@ class SpectrometerWindow(QMainWindow):
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
             
+            
         elif current_source in ["DUMMY"]:
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
 
@@ -273,6 +307,8 @@ class SpectrometerWindow(QMainWindow):
         self.transmission_thread = Transmission(self.mi, self.transmission__doocs_ch)
         self.transmission_thread.start()
         
+        self.energy_axis_thread = EnergyAxisWatcher(self.mi, self.ph_energy_sa3)
+        self.energy_axis_thread.start()
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
@@ -355,6 +391,7 @@ class SpectrometerWindow(QMainWindow):
             self.error_box("WRONG channel or Device is not available")
             
             self.x_axis = np.arange(self.hrx_n_px)
+        self.reset_waterfall(px1=px1)
 
     def is_back_taker_alive(self):
         """
@@ -465,11 +502,8 @@ class SpectrometerWindow(QMainWindow):
                 self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
             
 
-
-        #if not self.is_txt_item:
-        #    self.plot1.addItem(self.textItem)
-        #    self.is_txt_item = True
-        #self.update_text("Av = " + str(np.round(ave_integ, 1)) + " uJ \nEpk = " + str(np.round(self.peak_ev, 1)) + "eV")
+        if self.energy_axis_thread.trigger:
+            self.calibrate_axis()
         pulse_energy = self.xgm.get_value()
         if self.counter_spect % 10 == 0:
             self.label2.setText(
@@ -498,6 +532,25 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_hide_average.setText("Hide Average")
             self.plot1.addItem(self.average)
 
+    def reset_waterfall(self, px1=None):
+        self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
+        if px1 is not None or WATERFLOW_ALL:
+            scale_coef_xaxis = (self.x_axis[-1] - self.x_axis[0]) / len(self.x_axis)
+            translate_coef_xaxis = self.x_axis[0] / scale_coef_xaxis
+        else:
+            img_idx1 = int(px1 - 250)
+            img_idx2 = int(px1 + 250)
+            self.img_idx1 = img_idx1 if img_idx1 >= 0 else 0
+            self.img_idx2 = img_idx2 if img_idx2 < self.spectrometer.num_px else -1
+            scale_coef_xaxis = (self.x_axis[self.img_idx2] - self.x_axis[self.img_idx1]) / (
+                        self.img_idx2 - self.img_idx1)
+            translate_coef_xaxis = self.x_axis[self.img_idx1] / scale_coef_xaxis
+
+        self.add_image_item()
+
+        self.img.scale(scale_coef_xaxis, 1)
+        self.img.translate(translate_coef_xaxis, 0)
+            
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
@@ -508,7 +561,7 @@ class SpectrometerWindow(QMainWindow):
                 self.error_box("No Beam. It can cause some problems")
                 #return 
             self.counter_spect = 0
-            self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
+            #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
             self.ave_spectrum = []
             self.timer_live.start(100)
@@ -518,22 +571,7 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
             px1 = int(self.ui.sb_px1.value())
-            if WATERFLOW_ALL:
-                scale_coef_xaxis = (self.x_axis[-1] - self.x_axis[0]) / len(self.x_axis)
-                translate_coef_xaxis = self.x_axis[0] / scale_coef_xaxis
-            else:
-                img_idx1 = int(px1 - 250)
-                img_idx2 = int(px1 + 250)
-                self.img_idx1 = img_idx1 if img_idx1 >= 0 else 0
-                self.img_idx2 = img_idx2 if img_idx2 < self.spectrometer.num_px else -1
-                scale_coef_xaxis = (self.x_axis[self.img_idx2] - self.x_axis[self.img_idx1]) / (
-                        self.img_idx2 - self.img_idx1)
-                translate_coef_xaxis = self.x_axis[self.img_idx1] / scale_coef_xaxis
-
-            self.add_image_item()
-
-            self.img.scale(scale_coef_xaxis, 1)
-            self.img.translate(translate_coef_xaxis, 0)
+            self.reset_waterfall(px1=px1)
             #self.plot1.addItem(self.textItem)
 
     def update_text(self, text=None):
@@ -552,7 +590,11 @@ class SpectrometerWindow(QMainWindow):
         if self.transmission_thread.is_alive():
             self.transmission_thread.kill = True
             self.transmission_thread.stop()
-
+        
+        if self.energy_axis_thread.is_alive():
+            self.energy_axis_thread.kill = True
+            self.energy_axis_thread.stop()
+            
         if self.timer_live.isActive():
             print("stop live spectrum")
             self.timer_live.stop()

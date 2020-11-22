@@ -162,6 +162,7 @@ class BraggCamera(Spectrometer):
         self.x_axis = self.mi.get_value(self.energy_ch)
         return self.x_axis
 
+
 class SpectrometerSA3(Spectrometer):
     def __init__(self, mi, eid=None, energy_ch=None):
         super(SpectrometerSA3, self).__init__(mi=mi, eid=eid)
@@ -181,12 +182,12 @@ class SpectrometerSA3(Spectrometer):
 
         :return: x_axis - array in [ev]
         """
-        print(self.energy_ch)
 
         self.x_axis = self.mi.get_value(self.energy_ch)
         return self.x_axis
-
-
+         
+     
+     
 class DummyHirex(Spectrometer):
 
     def __init__(self, *args, **kwargs):
