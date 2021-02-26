@@ -27,10 +27,11 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, DummySASE, XGM, DummyXGM
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
+from analysis_spec import AnalysisInterface
 from scipy import ndimage
 import pathlib
 import json
@@ -40,9 +41,8 @@ logger = logging.getLogger(__name__)
 
 WATERFLOW_ALL = True
 
-
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY", "DUMMYSASE"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -158,7 +158,8 @@ class SpectrometerWindow(QMainWindow):
                 is_spectrometer = True
                 self.ui.combo_hirex.addItem(hirex)
         if not is_spectrometer:
-            self.ui.combo_hirex.addItem("DUMMY")
+            # self.ui.combo_hirex.addItem("DUMMY")
+            self.ui.combo_hirex.addItem("DUMMYSASE")
         #self.ui.combo_hirex.addItem("SASE2 HIREX")
         #self.ui.combo_hirex.addItem("SASE1 HIREX")
         current_source = self.ui.combo_hirex.currentText()
@@ -172,6 +173,7 @@ class SpectrometerWindow(QMainWindow):
         self.scantool = ScanInterface(parent=self)
         self.corretool = CorrelInterface(parent=self)
         self.corre2dtool = Correl2DInterface(parent=self)
+        self.analysistool = AnalysisInterface(parent=self)
 
 
         self.add_plot()
@@ -256,6 +258,12 @@ class SpectrometerWindow(QMainWindow):
 
             self.spectrometer = DummyHirex(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
+            
+        elif current_source in ["DUMMYSASE"]:
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
+            self.spectrometer = DummySASE(self.mi, eid=self.hirex_doocs_ch)
+            self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
+            
         self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
         self.background = self.back_taker.load()
 
@@ -550,6 +558,10 @@ class SpectrometerWindow(QMainWindow):
 
         if self.corre2dtool is not None:
             self.corre2dtool.stop_timers()
+            
+        if self.analysistool is not None:
+            self.analysistool.stop_timers()
+            
         print(self.config_file)
         if 1:
             self.ui.save_state(self.config_file)
@@ -744,7 +756,7 @@ class SpectrometerWindow(QMainWindow):
             self.fast_xgm_signal = table["le_fast_xgm_sa1"]
             self.slow_xgm_signal = table["le_slow_xgm_sa1"]
             
-        elif current_source == "DUMMY":
+        elif current_source in ["DUMMY", "DUMMYSASE"]:
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None
             self.hrx_n_px = 3000
