@@ -24,6 +24,18 @@ class Spectrometer():
         self.gauss_coeff_fit = None
         #self.update_params(transmission=1, calib_energy_coef=1)
         self.update_background()
+    
+    
+    def is_online(self):
+        if self.eid is not None and self.eid != "":
+            try:
+                self.mi.get_value(self.eid)
+                status = True
+            except:
+                status = False
+        else:
+            status = False
+        return status
 
     def update_params(self, transmission=1, calib_energy_coef=1):
         self.transmission = transmission
@@ -176,6 +188,18 @@ class SpectrometerSA3(Spectrometer):
         self.av_spectrum = []
         self.update_background()
         
+        
+    def is_online(self):
+        if self.energy_ch is not None and self.energy_ch != "":
+            try:
+                self.mi.get_value(self.energy_ch)
+                status = True
+            except:
+                status = False
+        else:
+            status = False
+        return status
+    
     def calibrate_axis(self, ev_px=None, E0=None, px1=None):
         """
         method to calibrate energy axis

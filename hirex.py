@@ -122,6 +122,18 @@ class EnergyAxisWatcher(Thread):
         self.energy_axis_old = None
         self.trigger = False
         self.kill = False
+    
+    def is_online(self):
+        if self.dev_ch is not None and self.dev_ch != "":
+            try:
+                self.mi.get_value(self.dev_ch)
+                status = True
+            except:
+                status = False
+        else:
+            status = False
+        return status
+            
 
     def run(self):
         while not self.kill:
@@ -129,7 +141,10 @@ class EnergyAxisWatcher(Thread):
                 self.energy_axis = self.mi.get_value(self.dev_ch)
                 if self.energy_axis_old is None:
                     self.energy_axis_old = self.energy_axis 
+            else:
+                break 
             time.sleep(1)
+
             d_ev = (self.energy_axis[1] - self.energy_axis[0])
             if self.energy_axis[0] - d_ev/2. <= self.energy_axis_old[0] <= self.energy_axis[0] + d_ev/2:
                 self.trigger = False
@@ -288,7 +303,7 @@ class SpectrometerWindow(QMainWindow):
         
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
-            self.spectrometer = SpectrometerSA3(self.mi, energy_ch=self.ph_energy_sa3, eid=self.hirex_doocs_ch)
+            self.spectrometer = SpectrometerSA3(self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
             self.spectrometer.num_px = self.hrx_n_px
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
@@ -307,8 +322,9 @@ class SpectrometerWindow(QMainWindow):
         self.transmission_thread = Transmission(self.mi, self.transmission__doocs_ch)
         self.transmission_thread.start()
         
-        self.energy_axis_thread = EnergyAxisWatcher(self.mi, self.ph_energy_sa3)
-        self.energy_axis_thread.start()
+        self.energy_axis_thread = EnergyAxisWatcher(self.mi, self.ph_energy_ch)
+        if self.energy_axis_thread.is_online():
+            self.energy_axis_thread.start()
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
@@ -333,7 +349,9 @@ class SpectrometerWindow(QMainWindow):
         """
         if len(self.ave_spectrum) < 3:
             return
-
+        if self.bunch_num_ctrl.get_value() <= 0:
+            self.error_box("No Beam")
+            return
         pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         transmission = self.get_transmission()
         self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, transmission, pulse_energy)
@@ -560,6 +578,9 @@ class SpectrometerWindow(QMainWindow):
             if self.bunch_num_ctrl.get_value() <= 0:
                 self.error_box("No Beam. It can cause some problems")
                 #return 
+            if not self.spectrometer.is_online():
+                self.error_box("Spectrometer is not ONLINE")
+                return 
             self.counter_spect = 0
             #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
@@ -780,6 +801,7 @@ class SpectrometerWindow(QMainWindow):
             table = json.load(f)
         current_source = self.ui.combo_hirex.currentText()
         self.hrx_n_px = 1000
+        self.ph_energy_ch = None
         if current_source == "SASE2":
 
             self.hirex_doocs_ch = table["le_hirex_ch_sa2"]
@@ -801,7 +823,7 @@ class SpectrometerWindow(QMainWindow):
         
         elif current_source == "SASE3":
             self.hirex_doocs_ch = table["le_hirex_ch_sa3"]
-            self.ph_energy_sa3 = table["le_ph_energy_sa3"]
+            self.ph_energy_ch = table["le_ph_energy_sa3"]
             self.transmission__doocs_ch = table["le_trans_ch_sa3"]
             print("self.transmission__doocs_ch", self.transmission__doocs_ch)
             self.hrx_n_px = table["sb_hrx_npx_sa3"]
@@ -813,7 +835,7 @@ class SpectrometerWindow(QMainWindow):
         
         elif current_source == "SASE3_SCS":
             self.hirex_doocs_ch = table["le_hirex_ch_sa3_scs"]
-            self.ph_energy_sa3 = table["le_ph_energy_sa3_scs"]
+            self.ph_energy_ch = table["le_ph_energy_sa3_scs"]
             self.transmission__doocs_ch = table["le_trans_ch_sa3_scs"]
             print("self.transmission__doocs_ch", self.transmission__doocs_ch)
             self.hrx_n_px = table["sb_hrx_npx_sa3_scs"]
