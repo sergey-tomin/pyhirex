@@ -23,7 +23,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -71,20 +71,6 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_8">
-             <item row="0" column="0">
-              <widget class="QLabel" name="lb_bnumber">
-               <property name="text">
-                <string>Bunch number</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Avarage over N</string>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="1">
               <widget class="QDoubleSpinBox" name="sb_av_nbunch">
                <property name="locale">
@@ -114,7 +100,21 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="2">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Avarage over N</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_39">
+               <property name="text">
+                <string>Bunch Number</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
               <widget class="QDoubleSpinBox" name="sb_bnumber">
                <property name="locale">
                 <locale language="English" country="UnitedStates"/>
@@ -127,6 +127,13 @@
                </property>
                <property name="value">
                 <double>1.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QCheckBox" name="chb_uj_ev">
+               <property name="text">
+                <string>uJ/eV</string>
                </property>
               </widget>
              </item>

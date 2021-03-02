@@ -252,6 +252,8 @@ class SpectrometerWindow(QMainWindow):
         self.gauss_coeff_fit = None
         self.ui.pb_estim_px1.clicked.connect(self.fit_guass)
         self.ui.chb_show_fit.stateChanged.connect(self.show_fit)
+        
+        # self.ui.chb_uj_ev.stateChanged.connect(self.show_fit) # ##################################################################################################################################
 
         self.back_taker_status = pg.QtCore.QTimer()
         self.back_taker_status.timeout.connect(self.is_back_taker_alive)
@@ -355,15 +357,20 @@ class SpectrometerWindow(QMainWindow):
         :param pulse_energy: in [uJ]
         :return: calibration coefficient
         """
+        
         if len(self.ave_spectrum) < 3:
             return
         if self.bunch_num_ctrl.get_value() <= 0:
             self.error_box("No Beam")
             return
-        pulse_energy = self.mi.get_value(self.slow_xgm_signal)
+        
+        if self.ui.combo_hirex.currentText() in ["DUMMY", "DUMMYSASE"]:
+            pulse_energy = 100
+        else:
+            pulse_energy = self.mi.get_value(self.slow_xgm_signal)
+        
         transmission = self.get_transmission()
         self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, transmission, pulse_energy)
-
 
     def run_settings_window(self):
         if self.settings is None:
@@ -515,8 +522,13 @@ class SpectrometerWindow(QMainWindow):
 
         # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
-            self.single.setData(self.x_axis, self.spectrum_event)
-            self.average.setData(x=self.x_axis, y=self.ave_spectrum)
+            if self.ui.chb_uj_ev.isChecked():
+                transm = self.get_transmission()
+                self.single.setData(x=self.x_axis, y=self.spectrum_event * self.calib_energy_coef / transm)
+                self.average.setData(x=self.x_axis, y=self.ave_spectrum * self.calib_energy_coef / transm)
+            else:
+                self.single.setData(x=self.x_axis, y=self.spectrum_event)
+                self.average.setData(x=self.x_axis, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
             n_ppoints = len(self.x_axis)
             if len(self.background) != n_ppoints:

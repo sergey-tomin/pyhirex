@@ -29,18 +29,19 @@ class AnalysisInterface:
         
         self.acquire_timer = pg.QtCore.QTimer()
         self.acquire_timer.timeout.connect(self.arange_spectra)
-        self.acquire_timer.start(300)
+        self.acquire_timer.start(100)
         
         
         self.plot_timer = pg.QtCore.QTimer()
         self.plot_timer.timeout.connect(self.plot_spec)
         self.plot_timer.timeout.connect(self.plot_hist_full)
         self.plot_timer.timeout.connect(self.plot_hist_peak)
-        self.plot_timer.start(300)
+        self.plot_timer.start(1000)
         
         self.add_spec_widget()
         self.add_hist_full_widget()
         self.add_hist_peak_widget()
+        self.add_durr_widget()
         
         self.ui.analysis_resetbutton.clicked.connect(self.reset_spectra)
         
@@ -96,11 +97,14 @@ class AnalysisInterface:
         if self.ui.pb_start.text() == "Start" or not self.ui.analysis_acquire.isChecked():
             return
         print('arranging')
+        
+        transm = self.parent.get_transmission()
+        
         n_shots_analysis = int(self.ui.analyze_last.value())
         print('before append: , self.spar.spec.shape=',self.spar.spec.shape)
         if len(self.spar.spec) == 1: #fresh unpopulated array
             print(' fresh unpopulated array')
-            self.spar.spec = self.parent.spectrum_event[:, np.newaxis]
+            self.spar.spec = self.parent.spectrum_event[:, np.newaxis] * self.parent.calib_energy_coef / transm
             self.spar.phen = self.parent.x_axis
         elif self.spar.spec.shape[0] != len(self.parent.spectrum_event):
             print(' shapes inconsistent, refreshing')
@@ -108,7 +112,7 @@ class AnalysisInterface:
             return
         else:
             print(' all ok, old self.spar.spec.shape=', self.spar.spec.shape)
-            self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event[:,np.newaxis], axis=1)
+            self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event[:,np.newaxis] * self.parent.calib_energy_coef / transm, axis=1)
             self.spar.phen = self.parent.x_axis
             print('  new shape self.spar.spec.shape=',self.spar.spec.shape)
         # self.spec_hist.append(self.parent.spectrum_event)
@@ -287,7 +291,6 @@ class AnalysisInterface:
             Wm = numpy.mean(W) #average power calculated
             sigm2 = numpy.mean((W - Wm)**2) / Wm**2 #sigma square (power fluctuations)
             M_calc = 1 / sigm2 #calculated number of modes  
-            
             # if self.spar.spec.shape[1] == 1:
                 # speclast = specmin = specmax = specmean = self.spar.phen
             # else:
@@ -303,7 +306,16 @@ class AnalysisInterface:
             self.histogram_peak.clear()
             self.histogram_peak.plot(W_bins, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,150), clear=True)
 
-
+    def add_durr_widget(self):
+        win = pg.GraphicsLayoutWidget()
+        layout = QtGui.QGridLayout()
+        self.ui.widget_fit_pulse_dur.setLayout(layout)
+        layout.addWidget(win)
+        
+        self.fit_pulse_dur = win.addPlot()
+        self.fit_pulse_dur.setLabel('bottom', 'E_ph', units='eV')
+        self.fit_pulse_dur.setLabel('left', 'duration', units='fs')
+        
         # # self.add_corel2D_plot() #TMP~~~~~~~~~~~~~~~~~
         
         # # self.add_hist_plot()
