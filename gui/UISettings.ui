@@ -489,7 +489,7 @@
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_5">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -510,7 +510,7 @@
           </size>
          </property>
          <property name="title">
-          <string>SASE3 Spectrometer</string>
+          <string>SASE3 SQS Spectrometer | --SASE3</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
           <item row="5" column="0">
@@ -583,7 +583,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_21">
             <property name="text">
-             <string>Spectrometer signal</string>
+             <string>Spectr. Intensity</string>
             </property>
            </widget>
           </item>
@@ -596,6 +596,9 @@
           </item>
           <item row="4" column="1" colspan="2">
            <widget class="QLineEdit" name="le_trans_ch_sa3">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -625,13 +628,23 @@
           <item row="6" column="1" colspan="2">
            <widget class="QLineEdit" name="le_slow_xgm_sa3"/>
           </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_38">
+            <property name="text">
+             <string>Spectr. PhotonEnergy</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="2">
+           <widget class="QLineEdit" name="le_ph_energy_sa3"/>
+          </item>
          </layout>
         </widget>
        </item>
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_6">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -652,7 +665,7 @@
           </size>
          </property>
          <property name="title">
-          <string>Spertrometer 1</string>
+          <string>SASE3 SCS Spertrometer | --SASE3_SCS</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_12">
           <item row="5" column="0">
@@ -683,7 +696,7 @@
            </widget>
           </item>
           <item row="7" column="2">
-           <widget class="QSpinBox" name="sb_hrx_npx_sp1">
+           <widget class="QSpinBox" name="sb_hrx_npx_sa3_scs">
             <property name="locale">
              <locale language="English" country="UnitedStates"/>
             </property>
@@ -706,7 +719,7 @@
            </widget>
           </item>
           <item row="8" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_ctrl_num_bunch_sp1">
+           <widget class="QLineEdit" name="le_ctrl_num_bunch_sa3_scs">
             <property name="locale">
              <locale language="English" country="UnitedStates"/>
             </property>
@@ -716,7 +729,7 @@
            </widget>
           </item>
           <item row="2" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_hirex_ch_sp1">
+           <widget class="QLineEdit" name="le_hirex_ch_sa3_scs">
             <property name="text">
              <string>XFEL.EXP/DAQ.GOTTHARD_MASTER/SA2_XTD6_HIREX/ADC</string>
             </property>
@@ -725,19 +738,25 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_27">
             <property name="text">
-             <string>Spectrometer signal</string>
+             <string>Spectr. Intensity</string>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_28">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Transmission DOOCS </string>
             </property>
            </widget>
           </item>
           <item row="4" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_trans_ch_sp1">
+           <widget class="QLineEdit" name="le_trans_ch_sa3_scs">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -756,7 +775,7 @@
            </widget>
           </item>
           <item row="5" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_fast_xgm_sp1">
+           <widget class="QLineEdit" name="le_fast_xgm_sa3_scs">
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -765,7 +784,17 @@
            </widget>
           </item>
           <item row="6" column="1" colspan="2">
-           <widget class="QLineEdit" name="le_slow_xgm_sp1"/>
+           <widget class="QLineEdit" name="le_slow_xgm_sa3_scs"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_39">
+            <property name="text">
+             <string>Spectr. PhotonEnergy</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="2">
+           <widget class="QLineEdit" name="le_ph_energy_sa3_scs"/>
           </item>
          </layout>
         </widget>

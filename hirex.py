@@ -27,7 +27,7 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, DummySASE, XGM, DummyXGM
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, SpectrometerSA3
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 WATERFLOW_ALL = True
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "DUMMY", "DUMMYSASE"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -101,7 +101,7 @@ class Transmission(Thread):
 
     def run(self):
         while not self.kill:
-            if self.dev_ch is not None:
+            if self.dev_ch is not None and self.dev_ch != "":
                 self.transmission = self.mi.get_value(self.dev_ch)
 
             time.sleep(2)
@@ -109,6 +109,54 @@ class Transmission(Thread):
     def stop(self):
         print("stop transmission thread")
         self._stop_event.set()
+
+
+class EnergyAxisWatcher(Thread):
+    def __init__(self, mi, dev_ch):
+        super(EnergyAxisWatcher, self).__init__()
+        self.mi = mi
+        self.devmode = False
+        self._stop_event = Event()
+        self.dev_ch = dev_ch
+        self.energy_axis = []
+        self.energy_axis_old = None
+        self.trigger = False
+        self.kill = False
+    
+    def is_online(self):
+        if self.dev_ch is not None and self.dev_ch != "":
+            try:
+                self.mi.get_value(self.dev_ch)
+                status = True
+            except:
+                status = False
+        else:
+            status = False
+        return status
+            
+
+    def run(self):
+        while not self.kill:
+            if self.dev_ch is not None and self.dev_ch != "":
+                self.energy_axis = self.mi.get_value(self.dev_ch)
+                if self.energy_axis_old is None:
+                    self.energy_axis_old = self.energy_axis 
+            else:
+                break 
+            time.sleep(1)
+
+            d_ev = (self.energy_axis[1] - self.energy_axis[0])
+            if self.energy_axis[0] - d_ev/2. <= self.energy_axis_old[0] <= self.energy_axis[0] + d_ev/2:
+                self.trigger = False
+            else:
+                self.trigger = True
+                print("NOT EQUAL", self.energy_axis[0], self.energy_axis_old[1]-self.energy_axis[0] )
+            self.energy_axis_old = self.energy_axis 
+
+    def stop(self):
+        print("stop EnergyAxisWatcher thread")
+        self._stop_event.set()
+
 
 
 class SpectrometerWindow(QMainWindow):
@@ -243,11 +291,21 @@ class SpectrometerWindow(QMainWindow):
     def load_objects(self):
 
         current_source = self.ui.combo_hirex.currentText()
+        print(current_source)
         if current_source in ["SASE2", "SASE1"]:
         
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
             self.spectrometer = Spectrometer(self.mi, eid=self.hirex_doocs_ch)
+            self.spectrometer.num_px = self.hrx_n_px
+            self.spectrometer.devmode = self.dev_mode
+            self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
+    
+        elif current_source in ["SASE3","SASE3_SCS"]:
+        
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
+
+            self.spectrometer = SpectrometerSA3(self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
             self.spectrometer.num_px = self.hrx_n_px
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
@@ -272,6 +330,9 @@ class SpectrometerWindow(QMainWindow):
         self.transmission_thread = Transmission(self.mi, self.transmission__doocs_ch)
         self.transmission_thread.start()
         
+        self.energy_axis_thread = EnergyAxisWatcher(self.mi, self.ph_energy_ch)
+        if self.energy_axis_thread.is_online():
+            self.energy_axis_thread.start()
 
     def get_transmission(self):
         if self.ui.sb_transmission_override.isChecked():
@@ -296,7 +357,9 @@ class SpectrometerWindow(QMainWindow):
         """
         if len(self.ave_spectrum) < 3:
             return
-
+        if self.bunch_num_ctrl.get_value() <= 0:
+            self.error_box("No Beam")
+            return
         pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         transmission = self.get_transmission()
         self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, transmission, pulse_energy)
@@ -348,8 +411,13 @@ class SpectrometerWindow(QMainWindow):
         ev_px = self.ui.sb_ev_px.value()
         E0 = self.ui.sb_E0.value()
         px1 = self.ui.sb_px1.value()
-        self.x_axis = self.spectrometer.calibrate_axis(ev_px, E0, px1)
-
+        try:
+            self.x_axis = self.spectrometer.calibrate_axis(ev_px, E0, px1)
+        except:
+            self.error_box("WRONG channel or Device is not available")
+            
+            self.x_axis = np.arange(self.hrx_n_px)
+        self.reset_waterfall(px1=px1)
 
     def is_back_taker_alive(self):
         """
@@ -460,11 +528,8 @@ class SpectrometerWindow(QMainWindow):
                 self.img.setImage(self.data_2d[ self.img_idx1:self.img_idx2])
             
 
-
-        #if not self.is_txt_item:
-        #    self.plot1.addItem(self.textItem)
-        #    self.is_txt_item = True
-        #self.update_text("Av = " + str(np.round(ave_integ, 1)) + " uJ \nEpk = " + str(np.round(self.peak_ev, 1)) + "eV")
+        if self.energy_axis_thread.trigger:
+            self.calibrate_axis()
         pulse_energy = self.xgm.get_value()
         if self.counter_spect % 10 == 0:
             self.label2.setText(
@@ -493,6 +558,25 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_hide_average.setText("Hide Average")
             self.plot1.addItem(self.average)
 
+    def reset_waterfall(self, px1=None):
+        self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
+        if px1 is not None or WATERFLOW_ALL:
+            scale_coef_xaxis = (self.x_axis[-1] - self.x_axis[0]) / len(self.x_axis)
+            translate_coef_xaxis = self.x_axis[0] / scale_coef_xaxis
+        else:
+            img_idx1 = int(px1 - 250)
+            img_idx2 = int(px1 + 250)
+            self.img_idx1 = img_idx1 if img_idx1 >= 0 else 0
+            self.img_idx2 = img_idx2 if img_idx2 < self.spectrometer.num_px else -1
+            scale_coef_xaxis = (self.x_axis[self.img_idx2] - self.x_axis[self.img_idx1]) / (
+                        self.img_idx2 - self.img_idx1)
+            translate_coef_xaxis = self.x_axis[self.img_idx1] / scale_coef_xaxis
+
+        self.add_image_item()
+
+        self.img.scale(scale_coef_xaxis, 1)
+        self.img.translate(translate_coef_xaxis, 0)
+            
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
@@ -502,8 +586,11 @@ class SpectrometerWindow(QMainWindow):
             if self.bunch_num_ctrl.get_value() <= 0:
                 self.error_box("No Beam. It can cause some problems")
                 #return 
+            if not self.spectrometer.is_online():
+                self.error_box("Spectrometer is not ONLINE")
+                return 
             self.counter_spect = 0
-            self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
+            #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
             self.spectrum_list = []
             self.ave_spectrum = []
             self.timer_live.start(100)
@@ -513,22 +600,7 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
             px1 = int(self.ui.sb_px1.value())
-            if WATERFLOW_ALL:
-                scale_coef_xaxis = (self.x_axis[-1] - self.x_axis[0]) / len(self.x_axis)
-                translate_coef_xaxis = self.x_axis[0] / scale_coef_xaxis
-            else:
-                img_idx1 = int(px1 - 250)
-                img_idx2 = int(px1 + 250)
-                self.img_idx1 = img_idx1 if img_idx1 >= 0 else 0
-                self.img_idx2 = img_idx2 if img_idx2 < self.spectrometer.num_px else -1
-                scale_coef_xaxis = (self.x_axis[self.img_idx2] - self.x_axis[self.img_idx1]) / (
-                        self.img_idx2 - self.img_idx1)
-                translate_coef_xaxis = self.x_axis[self.img_idx1] / scale_coef_xaxis
-
-            self.add_image_item()
-
-            self.img.scale(scale_coef_xaxis, 1)
-            self.img.translate(translate_coef_xaxis, 0)
+            self.reset_waterfall(px1=px1)
             #self.plot1.addItem(self.textItem)
 
     def update_text(self, text=None):
@@ -547,7 +619,11 @@ class SpectrometerWindow(QMainWindow):
         if self.transmission_thread.is_alive():
             self.transmission_thread.kill = True
             self.transmission_thread.stop()
-
+        
+        if self.energy_axis_thread.is_alive():
+            self.energy_axis_thread.kill = True
+            self.energy_axis_thread.stop()
+            
         if self.timer_live.isActive():
             print("stop live spectrum")
             self.timer_live.stop()
@@ -736,7 +812,8 @@ class SpectrometerWindow(QMainWindow):
         with open(self.settings_file, 'r') as f:
             table = json.load(f)
         current_source = self.ui.combo_hirex.currentText()
-
+        self.hrx_n_px = 1000
+        self.ph_energy_ch = None
         if current_source == "SASE2":
 
             self.hirex_doocs_ch = table["le_hirex_ch_sa2"]
@@ -755,8 +832,32 @@ class SpectrometerWindow(QMainWindow):
             self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa1"]
             self.fast_xgm_signal = table["le_fast_xgm_sa1"]
             self.slow_xgm_signal = table["le_slow_xgm_sa1"]
+        
+        elif current_source == "SASE3":
+            self.hirex_doocs_ch = table["le_hirex_ch_sa3"]
+            self.ph_energy_ch = table["le_ph_energy_sa3"]
+            self.transmission__doocs_ch = table["le_trans_ch_sa3"]
+            print("self.transmission__doocs_ch", self.transmission__doocs_ch)
+            self.hrx_n_px = table["sb_hrx_npx_sa3"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa3"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa3"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa3"]
             
-        elif current_source in ["DUMMY", "DUMMYSASE"]:
+        
+        elif current_source == "SASE3_SCS":
+            self.hirex_doocs_ch = table["le_hirex_ch_sa3_scs"]
+            self.ph_energy_ch = table["le_ph_energy_sa3_scs"]
+            self.transmission__doocs_ch = table["le_trans_ch_sa3_scs"]
+            print("self.transmission__doocs_ch", self.transmission__doocs_ch)
+            self.hrx_n_px = table["sb_hrx_npx_sa3_scs"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa3_scs"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa3_scs"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa3_scs"]
+            
+            
+        elif current_source == "DUMMY":
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None
             self.hrx_n_px = 3000
