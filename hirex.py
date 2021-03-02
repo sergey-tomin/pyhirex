@@ -27,7 +27,7 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, SpectrometerSA3
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 WATERFLOW_ALL = True
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY", "DUMMYSASE"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -857,7 +857,7 @@ class SpectrometerWindow(QMainWindow):
             self.slow_xgm_signal = table["le_slow_xgm_sa3_scs"]
             
             
-        elif current_source == "DUMMY":
+        elif current_source in ["DUMMY", "DUMMYSASE"]:
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None
             self.hrx_n_px = 3000
