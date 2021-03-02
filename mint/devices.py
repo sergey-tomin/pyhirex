@@ -254,9 +254,9 @@ class DummySASE(Spectrometer):
         self.sase_center = 9000
         self.sase_sigma = 10
         
-        self.n_events = 1000
+        self.n_events = 10000
         
-        _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.2, spec_width=self.sase_sigma, spec_range=(8900, 9100), pulse_length=1,
+        _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.1, spec_width=self.sase_sigma, spec_range=(8950, 9050), pulse_length=0.3, # 1 fs = 0.3 um
                     en_pulse=100e-6, flattop=0, n_events=self.n_events)
         
         self.idx=0
@@ -286,15 +286,18 @@ class DummySASE(Spectrometer):
         spectrum_sase = self.spectrum_sase[:,self.idx % self.n_events]
         self.idx += 1
         
-        seed_center = 9020 + 10 * self.actuator()
-        seed_power = np.exp(-(seed_center - self.sase_center - 10)**2 / (2 * self.sase_sigma/2)**2) * np.abs(np.random.randn(1)[0])
+        seed_center = 9000 + 10 * self.actuator()
+        # seed_power = np.exp(-(seed_center - self.sase_center - 10)**2 / (2 * self.sase_sigma/2)**2) * np.abs(np.random.randn(1)[0])
         seed_sigma = 1
+        seed_power=1
         
         # spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
         spectrum_seed = np.exp(-(self.spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
-        spectrum_noise = np.random.rand(len(self.spectrum_phen))
+        spectrum_seed = spectrum_seed / np.amax(spectrum_seed) * 2
+        # spectrum_noise = np.random.rand(len(self.spectrum_phen))
 
-        val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
+        # val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
+        val =  spectrum_sase# * spectrum_seed
         return val
         
     def is_online(self):

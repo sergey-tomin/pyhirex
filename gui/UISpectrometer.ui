@@ -86,10 +86,10 @@
                 <double>10000.000000000000000</double>
                </property>
                <property name="singleStep">
-                <double>10.000000000000000</double>
+                <double>100.000000000000000</double>
                </property>
                <property name="value">
-                <double>10.000000000000000</double>
+                <double>100.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -1532,7 +1532,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QWidget" name="widget_histogram_peak" native="true">
+           <widget class="QWidget" name="widget_histogram_full" native="true">
             <property name="minimumSize">
              <size>
               <width>100</width>
@@ -1542,7 +1542,7 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QWidget" name="widget_histogram_full" native="true">
+           <widget class="QWidget" name="widget_histogram_peak" native="true">
             <property name="minimumSize">
              <size>
               <width>100</width>
@@ -1559,27 +1559,51 @@
            <enum>QLayout::SetMinimumSize</enum>
           </property>
           <item>
-           <widget class="QCheckBox" name="analysis_acquire">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
+           <widget class="QLabel" name="label_40">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>170</red>
+                  <green>0</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>170</red>
+                  <green>0</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>120</red>
+                  <green>120</green>
+                  <blue>120</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
             </property>
             <property name="font">
              <font>
-              <pointsize>13</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-              <underline>false</underline>
+              <pointsize>10</pointsize>
              </font>
             </property>
             <property name="text">
-             <string>Acquire</string>
-            </property>
-            <property name="shortcut">
-             <string>Space</string>
+             <string>BETA, bugs to svitozar.serkez@xfel.eu</string>
             </property>
            </widget>
           </item>
@@ -1625,10 +1649,13 @@
              </size>
             </property>
             <property name="maximum">
-             <number>10000</number>
+             <number>100000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
             </property>
             <property name="value">
-             <number>500</number>
+             <number>10000</number>
             </property>
            </widget>
           </item>
@@ -1647,7 +1674,38 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="analysis_acquire">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+              <weight>75</weight>
+              <italic>false</italic>
+              <bold>true</bold>
+              <underline>false</underline>
+             </font>
+            </property>
+            <property name="text">
+             <string>Acquire</string>
+            </property>
+            <property name="shortcut">
+             <string>Space</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="analysis_resetbutton">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Reset</string>
             </property>
@@ -1660,7 +1718,7 @@
           <item>
            <widget class="QLabel" name="label_35">
             <property name="text">
-             <string>Histogram bins</string>
+             <string>Histogram: bins</string>
             </property>
            </widget>
           </item>
@@ -1681,10 +1739,10 @@
           <item>
            <widget class="QDoubleSpinBox" name="analysis_Eph_box">
             <property name="decimals">
-             <number>1</number>
+             <number>2</number>
             </property>
             <property name="maximum">
-             <double>20000.000000000000000</double>
+             <double>10000.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -1696,7 +1754,11 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="analysis_dEph_box"/>
+           <widget class="QDoubleSpinBox" name="analysis_dEph_box">
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_3">
@@ -1718,7 +1780,7 @@
           <item>
            <widget class="QLabel" name="label_37">
             <property name="text">
-             <string>Correlation settings</string>
+             <string>Correlation:</string>
             </property>
            </widget>
           </item>
@@ -1738,8 +1800,11 @@
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="analysis_dEph_corr_box">
+            <property name="decimals">
+             <number>1</number>
+            </property>
             <property name="value">
-             <double>4.000000000000000</double>
+             <double>2.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -1771,7 +1836,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox_2"/>
+           <widget class="QSpinBox" name="spinbox_correlate_every">
+            <property name="maximum">
+             <number>100000</number>
+            </property>
+            <property name="singleStep">
+             <number>10</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_32">
@@ -1789,6 +1861,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="analysis_correlate_button">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Correlate once</string>
             </property>

@@ -231,6 +231,7 @@ class SpectrometerWindow(QMainWindow):
         self.data_2d = np.zeros((self.spectrometer.num_px, int(self.sb_2d_hist_size)))
 
         self.timer_live = pg.QtCore.QTimer()
+        self.timer_live.timeout.connect(self.get_transmission)
         self.timer_live.timeout.connect(self.live_spec)
         
         
@@ -347,7 +348,8 @@ class SpectrometerWindow(QMainWindow):
             value = self.transmission_thread.transmission
             self.ui.sb_transmission.setValue(value)
             self.ui.sb_transmission.setEnabled(False)
-        return value
+        self.transmission_value = value
+        # return value
 
     def cross_calibrate(self):
         """
@@ -370,8 +372,8 @@ class SpectrometerWindow(QMainWindow):
         else:
             pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         
-        transmission = self.get_transmission()
-        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, transmission, pulse_energy)
+        self.get_transmission()
+        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.transmission_value, pulse_energy)
 
     def run_settings_window(self):
         if self.settings is None:
@@ -526,7 +528,7 @@ class SpectrometerWindow(QMainWindow):
         #print(self.peak_ev_list)
 
         # single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
-        ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
+        ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.transmission_value * self.calib_energy_coef
         if self.doocs_permit and self.ui.cb_doocs_send_data.isChecked():
             self.mi.set_value(self.dynprop_integ, ave_integ)
             self.mi.set_value(self.dynprop_max, np.max(self.ave_spectrum[self.max_spec_min_inx: self.max_spec_max_inx]))
@@ -540,7 +542,7 @@ class SpectrometerWindow(QMainWindow):
         # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
             if self.ui.chb_uj_ev.isChecked():
-                transm = self.get_transmission()
+                transm = self.transmission_value
                 self.single.setData(x=self.x_axis, y=self.spectrum_event * self.calib_energy_coef / transm)
                 self.average.setData(x=self.x_axis, y=self.ave_spectrum * self.calib_energy_coef / transm)
             else:

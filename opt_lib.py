@@ -1267,7 +1267,7 @@ class SpectrumArray():
         else:
             raise ValueError
         idx = numpy.logical_and(self.phen >= E_low, self.phen <= E_high)
-        print('plotting gamma distribution for {:.0f} points'.format(numpy.sum(idx)))
+        # print('plotting gamma distribution for {:.0f} points'.format(numpy.sum(idx)))
         if not idx.any() and E_low > self.phen.min() and E_high < self.phen.max():
             # if E_low == E_high:
             idx = find_nearest_idx(self.phen, numpy.mean([E_low, E_high]))
