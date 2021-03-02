@@ -252,6 +252,7 @@ class SpectrometerWindow(QMainWindow):
         self.gauss_coeff_fit = None
         self.ui.pb_estim_px1.clicked.connect(self.fit_guass)
         self.ui.chb_show_fit.stateChanged.connect(self.show_fit)
+        self.ui.chb_uj_ev.stateChanged.connect(self.set_labels)
         
         # self.ui.chb_uj_ev.stateChanged.connect(self.show_fit) # ##################################################################################################################################
 
@@ -398,8 +399,8 @@ class SpectrometerWindow(QMainWindow):
         if self.ui.chb_show_fit.isChecked():
         
             self.plot1.addItem(self.fit_func)
-            self.plot1.setLabel('left', "A", units='au')
-            self.plot1.setLabel('bottom', "", units='px')
+            # self.plot1.setLabel('left', "A", units='au')
+            # self.plot1.setLabel('bottom', "", units='px')
             self.x_axis = np.arange(len(self.ave_spectrum))
             gauss_fit = gauss(self.x_axis, *self.spectrometer.gauss_coeff_fit)
             self.fit_func.setData(self.x_axis, gauss_fit)
@@ -409,10 +410,26 @@ class SpectrometerWindow(QMainWindow):
             self.calibrate_axis()
             self.plot1.removeItem(self.fit_func)
             self.plot1.legend.removeItem(self.fit_func.name())
-            self.plot1.setLabel('left', "A", units='au')
+            # if self.ui.chb_uj_ev.isChecked():
+                # self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
+            # else:
+                # self.plot1.setLabel('left', "A", units='au')
             self.plot1.setLabel('bottom', "", units='eV')
             #self.plot1.enableAutoScale()
             self.plot1.enableAutoRange()
+            
+        self.set_labels()
+    
+    def set_labels(self):
+        if self.ui.chb_show_fit.isChecked():
+            self.plot1.setLabel('bottom', "", units='px')
+        else:
+            self.plot1.setLabel('bottom', "", units='eV')
+        if self.ui.chb_uj_ev.isChecked():
+                self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
+        else:
+            self.plot1.setLabel('left', "A", units='au')
+            
 
     def calibrate_axis(self):
         ev_px = self.ui.sb_ev_px.value()
