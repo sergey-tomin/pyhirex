@@ -242,6 +242,9 @@ class DummyHirex(Spectrometer):
 
         val =  3 * spectrum_sase + 20 * seed_power * spectrum_seed + spectrum_noise * 3
         return val
+    
+    def is_online(self):
+        return True
         
 class DummySASE(Spectrometer):
 
@@ -293,6 +296,9 @@ class DummySASE(Spectrometer):
 
         val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
         return val
+        
+    def is_online(self):
+        return True
         
 
 
