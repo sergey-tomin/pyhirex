@@ -1202,12 +1202,12 @@ class SpectrumArray():
         self.spec[self.spec < 0] = 0              
 
     def correlate_center(self, dE=None, t_resolution=0.1e-15, norm=0):
-        print('correlating')
+        # print('correlating')
         n_omega, n_events = self.spec.shape
         omega = self.omega
         omega_step = (numpy.amax(omega) - numpy.amin(omega)) / n_omega
         t_window = 2 * numpy.pi / omega_step / 2
-        print('   estimated reconstruction window size = {:.2f} fs'.format(t_window * 1e15))
+        # print('   estimated reconstruction window size = {:.2f} fs'.format(t_window * 1e15))
 
         if dE is None:
             if t_resolution == 0:
@@ -1219,15 +1219,15 @@ class SpectrumArray():
 
         if cor_range > n_omega:
             cor_range = n_omega
-        print('   number of correlation points = {:d}'.format(cor_range))
+        # print('   number of correlation points = {:d}'.format(cor_range))
 
         # estimate reconstruction spatial resolutionpr
         res_domega = omega_step * cor_range
         t_resolution_act = 2 * numpy.pi / res_domega
-        print('   estimated reconstruction spatial resolution = {:.3f} fs'.format(t_resolution_act * 1e15))
+        # print('   estimated reconstruction spatial resolution = {:.3f} fs'.format(t_resolution_act * 1e15))
         #zeros = numpy.zeros((cor_range, n_events))
         #spec_int = numpy.r_[zeros, self.spec, zeros].astype(numpy.float32)
-        print('   correlating...')
+        # print('   correlating...')
         t0 = time.time()
         corr = SpectrumCorrelationsCenter()
         corr.corr = correlation2d_center(cor_range, self.spec, norm=norm, use_numba=numba_avail)
@@ -1238,7 +1238,7 @@ class SpectrumArray():
         corr.omega_orig = omega
         corr.spec = self.spec
         t1 = time.time()
-        print('   done in {:.2f} sec'.format(t1 - t0))
+        # print('   done in {:.2f} sec'.format(t1 - t0))
         corr.corr[numpy.isnan(corr.corr)] = 0
         corr.corr[numpy.isinf(corr.corr)] = 0
         return corr
@@ -1927,7 +1927,7 @@ class FitResult():
             ax_t.set_ylim([0, numpy.nanmax(self.fit_t) * 1.5 * 1e15])
 
 
-#        ax_t.axis('tight')
+        #        ax_t.axis('tight')
 
         ax_t.set_ylabel('fwhm group duration at E [fs]')
         ax_t.set_xlabel('E [eV]')

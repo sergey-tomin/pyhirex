@@ -153,20 +153,20 @@ def imitate_1d_sase_like(td_scale, td_env, fd_scale, fd_env, td_phase=None, fd_p
     else:
         raise ValueError('fit_scale should be either "td" of "fd"')
 
-    # normalization for pulse energy
-    if en_pulse == None:
-        # _logger.debug(ind_str + 'no en_pulse provided, calculating from integral of td_env')
-        en_pulse = np.trapz(td_env, td_scale / speed_of_light)
+    # # normalization for pulse energy
+    # if en_pulse == None:
+        # # _logger.debug(ind_str + 'no en_pulse provided, calculating from integral of td_env')
+        # en_pulse = np.trapz(td_env, td_scale / speed_of_light)
 
     pulse_energies = np.trapz(abs(td) ** 2, td_scale_i / speed_of_light, axis=0)
-    scale_coeff = en_pulse / np.mean(pulse_energies)
-    td *= np.sqrt(scale_coeff)
+    # scale_coeff = en_pulse / np.mean(pulse_energies)
+    # td *= np.sqrt(scale_coeff)
 
     # normalization for photon spectral density
     spec = np.mean(np.abs(fd) ** 2, axis=1)
     spec_center = np.sum(spec * fd_scale_i) / np.sum(spec)
 
-    n_photons = pulse_energies * scale_coeff / q_e / spec_center
+    n_photons = pulse_energies / q_e / spec_center
     fd = calc_ph_sp_dens(fd, fd_scale_i, n_photons, spec_squared=0)
     td_scale, fd_scale = td_scale_i, fd_scale_i
 

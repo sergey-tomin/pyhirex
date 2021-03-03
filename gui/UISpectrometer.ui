@@ -1511,28 +1511,8 @@
           <property name="spacing">
            <number>20</number>
           </property>
-          <item row="1" column="1">
-           <widget class="QWidget" name="widget_fit_pulse_dur" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>100</height>
-             </size>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QWidget" name="widget_spectrum" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>100</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QWidget" name="widget_histogram_full" native="true">
             <property name="minimumSize">
              <size>
               <width>100</width>
@@ -1551,6 +1531,29 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget_fit_pulse_dur" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QWidget" name="widget_histogram_full" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QWidget" name="widget_corr_line" native="true"/>
+          </item>
          </layout>
         </item>
         <item>
@@ -1558,6 +1561,13 @@
           <property name="sizeConstraint">
            <enum>QLayout::SetMinimumSize</enum>
           </property>
+          <item>
+           <widget class="QPushButton" name="pb_logbook_specanalysis">
+            <property name="text">
+             <string>Logbook</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QLabel" name="label_40">
             <property name="palette">
@@ -1655,7 +1665,7 @@
              <number>100</number>
             </property>
             <property name="value">
-             <number>10000</number>
+             <number>1000</number>
             </property>
            </widget>
           </item>
@@ -1901,6 +1911,7 @@
     </property>
     <addaction name="actionSend_to_logbook"/>
     <addaction name="actionSend_cor2d_to_logbook"/>
+    <addaction name="actionSend_spec_analysis_to_logbook"/>
    </widget>
    <widget class="QMenu" name="menuSave">
     <property name="title">
@@ -1948,6 +1959,11 @@
   <action name="actionSend_cor2d_to_logbook">
    <property name="text">
     <string>Send cor2d to logbook</string>
+   </property>
+  </action>
+  <action name="actionSend_spec_analysis_to_logbook">
+   <property name="text">
+    <string>Send spec analysis to logbook</string>
    </property>
   </action>
  </widget>

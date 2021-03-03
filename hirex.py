@@ -254,6 +254,7 @@ class SpectrometerWindow(QMainWindow):
         self.ui.pb_estim_px1.clicked.connect(self.fit_guass)
         self.ui.chb_show_fit.stateChanged.connect(self.show_fit)
         self.ui.chb_uj_ev.stateChanged.connect(self.set_labels)
+        self.ui.chb_uj_ev.stateChanged.connect(self.analysistool.reset_spectra)
         
         # self.ui.chb_uj_ev.stateChanged.connect(self.show_fit) # ##################################################################################################################################
 

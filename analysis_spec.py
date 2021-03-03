@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 import pyqtgraph as pg
 from threading import Thread, Event
 from PyQt5 import QtGui, QtCore
@@ -50,7 +51,9 @@ class AnalysisInterface:
         self.add_hist_full_widget()
         self.add_hist_peak_widget()
         self.add_durr_widget()
+        self.add_g2_line_widget()
         
+        self.reset_spectra()
         self.ui.analysis_resetbutton.clicked.connect(self.reset_spectra)
         
         self.ui.analysis_correlate_button.clicked.connect(self.correlate_and_plot)
@@ -114,16 +117,29 @@ class AnalysisInterface:
         
             
     def arange_spectra(self): #populate and trim spectrum array for analysis
-        if self.ui.pb_start.text() == "Start" or not self.ui.analysis_acquire.isChecked():
+        if self.ui.pb_start.text() == "Start" or self.parent.spectrum_event is None or not self.ui.analysis_acquire.isChecked():
             return
         # print('arranging')
         
+        wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
+        shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        
+        if wrong_size or shifted_spec:
+            print('correlation analysis: photon energy scale changed')
+            self.reset_spectra()
+        
+        
+        
         if self.ui.chb_uj_ev.isChecked():
-            self.parent.get_transmission()
+            # if self.spec_axis_label == 'arb.units' or energy_calib == 1:
+                # self.reset_spectra()
             energy_calib = self.parent.calib_energy_coef * 1e-6 #convert to Joules 
+            self.parent.get_transmission()
             transm = self.parent.transmission_value
             self.spec_axis_label = 'J/eV'
         else:
+            # if self.spec_axis_label == 'J/eV' or energy_calib == self.parent.calib_energy_coef * 1e-6:
+                # self.reset_spectra()
             energy_calib = transm = 1
             self.spec_axis_label = 'arb.units'
         
@@ -133,10 +149,6 @@ class AnalysisInterface:
             # print(' fresh unpopulated array')
             self.spar.spec = self.parent.spectrum_event[:, np.newaxis] * self.parent.calib_energy_coef / transm
             self.spar.phen = self.parent.x_axis
-        elif self.spar.spec.shape[0] != len(self.parent.spectrum_event):
-            # print(' shapes inconsistent, refreshing')
-            self.reset_spectra()
-            return
         else:
             # print(' all ok, old self.spar.spec.shape=', self.spar.spec.shape)
             self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event[:,np.newaxis] * self.parent.calib_energy_coef / transm, axis=1)
@@ -153,8 +165,15 @@ class AnalysisInterface:
         
         self.n_events_processed += 1
         
+        # self.spar_screwed = copy.deepcopy(self.spar)
+        # self.spar_screwed.conv_gauss(dE=2)
+        
+        self.spar_screwed = self.spar
+        
     def reset_spectra(self): #clears out spectra array
         self.spar = SpectrumArray()
+        self.corrn = SpectrumCorrelationsCenter()
+        self.g2fit = FitResult()
         
     def add_spec_widget(self):
         # print('adding spec_widget')
@@ -184,24 +203,27 @@ class AnalysisInterface:
     def plot_spec(self):
         if self.worth_plotting():
             
-            if self.spar.events == 1:
-                speclast = specmin = specmax = specmean = self.spar.spec[:,-1]
+            spar = self.spar_screwed #############################TMP###############
+            # spar = self.spar
+            
+            if spar.events == 1:
+                speclast = specmin = specmax = specmean = spar.spec[:,-1]
             else:
-                specmean = np.mean(self.spar.spec, axis=1)
-                specmin = np.amin(self.spar.spec, axis=1)
-                specmax = np.amax(self.spar.spec, axis=1)
-                speclast = self.spar.spec[:,-1]
+                specmean = np.mean(spar.spec, axis=1)
+                specmin = np.amin(spar.spec, axis=1)
+                specmax = np.amax(spar.spec, axis=1)
+                speclast = spar.spec[:,-1]
             # print('specmean.shape=',specmean.shape)
-            # print('self.spar.phen.shape=',self.spar.phen.shape)
+            # print('spar.phen.shape=',spar.phen.shape)
             
-            self.spec_mean_curve.setData(self.spar.phen, specmean)
-            self.spec_last_curve.setData(self.spar.phen, speclast)
-            self.spec_max_curve.setData(self.spar.phen, specmax)
-            self.spec_min_curve.setData(self.spar.phen, specmin)
+            self.spec_mean_curve.setData(spar.phen, specmean)
+            self.spec_last_curve.setData(spar.phen, speclast)
+            self.spec_max_curve.setData(spar.phen, specmax)
+            self.spec_min_curve.setData(spar.phen, specmin)
             
             
             
-            # curvemin = self.img_spectrum.plot(self.spar.phen, specmin, stepMode=False, pen=pen_lims)
+            # curvemin = self.img_spectrum.plot(spar.phen, specmin, stepMode=False, pen=pen_lims)
             # fill = pg.
             
             # self.img_spectrum.addItem(fill)
@@ -232,10 +254,14 @@ class AnalysisInterface:
     
     def correlate(self):
         dE = self.ui.analysis_dEph_corr_box.value()
-        self.corrn = self.spar.correlate_center(dE=dE, norm=1)
+        spar = self.spar_screwed #############################TMP###############
+        # spar = self.spar
+        self.corrn = spar.correlate_center(dE=dE, norm=1)
         self.corrn.bin_phen(dE=dE)
         try: 
             self.g2fit = self.corrn.fit_g2func(g2_gauss, thresh=0.1)
+            self.g2fit.fit_t_comp = self.g2fit.fit_t * self.g2fit.fit_pedestal / self.g2fit.fit_contrast
+
         except:
             pass
         self.n_last_correlated = self.n_events_processed
@@ -350,13 +376,15 @@ class AnalysisInterface:
         self.fit_pulse_dur.setLabel('bottom', 'E_ph', units='eV')
         self.fit_pulse_dur.setLabel('left', 'duration', units='s')
         self.durr_curve = self.fit_pulse_dur.plot(symbolBrush='r', symbolPen='r')
+        self.durr0_curve = self.fit_pulse_dur.plot(pen='w')
         self.fit_pulse_dur.setXLink(self.img_spectrum)
         # self.fit_pulse_dur.setYRange(0,2)
         
     def update_durr_plot(self):
         idx = self.g2fit.fit_t>0
-        dur = self.g2fit.fit_t * self.g2fit.fit_pedestal / self.g2fit.fit_contrast
-        self.durr_curve.setData(self.g2fit.omega[idx]* hr_eV_s, dur[idx])
+        
+        self.durr_curve.setData(self.g2fit.omega[idx]* hr_eV_s, self.g2fit.fit_t_comp[idx])
+        self.durr0_curve.setData(self.g2fit.omega[idx]* hr_eV_s, np.zeros_like(self.g2fit.fit_t_comp[idx]))
         # self.fit_pulse_dur.setLimits(yMin=0)
         # self.fit_pulse_dur.setLimits([0,2])
         
@@ -364,10 +392,39 @@ class AnalysisInterface:
         # print(self.g2fit.fit_pedestal)
         # print('contrast')
         # print(self.g2fit.fit_contrast)
+    
+    def add_g2_line_widget(self):
+        win = pg.GraphicsLayoutWidget()
+        layout = QtGui.QGridLayout()
+        self.ui.widget_corr_line.setLayout(layout)
+        layout.addWidget(win)
+        
+        self.fit_pulse_dur = win.addPlot()
+        self.fit_pulse_dur.setLabel('bottom', 'dE_ph', units='eV')
+        self.fit_pulse_dur.setLabel('left', 'g2')
+        self.g2_measured_curve = self.fit_pulse_dur.plot(pen='r')
+        self.g2_fit_curve = self.fit_pulse_dur.plot(symbolBrush='b')
+        # self.fit_pulse_dur.setXLink(self.img_spectrum)
+        self.fit_pulse_dur.setYRange(0.5,2.5)
+        self.g2_1_curve = self.fit_pulse_dur.plot(pen=(200,200,200,150), style=QtCore.Qt.DashLine)
+        self.g2_2_curve = self.fit_pulse_dur.plot(pen=(200,200,200,150), style=QtCore.Qt.DashLine)
+        
+    def update_g2_line_plot(self):
+        E_ph = self.ui.analysis_Eph_box.value()
+        if E_ph == 0:
+            idx = int(self.g2fit.omega.size / 2)
+        else:
+            idx = (numpy.abs(self.g2fit.omega * hr_eV_s - E_ph)).argmin()
+        
+        self.g2_measured_curve.setData(self.g2fit.domega * hr_eV_s, self.g2fit.g2_measured[idx])
+        self.g2_fit_curve.setData(self.g2fit.domega * hr_eV_s, self.g2fit.g2_fit[idx])
+        self.g2_1_curve.setData(self.g2fit.domega * hr_eV_s, np.ones_like(self.g2fit.domega))
+        self.g2_2_curve.setData(self.g2fit.domega * hr_eV_s, np.ones_like(self.g2fit.domega)*2)
         
     def correlate_and_plot(self):
         self.correlate()
         self.update_durr_plot()
+        self.update_g2_line_plot()
         
     def correlate_and_plot_auto(self):
         n_new = self.n_events_processed - self.n_last_correlated
