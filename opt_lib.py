@@ -1206,6 +1206,8 @@ class SpectrumArray():
         n_omega, n_events = self.spec.shape
         omega = self.omega
         omega_step = (numpy.amax(omega) - numpy.amin(omega)) / n_omega
+        if omega_step == 0:
+            omega_step = 1
         t_window = 2 * numpy.pi / omega_step / 2
         # print('   estimated reconstruction window size = {:.2f} fs'.format(t_window * 1e15))
 
@@ -1580,6 +1582,8 @@ class SpectrumCorrelationsCenter():
         # dE_orig = self.domega[1] * hr_eV_s
         phen = self.phen
         dE_orig = abs(phen[1] - phen[0])
+        if dE_orig == 0:
+            return
         freq_bin = int(dE / dE_orig)
         if freq_bin > 1:
             self.bin_omega_step(freq_bin)
@@ -1889,6 +1893,8 @@ def g2_gauss1(domega, T, g20, offset, T1):
 
 class FitResult():
     def __init__(self):
+        self.fit_t = []
+        self.omega = []
         pass
 
     def plot_t(self, fignum=None, spar=None, thresh=0.2, xlim=(None, None)):

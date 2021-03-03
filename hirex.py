@@ -369,7 +369,7 @@ class SpectrometerWindow(QMainWindow):
             return
         
         if self.ui.combo_hirex.currentText() in ["DUMMY", "DUMMYSASE"]:
-            pulse_energy = 100
+            pulse_energy = DummyXGM('','').get_value()
         else:
             pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         

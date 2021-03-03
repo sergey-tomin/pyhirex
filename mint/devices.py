@@ -256,8 +256,8 @@ class DummySASE(Spectrometer):
         
         self.n_events = 10000
         
-        _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.1, spec_width=self.sase_sigma, spec_range=(8950, 9050), pulse_length=0.3, # 1 fs = 0.3 um
-                    en_pulse=100e-6, flattop=0, n_events=self.n_events)
+        _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.1, spec_width=self.sase_sigma, spec_range=(8950, 9050), pulse_length=0.3*5, # 1 fs = 0.3 um
+                    en_pulse=10e-6, flattop=0, n_events=self.n_events)
         
         self.idx=0
         
@@ -331,7 +331,7 @@ class DummyXGM(XGM):
         basic method to get value from XFGM        
         :return: val
         """
-        return 100.
+        return 1000.
         
 
 class BunchNumberCTRL():
