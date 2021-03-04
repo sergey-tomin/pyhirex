@@ -8,6 +8,7 @@ import time
 from threading import Thread, Event
 from scipy.optimize import curve_fit
 import logging
+from mint.sase_imitation import imitate_1d_sase
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +242,66 @@ class DummyHirex(Spectrometer):
 
         val =  3 * spectrum_sase + 20 * seed_power * spectrum_seed + spectrum_noise * 3
         return val
+    
+    def is_online(self):
+        return True
+        
+class DummySASE(Spectrometer):
+
+    def __init__(self, *args, **kwargs):
+        super(DummySASE, self).__init__(*args, **kwargs)
+        
+        self.sase_center = 9000
+        self.sase_sigma = 10
+        
+        self.n_events = 10000
+        
+        _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.1, spec_width=self.sase_sigma, spec_range=(8950, 9050), pulse_length=0.3*5, # 1 fs = 0.3 um
+                    en_pulse=10e-6, flattop=0, n_events=self.n_events)
+        
+        self.idx=0
+        
+        self.spectrum_sase = abs(fd)**2
+        self.spectrum_phen = spectrum_phen
+        
+        self.num_px = len(self.spectrum_phen)
+        
+        # spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
+        # spectrum_seed = np.exp(-(spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
+        # spectrum_noise = np.random.rand(len(spectrum_phen))
+
+        # val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
+    
+    def actuator(self):
+        return np.sin(time.time()/10)*2
+    
+    def get_value(self):
+        """
+        basic method to get value/spectrum via DOOCS server
+        :return:
+        """
+        
+        # spectrum_phen = np.linspace(8800, 9200, 1280)
+        
+        spectrum_sase = self.spectrum_sase[:,self.idx % self.n_events]
+        self.idx += 1
+        
+        seed_center = 9000 + 10 * self.actuator()
+        # seed_power = np.exp(-(seed_center - self.sase_center - 10)**2 / (2 * self.sase_sigma/2)**2) * np.abs(np.random.randn(1)[0])
+        seed_sigma = 1
+        seed_power=1
+        
+        # spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
+        spectrum_seed = np.exp(-(self.spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
+        spectrum_seed = spectrum_seed / np.amax(spectrum_seed) * 2
+        # spectrum_noise = np.random.rand(len(self.spectrum_phen))
+
+        # val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
+        val =  spectrum_sase# * spectrum_seed
+        return val
+        
+    def is_online(self):
+        return True
         
 
 
@@ -270,7 +331,7 @@ class DummyXGM(XGM):
         basic method to get value from XFGM        
         :return: val
         """
-        return 100.
+        return 1000.
         
 
 class BunchNumberCTRL():

@@ -323,7 +323,7 @@ class Correl2DInterface:
         layout.addWidget(win)
 
         self.img_hist = win.addPlot()
-        self.img_hist.setLabel('left', "N Events", units='')
+        # self.img_hist.setLabel('left', "N Events", units='')
         # self.img_hist.showGrid(1, 1, 1)
         self.img_hist.setLabel('bottom', self.doocs_address_label, units='_')
         
@@ -359,7 +359,7 @@ class Correl2DInterface:
             if len(self.doocs_bins) > 1:
                 self.img_hist.plot(self.doocs_bins, self.doocs_event_counts, stepMode=True,  fillLevel=0,  brush=(100,100,100,150), clear=True)
                 self.img_hist.setLabel('bottom', self.doocs_address_label, units=' ')
-                self.img_hist.setTitle('{} events'.format(len(self.doocs_vals_hist_lagged)))
+                self.img_hist.setLabel('left','{} events'.format(len(self.doocs_vals_hist_lagged)))
         # self.img = pg.ImageItem()
         # self.img_hist.addItem(self.img)
 

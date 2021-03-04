@@ -27,10 +27,11 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, SpectrometerSA3
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
+from analysis_spec import AnalysisInterface
 from scipy import ndimage
 import pathlib
 import json
@@ -40,9 +41,8 @@ logger = logging.getLogger(__name__)
 
 WATERFLOW_ALL = True
 
-
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY", "DUMMYSASE"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -206,7 +206,8 @@ class SpectrometerWindow(QMainWindow):
                 is_spectrometer = True
                 self.ui.combo_hirex.addItem(hirex)
         if not is_spectrometer:
-            self.ui.combo_hirex.addItem("DUMMY")
+            # self.ui.combo_hirex.addItem("DUMMY")
+            self.ui.combo_hirex.addItem("DUMMYSASE")
         #self.ui.combo_hirex.addItem("SASE2 HIREX")
         #self.ui.combo_hirex.addItem("SASE1 HIREX")
         current_source = self.ui.combo_hirex.currentText()
@@ -220,6 +221,7 @@ class SpectrometerWindow(QMainWindow):
         self.scantool = ScanInterface(parent=self)
         self.corretool = CorrelInterface(parent=self)
         self.corre2dtool = Correl2DInterface(parent=self)
+        self.analysistool = AnalysisInterface(parent=self)
 
 
         self.add_plot()
@@ -229,6 +231,7 @@ class SpectrometerWindow(QMainWindow):
         self.data_2d = np.zeros((self.spectrometer.num_px, int(self.sb_2d_hist_size)))
 
         self.timer_live = pg.QtCore.QTimer()
+        self.timer_live.timeout.connect(self.get_transmission)
         self.timer_live.timeout.connect(self.live_spec)
         
         
@@ -250,6 +253,10 @@ class SpectrometerWindow(QMainWindow):
         self.gauss_coeff_fit = None
         self.ui.pb_estim_px1.clicked.connect(self.fit_guass)
         self.ui.chb_show_fit.stateChanged.connect(self.show_fit)
+        self.ui.chb_uj_ev.stateChanged.connect(self.set_labels)
+        self.ui.chb_uj_ev.stateChanged.connect(self.analysistool.reset_spectra)
+        
+        # self.ui.chb_uj_ev.stateChanged.connect(self.show_fit) # ##################################################################################################################################
 
         self.back_taker_status = pg.QtCore.QTimer()
         self.back_taker_status.timeout.connect(self.is_back_taker_alive)
@@ -314,6 +321,12 @@ class SpectrometerWindow(QMainWindow):
 
             self.spectrometer = DummyHirex(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
+            
+        elif current_source in ["DUMMYSASE"]:
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
+            self.spectrometer = DummySASE(self.mi, eid=self.hirex_doocs_ch)
+            self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
+            
         self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
         self.background = self.back_taker.load()
 
@@ -336,7 +349,8 @@ class SpectrometerWindow(QMainWindow):
             value = self.transmission_thread.transmission
             self.ui.sb_transmission.setValue(value)
             self.ui.sb_transmission.setEnabled(False)
-        return value
+        self.transmission_value = value
+        # return value
 
     def cross_calibrate(self):
         """
@@ -347,15 +361,20 @@ class SpectrometerWindow(QMainWindow):
         :param pulse_energy: in [uJ]
         :return: calibration coefficient
         """
+        
         if len(self.ave_spectrum) < 3:
             return
         if self.bunch_num_ctrl.get_value() <= 0:
             self.error_box("No Beam")
             return
-        pulse_energy = self.mi.get_value(self.slow_xgm_signal)
-        transmission = self.get_transmission()
-        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, transmission, pulse_energy)
-
+        
+        if self.ui.combo_hirex.currentText() in ["DUMMY", "DUMMYSASE"]:
+            pulse_energy = DummyXGM('','').get_value()
+        else:
+            pulse_energy = self.mi.get_value(self.slow_xgm_signal)
+        
+        self.get_transmission()
+        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.transmission_value, pulse_energy)
 
     def run_settings_window(self):
         if self.settings is None:
@@ -383,8 +402,8 @@ class SpectrometerWindow(QMainWindow):
         if self.ui.chb_show_fit.isChecked():
         
             self.plot1.addItem(self.fit_func)
-            self.plot1.setLabel('left', "A", units='au')
-            self.plot1.setLabel('bottom', "", units='px')
+            # self.plot1.setLabel('left', "A", units='au')
+            # self.plot1.setLabel('bottom', "", units='px')
             self.x_axis = np.arange(len(self.ave_spectrum))
             gauss_fit = gauss(self.x_axis, *self.spectrometer.gauss_coeff_fit)
             self.fit_func.setData(self.x_axis, gauss_fit)
@@ -394,10 +413,26 @@ class SpectrometerWindow(QMainWindow):
             self.calibrate_axis()
             self.plot1.removeItem(self.fit_func)
             self.plot1.legend.removeItem(self.fit_func.name())
-            self.plot1.setLabel('left', "A", units='au')
+            # if self.ui.chb_uj_ev.isChecked():
+                # self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
+            # else:
+                # self.plot1.setLabel('left', "A", units='au')
             self.plot1.setLabel('bottom', "", units='eV')
             #self.plot1.enableAutoScale()
             self.plot1.enableAutoRange()
+            
+        self.set_labels()
+    
+    def set_labels(self):
+        if self.ui.chb_show_fit.isChecked():
+            self.plot1.setLabel('bottom', "", units='px')
+        else:
+            self.plot1.setLabel('bottom', "", units='eV')
+        if self.ui.chb_uj_ev.isChecked():
+                self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
+        else:
+            self.plot1.setLabel('left', "A", units='au')
+            
 
     def calibrate_axis(self):
         ev_px = self.ui.sb_ev_px.value()
@@ -494,7 +529,7 @@ class SpectrometerWindow(QMainWindow):
         #print(self.peak_ev_list)
 
         # single_integr = np.trapz(spectrum, self.x_axis)/self.get_transmission() * self.calib_energy_coef
-        ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.get_transmission() * self.calib_energy_coef
+        ave_integ = np.trapz(self.ave_spectrum, self.x_axis) / self.transmission_value * self.calib_energy_coef
         if self.doocs_permit and self.ui.cb_doocs_send_data.isChecked():
             self.mi.set_value(self.dynprop_integ, ave_integ)
             self.mi.set_value(self.dynprop_max, np.max(self.ave_spectrum[self.max_spec_min_inx: self.max_spec_max_inx]))
@@ -507,8 +542,13 @@ class SpectrometerWindow(QMainWindow):
 
         # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
-            self.single.setData(self.x_axis, self.spectrum_event)
-            self.average.setData(x=self.x_axis, y=self.ave_spectrum)
+            if self.ui.chb_uj_ev.isChecked():
+                transm = self.transmission_value
+                self.single.setData(x=self.x_axis, y=self.spectrum_event * self.calib_energy_coef / transm)
+                self.average.setData(x=self.x_axis, y=self.ave_spectrum * self.calib_energy_coef / transm)
+            else:
+                self.single.setData(x=self.x_axis, y=self.spectrum_event)
+                self.average.setData(x=self.x_axis, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
             n_ppoints = len(self.x_axis)
             if len(self.background) != n_ppoints:
@@ -626,6 +666,10 @@ class SpectrometerWindow(QMainWindow):
 
         if self.corre2dtool is not None:
             self.corre2dtool.stop_timers()
+            
+        if self.analysistool is not None:
+            self.analysistool.stop_timers()
+            
         print(self.config_file)
         if 1:
             self.ui.save_state(self.config_file)
@@ -845,7 +889,7 @@ class SpectrometerWindow(QMainWindow):
             self.slow_xgm_signal = table["le_slow_xgm_sa3_scs"]
             
             
-        elif current_source == "DUMMY":
+        elif current_source in ["DUMMY", "DUMMYSASE"]:
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None
             self.hrx_n_px = 3000

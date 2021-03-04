@@ -22,6 +22,7 @@ from gui.UISpectrometer import Ui_MainWindow
 
 from PyQt5 import QtGui, QtCore
 from pathlib import Path
+from opt_lib import hr_eV_s
 import time
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -115,6 +116,9 @@ class MainWindow(Ui_MainWindow):
         
         self.pb_logbook_cor2d.clicked.connect(lambda: self.log_cor2d(self.Form))
         self.actionSend_cor2d_to_logbook.triggered.connect(lambda: self.log_cor2d(self.Form))
+        
+        self.pb_logbook_specanalysis.clicked.connect(lambda: self.log_specanalysis(self.Form))
+        self.actionSend_spec_analysis_to_logbook.triggered.connect(lambda: self.log_specanalysis(self.Form))
         
         style_index = self.get_style_name_index()
         style_name = self.Form.gui_styles[style_index]
@@ -226,16 +230,40 @@ class MainWindow(Ui_MainWindow):
         filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_cor2d.npz"
         
         cor2d_tab = self.Form.corre2dtool
-        np.savez(filename, phen_scale=cor2d_tab.phen, spec_hist=cor2d_tab.spec_hist, 
-                doocs_vals_hist=cor2d_tab.doocs_vals_hist, corr2d=cor2d_tab.spec_binned, 
-                doocs_scale = cor2d_tab.doocs_bins, doocs_channel=cor2d_tab.doocs_address_label)
+        np.savez(filename, dumpversion=1,
+                phen_scale=cor2d_tab.phen, 
+                spec_hist=cor2d_tab.spec_hist, 
+                doocs_vals_hist=cor2d_tab.doocs_vals_hist, 
+                corr2d=cor2d_tab.spec_binned, 
+                doocs_scale = cor2d_tab.doocs_bins, 
+                doocs_channel=cor2d_tab.doocs_address_label)
         return filename
 
     def save_waterflow_file(self):
         Path(self.Form.data_dir).mkdir(parents=True, exist_ok=True)
         filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_waterflow.npz"
-        np.savez(filename, e_axis=self.Form.x_axis, average=self.Form.ave_spectrum, map=self.Form.data_2d)
+        np.savez(filename, dumpversion=1,
+        e_axis=self.Form.x_axis, 
+        average=self.Form.ave_spectrum, 
+        map=self.Form.data_2d)
         return filename
+        
+    def save_specanalysis_file(self):
+        Path(self.Form.data_dir).mkdir(parents=True, exist_ok=True)
+        specanalysis_tab = self.Form.analysistool
+        filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_specanalysis.npz"
+        print('save specanalysis to file ', filename)
+        np.savez(filename, dumpversion=1, 
+        phen_scale=specanalysis_tab.spar.phen, 
+        spec_hist=specanalysis_tab.spar.spec, 
+        calib_energy_coef=self.Form.calib_energy_coef,
+        corrn_center=specanalysis_tab.corrn.corr,
+        corrn_center_dphen=specanalysis_tab.corrn.domega * hr_eV_s,
+        corrn_center_phen=specanalysis_tab.corrn.omega * hr_eV_s, 
+        fit_t=specanalysis_tab.g2fit.fit_t, 
+        fit_t_comp=specanalysis_tab.g2fit.fit_t_comp, 
+        fit_t_contr=specanalysis_tab.g2fit.fit_contrast, 
+        fit_t_pedestal=specanalysis_tab.g2fit.fit_pedestal)
 
     def logbook(self, widget, text=""):
         """
@@ -264,6 +292,15 @@ class MainWindow(Ui_MainWindow):
         else:
             text = ""
         self.logbook(widget, text=text)
+        
+    def log_specanalysis(self, widget):
+        self.save_specanalysis_file()
+        if self.Form.doocs_permit:
+            filename = self.save_specanalysis_file()
+            text = "Spectrum analysis: " + filename
+        else:
+            text = ""
+        self.logbook(widget, text=text)
 
     def get_screenshot(self, window_widget):
         screenshot_tmp = QtCore.QByteArray()
@@ -282,7 +319,6 @@ class MainWindow(Ui_MainWindow):
         with open(self.settings_file, 'r') as f:
             table = json.load(f)
         if "style" in table.keys():
-
             return table["style"]
         else:
             return 0
