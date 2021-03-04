@@ -70,7 +70,7 @@ def find_nearest(array, value):
 
 def n_moment(x, counts, c, n):
     x = numpy.squeeze(x)
-    if x.ndim is not 1:
+    if x.ndim != 1:
         raise ValueError("scale of x should be 1-dimensional")
     if x.size not in counts.shape:
         raise ValueError("operands could not be broadcast together with shapes %s %s" %(str(x.shape), str(counts.shape)))
@@ -1801,7 +1801,7 @@ class Reconstr():
         #main figure
         ax1.pcolormesh(timeval[m_idx:], hr_eV_s*omega_bin, recon[:,m_idx:], cmap=cmap)
 
-        if plot_lineoffs is not None and plot_lineoffs is not 0 and type(plot_lineoffs) in [list,numpy.ndarray]:
+        if plot_lineoffs is not None and plot_lineoffs != 0 and type(plot_lineoffs) in [list,numpy.ndarray]:
             spec_arr_bin = numpy.array([find_nearest_idx(numpy.array(hr_eV_s*omega_bin), i) for i in plot_lineoffs])
             spec_arr = numpy.array([find_nearest_idx(numpy.array(hr_eV_s*omega), i) for i in plot_lineoffs])
         else:
@@ -1848,9 +1848,9 @@ class Reconstr():
             ax2.set_ylim([hr_eV_s * omega[e_idx_lim2], hr_eV_s * omega[e_idx_lim1]])
             ax0.set_xlim([0, timeval[t_idx_lim] * 1.1])
             
-        if xlim is not (None, None):
+        if xlim != (None, None):
             ax1.set_xlim([xlim[0], xlim[1]])
-        if ylim is not (None, None):
+        if ylim != (None, None):
             ax1.set_ylim([ylim[0], ylim[1]])
             
         plt.show()
@@ -1939,7 +1939,7 @@ class FitResult():
         ax_t.set_xlabel('E [eV]')
         plt.text(0.98, 0.98, 'fit function: {:s}'.format(self.func.__name__), horizontalalignment='right', verticalalignment='top', transform=ax_t.transAxes)
 
-        if xlim is not (None, None):
+        if xlim != (None, None):
             ax_t.set_xlim([xlim[0], xlim[1]])
         plt.show()
 
