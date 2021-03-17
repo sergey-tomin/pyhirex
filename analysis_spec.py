@@ -31,6 +31,7 @@ class AnalysisInterface:
         self.spar_screwed = SpectrumArray()
         self.g2fit = FitResult()
         self.g2fit.omega=np.array([0])
+        self.g2fit.fit_t_comp=np.array([0])
         # self.g2_plot_idx = 0
         
         self.n_events_processed = 0
@@ -61,6 +62,7 @@ class AnalysisInterface:
         self.ui.analysis_resetbutton.clicked.connect(self.clear_all_curves)
         self.ui.analysis_resetbutton.clicked.connect(self.reset_spectra)
         
+        self.phen_last = np.array([])
         
         self.ui.analysis_correlate_button.clicked.connect(self.correlate_and_plot)
     
@@ -143,14 +145,23 @@ class AnalysisInterface:
             return
         # print('arranging')
         
-        wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
-        shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        # wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
+        # shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        
+        
+        
+        if not np.array_equal(self.phen_last, self.parent.x_axis):
+            print('different axis, skippimg')
+            self.reset_spectra()
+            self.phen_last = self.parent.x_axis
+            return
+            
+        
+        #if shifted_spec:
+        #    print('correlation analysis: photon energy scale changed')
+        #    self.reset_spectra()
         zeroscale = self.parent.x_axis[-1] == self.parent.x_axis[0]
         
-        if wrong_size or shifted_spec:
-            print('correlation analysis: photon energy scale changed')
-            self.reset_spectra()
-            
         if zeroscale:
             print('correlation analysis: x_axis[-1] == x_axis[0]')
             self.reset_spectra()
@@ -206,6 +217,7 @@ class AnalysisInterface:
         self.spar_screwed = SpectrumArray()
         self.corrn = SpectrumCorrelationsCenter()
         self.g2fit = FitResult()
+        self.g2fit.fit_t_comp=np.array([0])
         
     def add_spec_widget(self):
         # print('adding spec_widget')

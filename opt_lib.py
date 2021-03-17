@@ -1568,6 +1568,9 @@ def read_spec_arr_hdf5(file_path, E_center=9350, dE= 0.1, x_pixel=900):
 class SpectrumCorrelationsCenter():
     """ :class SpectrumCorrelationsCenter: Class to represent correlation of a spectrum.  """
     def __init__(self):
+        self.corr = numpy.array([])
+        self.domega = numpy.array([])
+        self.omega = numpy.array([])
         pass
 
     def bin_omega_step(self, freq_bin=1):
@@ -1893,8 +1896,10 @@ def g2_gauss1(domega, T, g20, offset, T1):
 
 class FitResult():
     def __init__(self):
-        self.fit_t = []
-        self.omega = []
+        self.fit_t = numpy.array([0])
+        self.omega = numpy.array([0])
+        self.fit_contrast = numpy.array([0])
+        self.fit_pedestal = numpy.array([0])
         pass
 
     def plot_t(self, fignum=None, spar=None, thresh=0.2, xlim=(None, None)):

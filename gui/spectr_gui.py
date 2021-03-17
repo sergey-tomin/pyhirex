@@ -253,17 +253,20 @@ class MainWindow(Ui_MainWindow):
         specanalysis_tab = self.Form.analysistool
         filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_specanalysis.npz"
         print('save specanalysis to file ', filename)
-        np.savez(filename, dumpversion=1, 
-        phen_scale=specanalysis_tab.spar.phen, 
-        spec_hist=specanalysis_tab.spar.spec, 
+
+        np.savez(filename, dumpversion=1,
+        phen_scale=specanalysis_tab.spar.phen,
+        spec_hist=specanalysis_tab.spar.spec,
         calib_energy_coef=self.Form.calib_energy_coef,
         corrn_center=specanalysis_tab.corrn.corr,
         corrn_center_dphen=specanalysis_tab.corrn.domega * hr_eV_s,
-        corrn_center_phen=specanalysis_tab.corrn.omega * hr_eV_s, 
-        fit_t=specanalysis_tab.g2fit.fit_t, 
-        fit_t_comp=specanalysis_tab.g2fit.fit_t_comp, 
-        fit_t_contr=specanalysis_tab.g2fit.fit_contrast, 
+        corrn_center_phen=specanalysis_tab.corrn.omega * hr_eV_s,
+        fit_t=specanalysis_tab.g2fit.fit_t,
+        fit_t_comp=specanalysis_tab.g2fit.fit_t_comp,
+        fit_t_contr=specanalysis_tab.g2fit.fit_contrast,
         fit_t_pedestal=specanalysis_tab.g2fit.fit_pedestal)
+
+        return filename
 
     def logbook(self, widget, text=""):
         """

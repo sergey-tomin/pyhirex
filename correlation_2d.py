@@ -55,6 +55,8 @@ class Correl2DInterface:
         self.phen = []
         self.spec_hist = []
         self.doocs_vals_hist = []
+        self.transmission_vals_hist = []
+        self.cross_callibration_vals_hist = []
         
         self.doocs_old_label = ''
         
@@ -164,7 +166,8 @@ class Correl2DInterface:
                 
         else:
             self.doocs_vals_hist_lagged = self.doocs_vals_hist
-            spec_lagged = np.array(self.spec_hist)
+            spec_lagged = np.array(self.spec_hist) * np.array(self.cross_callibration_vals_hist)[:, None] / np.array(self.transmission_vals_hist)[:,None] # TODO: untested!!!
+            #spec_lagged = np.array(self.spec_hist)
         
         
         
@@ -233,6 +236,8 @@ class Correl2DInterface:
         self.img_hist.clear()
         self.img_corr2d.clear()
         self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
+        self.transmission_vals_hist = []
+        self.cross_callibration_vals_hist = []
         
     def plot_correl(self):
         
@@ -273,6 +278,11 @@ class Correl2DInterface:
         else:
             self.doocs_address_label = 'event',
             self.doocs_vals_hist.append(self.event_counter)
+            
+        self.transmission_vals_hist.append(self.parent.transmission_value)
+        self.cross_callibration_vals_hist.append(self.parent.calib_energy_coef)
+            
+            
 
         # print(self.doocs_vals_hist[-1])
         
