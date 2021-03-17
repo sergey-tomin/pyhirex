@@ -26,7 +26,6 @@ class Spectrometer():
         #self.update_params(transmission=1, calib_energy_coef=1)
         self.update_background()
     
-    
     def is_online(self):
         if self.eid is not None and self.eid != "":
             try:

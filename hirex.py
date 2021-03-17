@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 WATERFLOW_ALL = True
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY", "DUMMYSASE"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY", "DUMMYSASE", "TEST1", "TEST2", "TEST3"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex-master"
@@ -326,6 +326,13 @@ class SpectrometerWindow(QMainWindow):
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
             self.spectrometer = DummySASE(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
+        else:
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
+
+            self.spectrometer = Spectrometer(self.mi, eid=self.hirex_doocs_ch)
+            self.spectrometer.num_px = self.hrx_n_px
+            self.spectrometer.devmode = self.dev_mode
+            self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
             
         self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
         self.background = self.back_taker.load()
@@ -899,7 +906,14 @@ class SpectrometerWindow(QMainWindow):
             self.slow_xgm_signal = None
 
         else:
-            print("WRONG HIREX")
+            self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
+            self.transmission__doocs_ch = None
+            self.hrx_n_px = 3000
+
+            self.doocs_ctrl_num_bunch = None
+            self.fast_xgm_signal = None
+            self.slow_xgm_signal = None
+            print("TEST DEVICES")
         self.dynprop_max = table["le_dynprop_max"]
         self.dynprop_integ = table["le_dynprop_integ"]
         self.max_spec_min_inx = table["sb_max_spec_min"]
