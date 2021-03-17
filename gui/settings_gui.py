@@ -91,6 +91,19 @@ class HirexSettings(QWidget):
         table["le_fast_xgm_sa3_scs"] = self.ui.le_fast_xgm_sa3_scs.text()
         table["le_slow_xgm_sa3_scs"] = self.ui.le_slow_xgm_sa3_scs.text()
 
+        # TEST
+        table["le_hirex_ch_test1"] = self.ui.le_hirex_ch_test1.text()
+        table["le_ph_energy_test1"] = self.ui.le_ph_energy_test1.text()
+        table["le_ctrl_num_bunch_test1"] = self.ui.le_ctrl_num_bunch_test1.text()
+        # test 2
+        table["le_hirex_ch_test2"] = self.ui.le_hirex_ch_test2.text()
+        table["le_ph_energy_test2"] = self.ui.le_ph_energy_test2.text()
+        table["le_ctrl_num_bunch_test2"] = self.ui.le_ctrl_num_bunch_test2.text()
+        # test3
+        table["le_hirex_ch_test3"] = self.ui.le_hirex_ch_test3.text()
+        table["le_ph_energy_test3"] = self.ui.le_ph_energy_test3.text()
+        table["le_ctrl_num_bunch_test3"] = self.ui.le_ctrl_num_bunch_test3.text()
+
 
         table["sb_2d_hist_size"] = self.ui.sb_2d_hist_size.value()
         
@@ -153,6 +166,19 @@ class HirexSettings(QWidget):
         if "le_ctrl_num_bunch_sa3_scs" in table.keys(): self.ui.le_ctrl_num_bunch_sa3_scs.setText(table["le_ctrl_num_bunch_sa3_scs"])
         if "le_fast_xgm_sa3_scs" in table.keys(): self.ui.le_fast_xgm_sa3_scs.setText(table["le_fast_xgm_sa3_scs"])
         if "le_slow_xgm_sa3_scs" in table.keys(): self.ui.le_slow_xgm_sa3_scs.setText(table["le_slow_xgm_sa3_scs"])
+
+        # TEST
+        if "le_hirex_ch_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_hirex_ch_test1"])
+        if "le_ph_energy_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_ph_energy_test1"])
+        if "le_ctrl_num_bunch_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_ctrl_num_bunch_test1"])
+        # test 2
+        if "le_hirex_ch_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_hirex_ch_test2"])
+        if "le_ph_energy_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_ph_energy_test2"])
+        if "le_ctrl_num_bunch_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_ctrl_num_bunch_test2"])
+        # test3
+        if "le_hirex_ch_test3" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_hirex_ch_test3"])
+        if "le_ph_energy_test3" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_ph_energy_test3"])
+        if "le_ctrl_num_bunch_test3" in table.keys(): self.ui.le_hirex_ch_test3.setText(table["le_ctrl_num_bunch_test3"])
 
 
         if "sb_2d_hist_size" in table.keys(): self.ui.sb_2d_hist_size.setValue(table["sb_2d_hist_size"])

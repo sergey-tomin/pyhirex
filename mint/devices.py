@@ -26,6 +26,7 @@ class Spectrometer():
         #self.update_params(transmission=1, calib_energy_coef=1)
         self.update_background()
     
+    
     def is_online(self):
         if self.eid is not None and self.eid != "":
             try:
@@ -210,7 +211,47 @@ class SpectrometerSA3(Spectrometer):
         self.x_axis = self.mi.get_value(self.energy_ch)
         return self.x_axis
          
-     
+
+class CrazySpectrometer(Spectrometer):
+    def __init__(self, mi, eid=None, energy_ch=None):
+        super(CrazySpectrometer, self).__init__(mi=mi, eid=eid)
+        #self.devmode = True
+        self.mi = mi
+        self.energy_ch = energy_ch
+        self.eid = eid
+        self.num_px = len(self.get_value())  # number of pixels
+        self.x_axis = np.arange(self.num_px)
+        self.spectrum = []
+        self.background = []
+        self.av_spectrum = []
+        self.update_background()
+        
+        
+    def is_online(self):
+        if self.eid is not None and self.eid != "":
+            try:
+                self.mi.get_value(self.eid)
+                status = True
+            except:
+                status = False
+        else:
+            status = False
+        return status
+    
+    def calibrate_axis(self, ev_px=None, E0=None, px1=None):
+        """
+        method to calibrate energy axis
+
+        :return: x_axis - array in [ev]
+        """
+        if self.energy_ch is None:
+            val = self.get_value()
+            self.x_axis = np.arange(len(val))
+        else:
+            self.x_axis = self.mi.get_value(self.energy_ch)
+        return self.x_axis
+         
+         
      
 class DummyHirex(Spectrometer):
 

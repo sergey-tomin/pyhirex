@@ -27,7 +27,7 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3, CrazySpectrometer
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
@@ -326,11 +326,10 @@ class SpectrometerWindow(QMainWindow):
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
             self.spectrometer = DummySASE(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
-        else:
+        elif current_source in ["TEST1", "TEST2", "TEST3"]:
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
-            self.spectrometer = Spectrometer(self.mi, eid=self.hirex_doocs_ch)
-            self.spectrometer.num_px = self.hrx_n_px
+            self.spectrometer = CrazySpectrometer(self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
             
@@ -913,6 +912,7 @@ class SpectrometerWindow(QMainWindow):
             self.doocs_ctrl_num_bunch = None
             self.fast_xgm_signal = None
             self.slow_xgm_signal = None
+            self.ph_energy_ch = None
             print("TEST DEVICES")
         self.dynprop_max = table["le_dynprop_max"]
         self.dynprop_integ = table["le_dynprop_integ"]
