@@ -74,7 +74,7 @@ class Spectrometer():
         spectrum = spectrum * self.calib_energy_coef * self.transmission
         return spectrum
 
-    def cross_calibrate(self, spectrum, transmission, pulse_energy):
+    def cross_calibrate(self, spectrum, x_axis, transmission, pulse_energy):
         """
         Cross calibrate with spectrum with pulse energy
 
@@ -86,7 +86,7 @@ class Spectrometer():
         if len(spectrum) < 3:
             return
         #energy_uJ = self.mi.get_value(self.slow_xgm_signal)
-        ave_integ = np.trapz(spectrum, self.x_axis)/transmission
+        ave_integ = np.trapz(spectrum, x_axis)/transmission
         self.calib_energy_coef = pulse_energy/ave_integ
         return self.calib_energy_coef # uJ/au
 

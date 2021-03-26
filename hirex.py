@@ -383,7 +383,7 @@ class SpectrometerWindow(QMainWindow):
             pulse_energy = self.mi.get_value(self.slow_xgm_signal)
         
         self.get_transmission()
-        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.transmission_value, pulse_energy)
+        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.x_axis_disp, self.transmission_value, pulse_energy)
 
     def run_settings_window(self):
         if self.settings is None:
@@ -394,7 +394,10 @@ class SpectrometerWindow(QMainWindow):
         if len(self.ave_spectrum) == 0:
             self.error_box("Press Start first")
             return
-        mu = self.spectrometer.fit_guass(self.ave_spectrum)
+        try:
+            mu = self.spectrometer.fit_guass(self.ave_spectrum) + self.px_first
+        except:
+            self.error_box("Fitting: Optimal parameters not found")
         self.ui.sb_px1.setValue(mu)
         
         print("A, mu, sigma = ", self.spectrometer.gauss_coeff_fit)
@@ -413,9 +416,10 @@ class SpectrometerWindow(QMainWindow):
             self.plot1.addItem(self.fit_func)
             # self.plot1.setLabel('left', "A", units='au')
             # self.plot1.setLabel('bottom', "", units='px')
-            self.x_axis = np.arange(len(self.ave_spectrum))
-            gauss_fit = gauss(self.x_axis, *self.spectrometer.gauss_coeff_fit)
-            self.fit_func.setData(self.x_axis, gauss_fit)
+            self.x_axis = np.arange(len(self.spectrum_event))
+            gauss_coeff_fit = self.spectrometer.gauss_coeff_fit + np.array([0, self.px_first, 0])
+            gauss_fit = gauss(self.x_axis, *gauss_coeff_fit)
+            self.fit_func.setData(self.x_axis[self.px_first: self.px_last], gauss_fit[self.px_first: self.px_last])
             #self.plot1.enableAutoScale()
             self.plot1.enableAutoRange()
         else:
@@ -503,22 +507,23 @@ class SpectrometerWindow(QMainWindow):
 
     def live_spec(self):
 
-        self.spectrum_event = self.spectrometer.get_value().astype("float64")[self.px_first:self.px_last]
+        self.spectrum_event = self.spectrometer.get_value().astype("float64")
+        self.spectrum_event_disp = self.spectrum_event[self.px_first:self.px_last]
         self.x_axis_disp = self.x_axis[self.px_first: self.px_last]
         self.background_disp = self.background[self.px_first:self.px_last]
         if self.ui.chb_a.isChecked():
-            if len(self.background_disp) != len(self.spectrum_event):
-                self.background_disp = np.zeros_like(self.spectrum_event)
+            if len(self.background_disp) != len(self.spectrum_event_disp):
+                self.background_disp = np.zeros_like(self.spectrum_event_disp)
                 self.error_box("Take Background")
                 self.ui.chb_a.setChecked(False)
             else:
-                self.spectrum_event -= self.background_disp
+                self.spectrum_event_disp -= self.background_disp
             
         # send maximum to doocs
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/SASE1_2.3A/Z_POS", np.max(spectrum[350:450]))
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.sum(spectrum))
         
-        self.spectrum_list.insert(0, self.spectrum_event)
+        self.spectrum_list.insert(0, self.spectrum_event_disp)
         self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
 
         n_av = int(self.ui.sb_av_nbunch.value())
@@ -548,16 +553,16 @@ class SpectrometerWindow(QMainWindow):
 
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
 
-        self.data_2d[:, 0] = self.spectrum_event# single_sig_wo_noise
+        self.data_2d[:, 0] = self.spectrum_event_disp# single_sig_wo_noise
 
         # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
             if self.ui.chb_uj_ev.isChecked():
                 transm = self.transmission_value
-                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event * self.calib_energy_coef / transm)
+                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp * self.calib_energy_coef / transm)
                 self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum * self.calib_energy_coef / transm)
             else:
-                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event)
+                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp)
                 self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
             n_ppoints = len(self.x_axis_disp)
