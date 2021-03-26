@@ -505,13 +505,14 @@ class SpectrometerWindow(QMainWindow):
 
         self.spectrum_event = self.spectrometer.get_value().astype("float64")[self.px_first:self.px_last]
         self.x_axis_disp = self.x_axis[self.px_first: self.px_last]
+        self.background_disp = self.background[self.px_first:self.px_last]
         if self.ui.chb_a.isChecked():
-            if len(self.background) != len(self.spectrum_event):
-                self.background = np.zeros_like(self.spectrum_event)
+            if len(self.background_disp) != len(self.spectrum_event):
+                self.background_disp = np.zeros_like(self.spectrum_event)
                 self.error_box("Take Background")
                 self.ui.chb_a.setChecked(False)
             else:
-                self.spectrum_event -= self.background
+                self.spectrum_event -= self.background_disp
             
         # send maximum to doocs
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/SASE1_2.3A/Z_POS", np.max(spectrum[350:450]))
@@ -560,9 +561,9 @@ class SpectrometerWindow(QMainWindow):
                 self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
             n_ppoints = len(self.x_axis_disp)
-            if len(self.background) != n_ppoints:
-                self.background = np.zeros(n_ppoints)
-            self.back_plot.setData(self.x_axis_disp, self.background)
+            if len(self.background_disp) != n_ppoints:
+                self.background_disp = np.zeros(n_ppoints)
+            self.back_plot.setData(self.x_axis_disp, self.background_disp)
             self.img.setImage(self.data_2d) #SS: do not cut, limits window
 
         if self.energy_axis_thread.trigger:
