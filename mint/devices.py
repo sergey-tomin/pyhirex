@@ -13,7 +13,7 @@ from mint.sase_imitation import imitate_1d_sase
 logger = logging.getLogger(__name__)
 
 class Spectrometer():
-    def __init__(self, mi, eid=None):
+    def __init__(self, mi, eid=None, **kwargs):
         self.eid = eid
         self.mi = mi
         self.devmode = False
@@ -25,7 +25,6 @@ class Spectrometer():
         self.gauss_coeff_fit = None
         #self.update_params(transmission=1, calib_energy_coef=1)
         self.update_background()
-    
     
     def is_online(self):
         if self.eid is not None and self.eid != "":
@@ -41,7 +40,6 @@ class Spectrometer():
     def update_params(self, transmission=1, calib_energy_coef=1):
         self.transmission = transmission
         self.calib_energy_coef = calib_energy_coef
-
 
     def update_background(self, background=None):
         if background is not None and len(background) == self.num_px:
@@ -75,24 +73,6 @@ class Spectrometer():
             spectrum = raw_spectrum
         spectrum = spectrum * self.calib_energy_coef * self.transmission
         return spectrum
-
-    #def get_spectrums(self):
-    #    """
-    #    method returns spectrum and average spectrum over self.n_ave_spectrum shots
-    #    :return:
-    #    """
-    #    self.spectrum = self.get_spectrum()
-    #    #self.spec_list.insert(0, self.spectrum)
-    #    #self.av_spectrum = np.mean(self.spec_list, axis=0)
-    #
-    #    #if len(self.spec_list) > self.n_ave_spectrum:
-    #    #    self.spec_list = self.spec_list[:self.n_ave_spectrum]
-    #    self.data2d = np.roll(self.data2d, 1, axis=1)
-    #
-    #    self.data2d[:, 0] = self.spectrum  #  single_sig_wo_noise
-    #    self.av_spectrum = np.mean(self.data2d[:, :self.n_ave_spectrum], axis=1)
-    #    return self.spectrum, self.av_spectrum
-
 
     def cross_calibrate(self, spectrum, transmission, pulse_energy):
         """
@@ -177,8 +157,8 @@ class BraggCamera(Spectrometer):
 
 
 class SpectrometerSA3(Spectrometer):
-    def __init__(self, mi, eid=None, energy_ch=None):
-        super(SpectrometerSA3, self).__init__(mi=mi, eid=eid)
+    def __init__(self, mi, eid=None, energy_ch=None, **kwargs):
+        super(SpectrometerSA3, self).__init__(mi=mi, eid=eid, **kwargs)
         self.mi = mi
         self.energy_ch = energy_ch
         self.eid = eid
@@ -213,8 +193,8 @@ class SpectrometerSA3(Spectrometer):
          
 
 class CrazySpectrometer(Spectrometer):
-    def __init__(self, mi, eid=None, energy_ch=None):
-        super(CrazySpectrometer, self).__init__(mi=mi, eid=eid)
+    def __init__(self, mi, eid=None, energy_ch=None, **kwargs):
+        super(CrazySpectrometer, self).__init__(mi=mi, eid=eid, **kwargs)
         #self.devmode = True
         self.mi = mi
         self.energy_ch = energy_ch
@@ -266,7 +246,7 @@ class DummyHirex(Spectrometer):
         basic method to get value/spectrum via DOOCS server
         :return:
         """
-        
+
         spectrum_phen = np.linspace(8800, 9200, 1280)
         
         sase_center = 9000
@@ -285,7 +265,8 @@ class DummyHirex(Spectrometer):
     
     def is_online(self):
         return True
-        
+
+
 class DummySASE(Spectrometer):
 
     def __init__(self, *args, **kwargs):
@@ -322,7 +303,7 @@ class DummySASE(Spectrometer):
         """
         
         # spectrum_phen = np.linspace(8800, 9200, 1280)
-        
+        #self.px_last = self.px_last if self.px_last != 0 else None
         spectrum_sase = self.spectrum_sase[:,self.idx % self.n_events]
         self.idx += 1
         
@@ -337,8 +318,8 @@ class DummySASE(Spectrometer):
         # spectrum_noise = np.random.rand(len(self.spectrum_phen))
 
         # val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
-        val =  spectrum_sase# * spectrum_seed
-        return val
+        val = spectrum_sase# * spectrum_seed
+        return val#[self.px_first:self.px_last]
         
     def is_online(self):
         return True

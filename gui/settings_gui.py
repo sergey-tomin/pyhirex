@@ -169,16 +169,16 @@ class HirexSettings(QWidget):
 
         # TEST
         if "le_hirex_ch_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_hirex_ch_test1"])
-        if "le_ph_energy_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_ph_energy_test1"])
-        if "le_ctrl_num_bunch_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_ctrl_num_bunch_test1"])
+        if "le_ph_energy_test1" in table.keys(): self.ui.le_ph_energy_test1.setText(table["le_ph_energy_test1"])
+        if "le_ctrl_num_bunch_test1" in table.keys(): self.ui.le_ctrl_num_bunch_test1.setText(table["le_ctrl_num_bunch_test1"])
         # test 2
         if "le_hirex_ch_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_hirex_ch_test2"])
-        if "le_ph_energy_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_ph_energy_test2"])
-        if "le_ctrl_num_bunch_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_ctrl_num_bunch_test2"])
+        if "le_ph_energy_test2" in table.keys(): self.ui.le_ph_energy_test2.setText(table["le_ph_energy_test2"])
+        if "le_ctrl_num_bunch_test2" in table.keys(): self.ui.le_ctrl_num_bunch_test2.setText(table["le_ctrl_num_bunch_test2"])
         # test3
-        if "le_hirex_ch_test3" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_hirex_ch_test3"])
-        if "le_ph_energy_test3" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_ph_energy_test3"])
-        if "le_ctrl_num_bunch_test3" in table.keys(): self.ui.le_hirex_ch_test3.setText(table["le_ctrl_num_bunch_test3"])
+        if "le_hirex_ch_test3" in table.keys(): self.ui.le_hirex_ch_test3.setText(table["le_hirex_ch_test3"])
+        if "le_ph_energy_test3" in table.keys(): self.ui.le_ph_energy_test3.setText(table["le_ph_energy_test3"])
+        if "le_ctrl_num_bunch_test3" in table.keys(): self.ui.le_ctrl_num_bunch_test3.setText(table["le_ctrl_num_bunch_test3"])
 
 
         if "sb_2d_hist_size" in table.keys(): self.ui.sb_2d_hist_size.setValue(table["sb_2d_hist_size"])
@@ -188,8 +188,6 @@ class HirexSettings(QWidget):
 
         if "sb_max_spec_min" in table.keys(): self.ui.sb_max_spec_min.setValue(table["sb_max_spec_min"])
         if "sb_max_spec_max" in table.keys(): self.ui.sb_max_spec_max.setValue(table["sb_max_spec_max"])
-
-
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))

@@ -985,7 +985,7 @@
           <item row="2" column="1" colspan="2">
            <widget class="QLineEdit" name="le_hirex_ch_test2">
             <property name="text">
-             <string>XFEL.EXP/DAQ.GOTTHARD_MASTER/SA2_XTD6_HIREX/ADC</string>
+             <string/>
             </property>
            </widget>
           </item>
@@ -1066,7 +1066,7 @@
           <item row="2" column="1" colspan="2">
            <widget class="QLineEdit" name="le_hirex_ch_test1">
             <property name="text">
-             <string>XFEL.EXP/DAQ.GOTTHARD_MASTER/SA2_XTD6_HIREX/ADC</string>
+             <string/>
             </property>
            </widget>
           </item>
@@ -1120,7 +1120,7 @@
           <item row="2" column="1" colspan="2">
            <widget class="QLineEdit" name="le_hirex_ch_test3">
             <property name="text">
-             <string>XFEL.EXP/DAQ.GOTTHARD_MASTER/SA2_XTD6_HIREX/ADC</string>
+             <string/>
             </property>
            </widget>
           </item>

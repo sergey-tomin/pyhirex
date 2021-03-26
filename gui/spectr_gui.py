@@ -172,7 +172,7 @@ class MainWindow(Ui_MainWindow):
         table["sb_emax"] = self.sb_emax.value()
         if not self.Form.doocs_permit:
             print("Can not save State")
-            return 
+            return
         with open(filename, 'w') as f:
             json.dump(table, f)
         # pickle.dump(table, filename)
