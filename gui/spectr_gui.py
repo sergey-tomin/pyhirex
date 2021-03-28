@@ -159,7 +159,7 @@ class MainWindow(Ui_MainWindow):
         table["sb_px1"] = self.sb_px1.value()
         table["sb_E0"] = self.sb_E0.value()
         table["sb_ev_px"] = self.sb_ev_px.value()
-        table["sb_nbunch_back"] = self.sb_nbunch_back.value()
+        #table["sb_nbunch_back"] = self.sb_nbunch_back.value()
 
         table["sbox_scan_wait"] = self.sbox_scan_wait.value()
         #table["le_scan_doocs"] = str(self.le_scan_doocs.text())

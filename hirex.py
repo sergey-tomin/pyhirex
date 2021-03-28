@@ -32,6 +32,7 @@ from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
 from analysis_spec import AnalysisInterface
+from logger import UILogger
 from scipy import ndimage
 import pathlib
 import json
@@ -273,6 +274,8 @@ class SpectrometerWindow(QMainWindow):
         self.check_doocs_permission()
         self.ui.sb_px_first.valueChanged.connect(self.reset_waterfall)
         self.ui.sb_px_last.valueChanged.connect(self.reset_waterfall)
+        self.logger_window = None
+        self.ui.pb_logger.clicked.connect(self.run_logger_window)
 
 
     def check_doocs_permission(self):
@@ -285,6 +288,11 @@ class SpectrometerWindow(QMainWindow):
             self.ui.groupBox_5.setTitle("Control: no permission to write to DOOCS")
             self.ui.groupBox_5.setStyleSheet('QGroupBox  {color: red;}')
             
+
+    def run_logger_window(self):
+        if self.logger_window is None:
+            self.logger_window = UILogger(parent=self)
+        self.logger_window.show()
 
     def reload_objects_settings(self):
         try:
@@ -497,7 +505,7 @@ class SpectrometerWindow(QMainWindow):
             
             
             time.sleep(0.5)
-            self.back_taker.nshots = int(self.ui.sb_nbunch_back.value())
+            self.back_taker.nshots = self.sb_nbunch_back
             # self.back_taker.doocs_channel = str(self.ui.le_a.text())
             if not self.back_taker.is_alive():
                 self.back_taker.start()
@@ -866,6 +874,7 @@ class SpectrometerWindow(QMainWindow):
         current_source = self.ui.combo_hirex.currentText()
         self.hrx_n_px = 1000
         self.ph_energy_ch = None
+        self.sb_nbunch_back = table["sb_nbunch_back"]
         if current_source == "SASE2":
 
             self.hirex_doocs_ch = table["le_hirex_ch_sa2"]

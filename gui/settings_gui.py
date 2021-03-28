@@ -49,6 +49,7 @@ class HirexSettings(QWidget):
         table["logbook"] = self.ui.le_logbook.text()
         table["server_list"] = self.string2list(self.ui.le_server.text())
         table["server"] = self.ui.combo_server.currentText()
+        table["sb_nbunch_back"] = self.ui.sb_nbunch_back.value()
 
         table["le_trans_ch_sa2"] = self.ui.le_trans_ch_sa2.text()
         table["le_hirex_ch_sa2"] = self.ui.le_hirex_ch_sa2.text()
@@ -134,6 +135,7 @@ class HirexSettings(QWidget):
         with open(filename, 'r') as f:
             table = json.load(f)
         if "le_logbook" in table.keys(): self.ui.le_logbook.setText(table["le_logbook"])
+        if "sb_nbunch_back" in table.keys(): self.ui.sb_nbunch_back.setValue(table["sb_nbunch_back"])
 
         if "le_hirex_ch_sa2" in table.keys(): self.ui.le_hirex_ch_sa2.setText(table["le_hirex_ch_sa2"])
         if "le_trans_ch_sa2" in table.keys(): self.ui.le_trans_ch_sa2.setText(table["le_trans_ch_sa2"])

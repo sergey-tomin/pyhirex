@@ -101,27 +101,20 @@
          <layout class="QGridLayout" name="gridLayout_7">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayout_6">
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_15">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_5">
               <property name="text">
-               <string>Server</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLineEdit" name="le_server">
-              <property name="text">
-               <string>XFEL, XFEL_SIM</string>
+               <string>LogBook</string>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
              <widget class="QComboBox" name="combo_server"/>
             </item>
-            <item row="0" column="2">
-             <widget class="QLineEdit" name="le_logbook">
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="le_server">
               <property name="text">
-               <string>xfellog</string>
+               <string>XFEL, XFEL_SIM</string>
               </property>
              </widget>
             </item>
@@ -138,10 +131,34 @@
               </property>
              </spacer>
             </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_5">
+            <item row="0" column="2">
+             <widget class="QLineEdit" name="le_logbook">
               <property name="text">
-               <string>LogBook</string>
+               <string>xfellog</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>Server</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QSpinBox" name="sb_nbunch_back">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="value">
+               <number>20</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QLabel" name="label_40">
+              <property name="text">
+               <string>N bunches to capture background</string>
               </property>
              </widget>
             </item>
