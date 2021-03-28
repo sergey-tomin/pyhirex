@@ -586,8 +586,25 @@ class SpectrometerWindow(QMainWindow):
             self.label2.setText(
             "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>HIREX: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
             pulse_energy, ave_integ, self.peak_ev))
+            sigma_px = self.sigma_gauss_fit(self.ave_spectrum)
+            px_ev = self.x_axis_disp[1] - self.x_axis_disp[0]
+            self.ui.label_sigma.setText(str(np.round(sigma_px * px_ev, 2)))
 
         self.counter_spect += 1
+
+    def sigma_gauss_fit(self, y):
+        x = np.arange(len(y))
+
+        def gauss(x, *p):
+            A, mu, sigma = p
+            return A * np.exp(-(x - mu) ** 2 / (2. * sigma ** 2))
+
+        # (A, mu, sigma)
+        p0 = [np.max(y), np.argmax(y), 30]
+
+        gauss_coeff_fit, var_matrix = curve_fit(gauss, x, y, p0=p0)
+        sigma = gauss_coeff_fit[2]
+        return sigma
 
     def show_hide_background(self):
         if self.ui.pb_hide_show_backplot.text() == "Hide Background":
