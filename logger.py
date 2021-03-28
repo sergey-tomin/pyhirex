@@ -75,13 +75,11 @@ class UILogger(QWidget):
 
 
     def closeEvent(self, QCloseEvent):
-        pass
+        self.stop_logger()
 
     def start_stop_logger(self):
         if self.ui.pb_start_log.text() == "Stop":
-            self.timer_live.stop()
-            self.ui.pb_start_log.setStyleSheet("color: rgb(255, 0, 0); font-size: 18pt")
-            self.ui.pb_start_log.setText("Start")
+            self.stop_logger()
         else:
             if self.parent.ui.pb_start.text() == "Start":
                 self.error_box("Start spectrometer first")
@@ -141,7 +139,7 @@ class UILogger(QWidget):
         win.addItem(self.label2, row=0, col=0)
 
         self.plot1.setLabel('left', "A", units='au')
-        self.plot1.setLabel('bottom', "", units='eV')
+        self.plot1.setLabel('bottom', "", units='n shots')
 
         self.plot1.showGrid(1, 1, 1)
 
@@ -188,12 +186,12 @@ class UILogger(QWidget):
 
         # self.plot1.sigRangeChanged.connect(self.zoom_signal)
 
-    def stop_statistics(self):
-        self.stop_feedback()
-        self.statistics_timer.stop()
-        logger.info("Stop Statistics")
-        self.pb_start_statistics.setStyleSheet("color: rgb(85, 255, 127);")
-        self.pb_start_statistics.setText("Statistics Accum On")
+    def stop_logger(self):
+        self.timer_live.stop()
+        logger.info("Stop Logger")
+        self.timer_live.stop()
+        self.ui.pb_start_log.setStyleSheet("color: rgb(255, 0, 0); font-size: 18pt")
+        self.ui.pb_start_log.setText("Start")
 
 
 

@@ -694,6 +694,9 @@ class SpectrometerWindow(QMainWindow):
         self.textItem.setPos(x, y)
 
     def closeEvent(self, event):
+        if self.logger_window is not None:
+            self.logger_window.close()
+
         if self.transmission_thread.is_alive():
             self.transmission_thread.kill = True
             self.transmission_thread.stop()
