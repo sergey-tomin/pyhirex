@@ -1263,7 +1263,7 @@ class Ui_MainWindow(object):
         self.groupBox_10.setTitle(_translate("MainWindow", "Display"))
         self.label_sigma.setText(_translate("MainWindow", "0"))
         self.label_50.setText(_translate("MainWindow", "TextLabel"))
-        self.label_5.setText(_translate("MainWindow", "Sigma [eV]"))
+        self.label_5.setText(_translate("MainWindow", "Sigma Av [eV]"))
         self.label_49.setText(_translate("MainWindow", "TextLabel"))
         self.groupBox_4.setTitle(_translate("MainWindow", "Display control"))
         self.label_47.setText(_translate("MainWindow", "Px first"))
