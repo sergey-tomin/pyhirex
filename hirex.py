@@ -601,8 +601,10 @@ class SpectrometerWindow(QMainWindow):
 
         # (A, mu, sigma)
         p0 = [np.max(y), np.argmax(y), 30]
-
-        gauss_coeff_fit, var_matrix = curve_fit(gauss, x, y, p0=p0)
+        try:
+            gauss_coeff_fit, var_matrix = curve_fit(gauss, x, y, p0=p0)
+        except:
+            return 0
         sigma = gauss_coeff_fit[2]
         return sigma
 
