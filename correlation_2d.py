@@ -114,14 +114,14 @@ class Correl2DInterface:
             bin_doocs = 0
             
         try:
-            phen_min = self.ui.sb_emin.value()
+            phen_min = self.ui.sb_emin.value()/1000
         except ValueError:
             phen_min = -np.inf
             
         self.phen_orig = self.parent.x_axis
             
         try:
-            phen_max = self.ui.sb_emax.value()
+            phen_max = self.ui.sb_emax.value()/1000
         except ValueError:
             phen_max = np.inf
             
@@ -140,12 +140,12 @@ class Correl2DInterface:
         
         
         
-        print('d1, d2', d1, d2)
+        #print('d1, d2', d1, d2)
         self.phen = self.phen_orig[d1:d2]
         n_phens = len(self.phen)
         
-        print('self.phen_orig',len(self.phen_orig))
-        print('self.phen',len(self.phen))
+        #print('self.phen_orig',len(self.phen_orig))
+        #print('self.phen',len(self.phen))
         
         if bin_doocs==0:
             bin_doocs=1e10
@@ -155,7 +155,7 @@ class Correl2DInterface:
         except ValueError:
             self.n_lag = 0
         
-        print('len(self.doocs_vals_hist)', len(self.doocs_vals_hist))
+        #print('len(self.doocs_vals_hist)', len(self.doocs_vals_hist))
         if len(self.doocs_vals_hist) > abs(self.n_lag)+5:
             if self.n_lag >= 0:
                 self.doocs_vals_hist_lagged = self.doocs_vals_hist[:len(self.doocs_vals_hist)-self.n_lag]
@@ -183,48 +183,48 @@ class Correl2DInterface:
         # if min_val == max_val:
             # max_val = 1.001 * min_val #ensures there is at least one bin
         
-        print('min_DOOCS_val', min_val)
-        print('max_DOOCS_val', max_val)
+        #print('min_DOOCS_val', min_val)
+        #print('max_DOOCS_val', max_val)
         # print('bin_doocs', bin_doocs)
         self.doocs_bins = np.arange(min_val, max_val, bin_doocs)
         # print('shape of created doocs_bins', self.doocs_bins.shape)
         
         self.doocs_event_counts, _ = np.histogram(self.doocs_vals_hist_lagged, bins=self.doocs_bins)
         
-        print('len spec_hist',len(self.spec_hist))
-        print('len doocs_vals_hist',len(self.doocs_vals_hist))
+        #print('len spec_hist',len(self.spec_hist))
+        #print('len doocs_vals_hist',len(self.doocs_vals_hist))
         
-        print('shape of spec_lagged array', spec_lagged.shape)
-        print('shape of doocs_bins', self.doocs_bins.shape)
-        print('doocs_bins',len(self.doocs_bins), self.doocs_bins)
+        #print('shape of spec_lagged array', spec_lagged.shape)
+        #print('shape of doocs_bins', self.doocs_bins.shape)
+        #print('doocs_bins',len(self.doocs_bins), self.doocs_bins)
         
         self.bin_dest_idx = np.digitize(self.doocs_vals_hist_lagged, self.doocs_bins)-1
         self.spec_binned = np.zeros((len(self.doocs_bins)-1, n_phens))
         
-        print('self.bin_dest_idx', self.bin_dest_idx)
-        print('self.spec_binned', len(self.spec_binned), self.spec_binned)
-        print('spec_lagged', len(spec_lagged), spec_lagged)
-        print('self.doocs_vals_hist_lagged', len(self.doocs_vals_hist_lagged), self.doocs_vals_hist_lagged)
+        #print('self.bin_dest_idx', self.bin_dest_idx)
+        #print('self.spec_binned', len(self.spec_binned), self.spec_binned)
+        #print('spec_lagged', len(spec_lagged), spec_lagged)
+        #print('self.doocs_vals_hist_lagged', len(self.doocs_vals_hist_lagged), self.doocs_vals_hist_lagged)
         
         for i in np.unique(self.bin_dest_idx):
             idx = np.where(i == self.bin_dest_idx)[0]
             # print('sorting', i, idx)
             if len(idx) > 1:
                 self.spec_binned[i, :] = np.mean(spec_lagged[idx, d1:d2], axis=0)
-                print('multiple', i, idx, len(self.spec_binned))
+                #print('multiple', i, idx, len(self.spec_binned))
             elif len(idx) == 1:
-                print('singe', i, idx, len(self.spec_binned))
+                #print('singe', i, idx, len(self.spec_binned))
                 # if len(self.spec_binned) != 0:
-                print('self.spec_binned[i, :]', self.spec_binned[i, :])
-                print('spec_lagged[idx[0], d1:d2]', spec_lagged[idx[0], d1:d2])
+                #print('self.spec_binned[i, :]', self.spec_binned[i, :])
+                #print('spec_lagged[idx[0], d1:d2]', spec_lagged[idx[0], d1:d2])
                 self.spec_binned[i, :] = spec_lagged[idx[0], d1:d2]
                 # else:
                     # self.spec_binned = np.array([spec_lagged[idx[0], :]])
             else:
                 pass
         
-        print('self.spec_binned', self.spec_binned)
-        print('self.doocs_bins', self.doocs_bins)
+        #print('self.spec_binned', self.spec_binned)
+        #print('self.doocs_bins', self.doocs_bins)
         # if 
         
         # self.doocs_event_counts = np.unique(self.bin_dest_idx, return_counts=1)[1]
@@ -241,7 +241,7 @@ class Correl2DInterface:
         
     def plot_correl(self):
         
-        self.event_counter += 1
+        
         
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event is None:
             return
@@ -251,6 +251,7 @@ class Correl2DInterface:
             self.reset()
             return
         
+        self.event_counter += 1
         
         # print('min_self.phen_val', min(self.phen))
         # print('max_self.phen_val', max(self.phen))
@@ -429,7 +430,7 @@ class Correl2DInterface:
         layout.addWidget(win)
 
         self.img_Isum = win.addPlot()
-        self.img_Isum.setLabel('left', "Ipk/Isum", units='')
+        self.img_Isum.setLabel('left', "Isum", units='')
         # self.img_Isum.showGrid(1, 1, 1)
         self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
@@ -445,7 +446,8 @@ class Correl2DInterface:
                 
                 # print('plot_Ipk', len(interbin_values), len(self.spec_binned))
                 pen=pg.mkPen(color=(0, 0, 255), width=3)
-                self.img_Isum.plot(interbin_values, np.amax(self.spec_binned,axis=1)/np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+                #self.img_Isum.plot(interbin_values, np.amax(self.spec_binned,axis=1)/np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
+                self.img_Isum.plot(interbin_values, np.sum(self.spec_binned,axis=1), stepMode=False, pen=pen)#,  fillLevel=0,  brush=(0,0,255,150), clear=True)
                 self.img_Isum.setLabel('bottom', self.doocs_address_label, units=' ')
         
     def save_corr2d_data_as(self):

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1500</width>
-    <height>900</height>
+    <width>1724</width>
+    <height>1076</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,7 +54,7 @@
         <property name="spacing">
          <number>5</number>
         </property>
-        <item row="2" column="0">
+        <item row="3" column="0">
          <widget class="QGroupBox" name="groupBox_2">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -162,7 +162,7 @@
           </layout>
          </widget>
         </item>
-        <item row="2" column="5">
+        <item row="3" column="5">
          <widget class="QGroupBox" name="groupBox_5">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -218,7 +218,7 @@
           </layout>
          </widget>
         </item>
-        <item row="2" column="2">
+        <item row="3" column="2">
          <widget class="QGroupBox" name="groupBox_3">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -282,29 +282,7 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="5">
-         <widget class="QWidget" name="widget_2" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>400</width>
-            <height>16777215</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QGroupBox" name="groupBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -397,23 +375,7 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QWidget" name="widget" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>100</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="5">
+        <item row="2" column="5">
          <widget class="QGroupBox" name="groupBox_6">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -487,7 +449,7 @@
           </layout>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="3" column="1">
          <widget class="QGroupBox" name="groupBox_10">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -534,7 +496,7 @@
           </layout>
          </widget>
         </item>
-        <item row="1" column="1" colspan="3">
+        <item row="2" column="1" colspan="3">
          <widget class="QGroupBox" name="groupBox_4">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -646,6 +608,44 @@
             </layout>
            </item>
           </layout>
+         </widget>
+        </item>
+        <item row="0" column="3" rowspan="2" colspan="3">
+         <widget class="QWidget" name="widget_2" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>250</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>400</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="3">
+         <widget class="QWidget" name="widget" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>100</height>
+           </size>
+          </property>
          </widget>
         </item>
        </layout>
@@ -1141,7 +1141,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Eph range (eV)</string>
+                <string>Eph range [eV]</string>
                </property>
               </widget>
              </item>
@@ -1162,13 +1162,13 @@
                 <bool>false</bool>
                </property>
                <property name="decimals">
-                <number>4</number>
+                <number>1</number>
                </property>
                <property name="maximum">
-                <double>99.989999999999995</double>
+                <double>99999.000000000000000</double>
                </property>
                <property name="singleStep">
-                <double>0.000100000000000</double>
+                <double>1.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -1190,16 +1190,16 @@
                 <locale language="English" country="UnitedStates"/>
                </property>
                <property name="decimals">
-                <number>4</number>
+                <number>1</number>
                </property>
                <property name="maximum">
-                <double>99.000000000000000</double>
+                <double>99999.000000000000000</double>
                </property>
                <property name="singleStep">
-                <double>0.000100000000000</double>
+                <double>1.000000000000000</double>
                </property>
                <property name="value">
-                <double>99.000000000000000</double>
+                <double>99999.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -1786,7 +1786,7 @@
              <number>100</number>
             </property>
             <property name="value">
-             <number>1000</number>
+             <number>500</number>
             </property>
            </widget>
           </item>
@@ -1873,10 +1873,10 @@
           <item>
            <widget class="QDoubleSpinBox" name="analysis_Eph_box">
             <property name="decimals">
-             <number>2</number>
+             <number>1</number>
             </property>
             <property name="maximum">
-             <double>10000.000000000000000</double>
+             <double>99999.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -2569,8 +2569,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1500</width>
-     <height>24</height>
+     <width>1724</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">

@@ -1287,7 +1287,7 @@ class SpectrumArray():
         # else:
             # W_min = hist_min
         # W_max = W.max()
-        W_hist, W_bins = numpy.histogram(W, bins=bins, normed=normed, range=(W_min, W_max))
+        W_hist, W_bins = numpy.histogram(W, bins=bins, density=normed, range=(W_min, W_max))
         return W, W_hist, W_bins
     
     def plot_gamma(self, fignum=None, E=[-numpy.inf, +numpy.inf], W_lim=[-numpy.inf, +numpy.inf], bins=50, **kwargs):

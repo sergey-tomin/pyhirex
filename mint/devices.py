@@ -275,7 +275,7 @@ class DummySASE(Spectrometer):
         self.sase_center = 9000
         self.sase_sigma = 10
         
-        self.n_events = 10000
+        self.n_events = 1000
         
         _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.1, spec_width=self.sase_sigma, spec_range=(8950, 9050), pulse_length=0.3*5, # 1 fs = 0.3 um
                     en_pulse=10e-6, flattop=0, n_events=self.n_events)
