@@ -159,7 +159,7 @@ class MainWindow(Ui_MainWindow):
         table["sb_px1"] = self.sb_px1.value()
         table["sb_E0"] = self.sb_E0.value()
         table["sb_ev_px"] = self.sb_ev_px.value()
-        table["sb_nbunch_back"] = self.sb_nbunch_back.value()
+        #table["sb_nbunch_back"] = self.sb_nbunch_back.value()
 
         table["sbox_scan_wait"] = self.sbox_scan_wait.value()
         #table["le_scan_doocs"] = str(self.le_scan_doocs.text())
@@ -172,7 +172,7 @@ class MainWindow(Ui_MainWindow):
         table["sb_emax"] = self.sb_emax.value()
         if not self.Form.doocs_permit:
             print("Can not save State")
-            return 
+            return
         with open(filename, 'w') as f:
             json.dump(table, f)
         # pickle.dump(table, filename)
@@ -187,15 +187,6 @@ class MainWindow(Ui_MainWindow):
             print("Restore State failed for file: {}. Exception was: {}".format(filename, ex))
             return
 
-
-        # Build the PV list from dev PVs or selected source
-        #pvs = table["id"]
-        #self.widget.set_machine_interface(self.Form.mi)
-        #self.widget.getPvList(pvs)
-        ## set checkbot status
-        #self.widget.uncheckBoxes()
-        #self.widget.set_state(table)
-
         try:
 
             if "chb_a" in table.keys(): self.chb_a.setCheckState(table["chb_a"])
@@ -208,8 +199,7 @@ class MainWindow(Ui_MainWindow):
             if "sb_px1" in table.keys(): self.sb_px1.setValue(table["sb_px1"])
             if "sb_E0" in table.keys(): self.sb_E0.setValue(table["sb_E0"])
             if "sb_ev_px" in table.keys(): self.sb_ev_px.setValue(table["sb_ev_px"])
-            if "sb_nbunch_back" in table.keys(): self.sb_nbunch_back.setValue(table["sb_nbunch_back"])
-            
+
             if "sbox_scan_wait" in table.keys(): self.sbox_scan_wait.setValue(table["sbox_scan_wait"])
             #if "le_scan_doocs" in table.keys(): self.le_scan_doocs.setText(table["le_scan_doocs"])
             if "le_scan_range" in table.keys(): self.le_scan_range.setText(table["le_scan_range"])
@@ -223,7 +213,6 @@ class MainWindow(Ui_MainWindow):
             print("RESTORE STATE: OK")
         except:
             print("RESTORE STATE: ERROR")
-
 
     def save_cor2d_file(self):
         Path(self.Form.data_dir).mkdir(parents=True, exist_ok=True)
@@ -253,17 +242,20 @@ class MainWindow(Ui_MainWindow):
         specanalysis_tab = self.Form.analysistool
         filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_specanalysis.npz"
         print('save specanalysis to file ', filename)
-        np.savez(filename, dumpversion=1, 
-        phen_scale=specanalysis_tab.spar.phen, 
-        spec_hist=specanalysis_tab.spar.spec, 
+
+        np.savez(filename, dumpversion=1,
+        phen_scale=specanalysis_tab.spar.phen,
+        spec_hist=specanalysis_tab.spar.spec,
         calib_energy_coef=self.Form.calib_energy_coef,
         corrn_center=specanalysis_tab.corrn.corr,
         corrn_center_dphen=specanalysis_tab.corrn.domega * hr_eV_s,
-        corrn_center_phen=specanalysis_tab.corrn.omega * hr_eV_s, 
-        fit_t=specanalysis_tab.g2fit.fit_t, 
-        fit_t_comp=specanalysis_tab.g2fit.fit_t_comp, 
-        fit_t_contr=specanalysis_tab.g2fit.fit_contrast, 
+        corrn_center_phen=specanalysis_tab.corrn.omega * hr_eV_s,
+        fit_t=specanalysis_tab.g2fit.fit_t,
+        fit_t_comp=specanalysis_tab.g2fit.fit_t_comp,
+        fit_t_contr=specanalysis_tab.g2fit.fit_contrast,
         fit_t_pedestal=specanalysis_tab.g2fit.fit_pedestal)
+
+        return filename
 
     def logbook(self, widget, text=""):
         """

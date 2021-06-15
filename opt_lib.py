@@ -70,7 +70,7 @@ def find_nearest(array, value):
 
 def n_moment(x, counts, c, n):
     x = numpy.squeeze(x)
-    if x.ndim is not 1:
+    if x.ndim != 1:
         raise ValueError("scale of x should be 1-dimensional")
     if x.size not in counts.shape:
         raise ValueError("operands could not be broadcast together with shapes %s %s" %(str(x.shape), str(counts.shape)))
@@ -1287,7 +1287,7 @@ class SpectrumArray():
         # else:
             # W_min = hist_min
         # W_max = W.max()
-        W_hist, W_bins = numpy.histogram(W, bins=bins, normed=normed, range=(W_min, W_max))
+        W_hist, W_bins = numpy.histogram(W, bins=bins, density=normed, range=(W_min, W_max))
         return W, W_hist, W_bins
     
     def plot_gamma(self, fignum=None, E=[-numpy.inf, +numpy.inf], W_lim=[-numpy.inf, +numpy.inf], bins=50, **kwargs):
@@ -1568,6 +1568,9 @@ def read_spec_arr_hdf5(file_path, E_center=9350, dE= 0.1, x_pixel=900):
 class SpectrumCorrelationsCenter():
     """ :class SpectrumCorrelationsCenter: Class to represent correlation of a spectrum.  """
     def __init__(self):
+        self.corr = numpy.array([])
+        self.domega = numpy.array([])
+        self.omega = numpy.array([])
         pass
 
     def bin_omega_step(self, freq_bin=1):
@@ -1801,7 +1804,7 @@ class Reconstr():
         #main figure
         ax1.pcolormesh(timeval[m_idx:], hr_eV_s*omega_bin, recon[:,m_idx:], cmap=cmap)
 
-        if plot_lineoffs is not None and plot_lineoffs is not 0 and type(plot_lineoffs) in [list,numpy.ndarray]:
+        if plot_lineoffs is not None and plot_lineoffs != 0 and type(plot_lineoffs) in [list,numpy.ndarray]:
             spec_arr_bin = numpy.array([find_nearest_idx(numpy.array(hr_eV_s*omega_bin), i) for i in plot_lineoffs])
             spec_arr = numpy.array([find_nearest_idx(numpy.array(hr_eV_s*omega), i) for i in plot_lineoffs])
         else:
@@ -1848,9 +1851,9 @@ class Reconstr():
             ax2.set_ylim([hr_eV_s * omega[e_idx_lim2], hr_eV_s * omega[e_idx_lim1]])
             ax0.set_xlim([0, timeval[t_idx_lim] * 1.1])
             
-        if xlim is not (None, None):
+        if xlim != (None, None):
             ax1.set_xlim([xlim[0], xlim[1]])
-        if ylim is not (None, None):
+        if ylim != (None, None):
             ax1.set_ylim([ylim[0], ylim[1]])
             
         plt.show()
@@ -1893,8 +1896,10 @@ def g2_gauss1(domega, T, g20, offset, T1):
 
 class FitResult():
     def __init__(self):
-        self.fit_t = []
-        self.omega = []
+        self.fit_t = numpy.array([0])
+        self.omega = numpy.array([0])
+        self.fit_contrast = numpy.array([0])
+        self.fit_pedestal = numpy.array([0])
         pass
 
     def plot_t(self, fignum=None, spar=None, thresh=0.2, xlim=(None, None)):
@@ -1939,7 +1944,7 @@ class FitResult():
         ax_t.set_xlabel('E [eV]')
         plt.text(0.98, 0.98, 'fit function: {:s}'.format(self.func.__name__), horizontalalignment='right', verticalalignment='top', transform=ax_t.transAxes)
 
-        if xlim is not (None, None):
+        if xlim != (None, None):
             ax_t.set_xlim([xlim[0], xlim[1]])
         plt.show()
 

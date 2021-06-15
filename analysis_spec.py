@@ -31,6 +31,8 @@ class AnalysisInterface:
         self.spar_screwed = SpectrumArray()
         self.g2fit = FitResult()
         self.g2fit.omega=np.array([0])
+        self.g2fit.fit_t_comp=np.array([0])
+        self.g2fit.fit_t=np.array([0])
         # self.g2_plot_idx = 0
         
         self.n_events_processed = 0
@@ -61,6 +63,7 @@ class AnalysisInterface:
         self.ui.analysis_resetbutton.clicked.connect(self.clear_all_curves)
         self.ui.analysis_resetbutton.clicked.connect(self.reset_spectra)
         
+        self.phen_last = np.array([])
         
         self.ui.analysis_correlate_button.clicked.connect(self.correlate_and_plot)
     
@@ -84,7 +87,7 @@ class AnalysisInterface:
         started = self.ui.pb_start.text() == "Stop"
         current_tab = self.ui.scan_tab.currentIndex() == 4
         analysis_acquiring = self.ui.analysis_acquire.isChecked()
-        if started and current_tab and analysis_acquiring:
+        if started and current_tab and analysis_acquiring and self.hist_nbins>2:
             return True
         else:
             return False
@@ -137,20 +140,29 @@ class AnalysisInterface:
                 # self.img_sum_hist.setLabel('bottom', self.doocs_address_label, units=' ')
                 # self.img_sum_hist.setTitle('{} events'.format(len(self.doocs_vals_hist_lagged)))
         
-            
+    
     def arange_spectra(self): #populate and trim spectrum array for analysis
         if self.ui.pb_start.text() == "Start" or self.parent.spectrum_event is None or not self.ui.analysis_acquire.isChecked():
             return
         # print('arranging')
         
-        wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
-        shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        # wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
+        # shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        
+        
+        
+        if not np.array_equal(self.phen_last, self.parent.x_axis):
+            print('different axis, skippimg')
+            self.reset_spectra()
+            self.phen_last = self.parent.x_axis
+            return
+            
+        
+        #if shifted_spec:
+        #    print('correlation analysis: photon energy scale changed')
+        #    self.reset_spectra()
         zeroscale = self.parent.x_axis[-1] == self.parent.x_axis[0]
         
-        if wrong_size or shifted_spec:
-            print('correlation analysis: photon energy scale changed')
-            self.reset_spectra()
-            
         if zeroscale:
             print('correlation analysis: x_axis[-1] == x_axis[0]')
             self.reset_spectra()
@@ -206,6 +218,7 @@ class AnalysisInterface:
         self.spar_screwed = SpectrumArray()
         self.corrn = SpectrumCorrelationsCenter()
         self.g2fit = FitResult()
+        self.g2fit.fit_t_comp=np.array([0])
         
     def add_spec_widget(self):
         # print('adding spec_widget')
@@ -241,7 +254,6 @@ class AnalysisInterface:
     
     def plot_spec(self):
         if self.worth_plotting():
-            
             spar = self.spar_screwed #############################TMP###############
             # spar = self.spar
             
@@ -301,9 +313,13 @@ class AnalysisInterface:
         dE = self.ui.analysis_dEph_corr_box.value()
         spar = self.spar_screwed #############################TMP###############
         if dE == 0:
+            print('dE == 0, not correlating')
+            self.n_last_correlated = 0
             return
         
         if spar.events < 2 or len(spar.phen)<4:
+            print('spar.events < 2 or len(spar.phen)<4, not correlating')
+            self.n_last_correlated = 0
             return
         
         # try: 
@@ -311,8 +327,10 @@ class AnalysisInterface:
         self.corrn.bin_phen(dE=dE)
         if len(self.corrn.dphen) < 4:
             print('too little points for fit')
+            self.n_last_correlated = 0
             return
         self.g2fit = self.corrn.fit_g2func(g2_gauss, thresh=0.1)
+        print("self.g2fit", self.g2fit)
         self.g2fit.fit_t_comp = self.g2fit.fit_t * self.g2fit.fit_pedestal / self.g2fit.fit_contrast
         
         E_ph = self.E_ph_box_used
@@ -341,22 +359,31 @@ class AnalysisInterface:
         self.ui.widget_histogram_full.setLayout(layout)
         layout.addWidget(win)
 
-        self.histogram_full = win.addPlot()
-        self.histogram_full.setLabel('bottom', 'intensity', units=self.spec_axis_label)
+        self.histogram_full = win.addPlot(row=1, col=0)
+        self.histogram_full.setLabel('bottom', 'W/Wmean')
         self.histogram_full.setLabel('left', 'full events', units='')
         self.histogram_full.clear()
         
+        self.label_hist_full = pg.LabelItem(justify='right')
+        win.addItem(self.label_hist_full, row=0, col=0)
+        
+        self.histogram_full_curve = self.histogram_full.plot(stepMode=True,  fillLevel=0,  brush=(100,100,100,100))
+        
+        self.histogram_full_fit_curve = self.histogram_full.plot(pen=pg.mkPen(color=(200, 0, 0), width=3))
+        
     def plot_hist_full(self):
-        if self.worth_plotting():
+        if self.worth_plotting() and self.spar.events>2:
             spar = self.spar_screwed
             try:
-                W, W_hist, W_bins = spar.calc_histogram(bins=self.hist_nbins, normed=0)
+                W, W_hist, W_bins = spar.calc_histogram(bins=self.hist_nbins, normed=True)
             except ValueError:
                 W_bins = np.arange(11)
                 W_hist = np.ones(10)
                 W = np.ones(10)
+            bin_width = W_bins[1]-W_bins[0]
 
             Wm = numpy.mean(W) #average power calculated
+            print("Wm_full", Wm)
             sigm2 = numpy.mean((W - Wm)**2) / Wm**2 #sigma square (power fluctuations)
             M_calc = 1 / sigm2 #calculated number of modes  
             
@@ -373,10 +400,20 @@ class AnalysisInterface:
             
             # pen_avg=pg.mkPen(color=(200, 0, 0), width=3)
             # pen_single=pg.mkPen(color=(200, 200, 200), width=1)
-            self.histogram_full.clear()
-            self.histogram_full.plot(W_bins, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
-            # self.histogram_full.plot(self.spar.phen, speclast, stepMode=False, pen=pen_single)
-
+            #self.histogram_full.clear()
+            self.histogram_full_curve.setData(W_bins/Wm, W_hist*Wm*self.spar.events/self.hist_nbins)
+            #self.histogram_full.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
+            
+            
+            
+            
+            fit_p0 = [Wm, Wm**2 / numpy.mean((W - Wm)**2)]
+            _, fit_p = fit_gamma_dist(W_bins[1:]-bin_width/2, W_hist, gamma_dist_function, fit_p0)
+            Wm_fit, M_fit = fit_p # fit of average power and number of modes
+            self.histogram_full_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm,gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins)
+            
+            self.label_hist_full.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
+            
 
     def add_hist_peak_widget(self):
         # print('adding hist_peak widget')
@@ -385,13 +422,20 @@ class AnalysisInterface:
         self.ui.widget_histogram_peak.setLayout(layout)
         layout.addWidget(win)
 
-        self.histogram_peak = win.addPlot()
-        self.histogram_peak.setLabel('bottom', 'intensity', units=self.spec_axis_label)
+        self.histogram_peak = win.addPlot(row=1, col=0)
+        self.histogram_peak.setLabel('bottom', 'W/Wmean')
         self.histogram_peak.setLabel('left', 'window events', units='')
         self.histogram_peak.clear()
         
+        self.label_hist_peak = pg.LabelItem(justify='right')
+        win.addItem(self.label_hist_peak, row=0, col=0)
+        
+        self.histogram_peak_curve = self.histogram_peak.plot(stepMode=True,  fillLevel=0,  brush=(100,100,100,100))
+        
+        self.histogram_peak_fit_curve = self.histogram_peak.plot(pen=pg.mkPen(color=(200, 0, 0), width=3))
+        
     def plot_hist_peak(self):
-        if self.worth_plotting():
+        if self.worth_plotting() and self.spar.events>2:
             
             # E_ph_box = self.ui.analysis_Eph_box.value()
             # dE_ph_box = self.ui.analysis_dEph_box.value()
@@ -406,18 +450,19 @@ class AnalysisInterface:
             # else:
                 # E_ph_val = E_ph_box
             
-            self.histogram_peak.clear()
+            #self.histogram_peak.clear()
             spar = self.spar_screwed
             try:
-                W, W_hist, W_bins = spar.calc_histogram(E=[self.E_ph_box_used-self.dE_ph_box, self.E_ph_box_used+self.dE_ph_box], bins=self.hist_nbins, normed=0)
+                W, W_hist, W_bins = spar.calc_histogram(E=[self.E_ph_box_used-self.dE_ph_box, self.E_ph_box_used+self.dE_ph_box], bins=self.hist_nbins, normed=True)
             except ValueError:
                 W_bins = np.arange(11)
                 W_hist = np.ones(10)
                 W = np.ones(10)
-            
+            bin_width = W_bins[1]-W_bins[0]
             Wm = numpy.mean(W) #average power calculated
             sigm2 = numpy.mean((W - Wm)**2) / Wm**2 #sigma square (power fluctuations)
-            M_calc = 1 / sigm2 #calculated number of modes  
+            M_calc = 1 / sigm2 #calculated number of modes
+            integ = np.sum(W)*bin_width
             # if self.spar.spec.shape[1] == 1:
                 # speclast = specmin = specmax = specmean = self.spar.phen
             # else:
@@ -430,7 +475,16 @@ class AnalysisInterface:
             
             # pen_avg=pg.mkPen(color=(200, 0, 0), width=3)
             # pen_single=pg.mkPen(color=(200, 200, 200), width=1)
-            self.histogram_peak.plot(W_bins, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
+            
+            self.histogram_peak_curve.setData(W_bins/Wm, W_hist*Wm*self.spar.events/self.hist_nbins)
+            
+            fit_p0 = [Wm, Wm**2 / numpy.mean((W - Wm)**2)]
+            _, fit_p = fit_gamma_dist(W_bins[1:]-bin_width/2, W_hist, gamma_dist_function, fit_p0)
+            Wm_fit, M_fit = fit_p # fit of average power and number of modes
+            self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm,gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins)
+            
+            #self.histogram_peak.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
+            self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
 
     def add_durr_widget(self):
         win = pg.GraphicsLayoutWidget()
@@ -452,15 +506,16 @@ class AnalysisInterface:
         # self.fit_pulse_dur.setYRange(0,2)
         
     def update_durr_plot(self):
-        if len(self.g2fit.fit_t) == 0:
+        if len(self.g2fit.fit_t_comp) == 0 or self.n_last_correlated == 0:
             print('no fit data, skipping update_durr_plot')
             return
-        idx = self.g2fit.fit_t>0
+        idx = self.g2fit.fit_t_comp>0
+        # print('idx(self.g2fit.fit_t_comp>0) = ',idx)
         self.durr_curve.setData(self.g2fit.omega[idx] * hr_eV_s, self.g2fit.fit_t[idx])
         self.durr_comp_curve.setData(self.g2fit.omega[idx] * hr_eV_s, self.g2fit.fit_t_comp[idx])
         self.durr0_curve.setData(self.g2fit.omega[idx] * hr_eV_s, np.zeros_like(self.g2fit.fit_t_comp[idx]))
         
-        maxdur = np.amax(self.g2fit.fit_t_comp[idx])
+        maxdur = np.nanmax(self.g2fit.fit_t_comp[idx])
         centerphen = self.g2fit.omega[self.g2_plot_idx] * hr_eV_s
         # print(maxdur, centerphen)
         self.g2_phen_curve.setData([centerphen, centerphen], [0,maxdur])
@@ -494,9 +549,9 @@ class AnalysisInterface:
         self.g2_2_curve = self.fit_g2_plot.plot(pen=(200,200,200,150), style=QtCore.Qt.DashLine)
         
     def update_g2_line_plot(self):
-        if len(self.g2fit.fit_t) == 0:
-                print('no fit data, skipping update_durr_plot')
-                return
+        if len(self.g2fit.fit_t) == 0 or self.n_last_correlated == 0:
+            print('no fit data, skipping update_durr_plot')
+            return
         
         self.g2_measured_curve.setData(self.g2fit.domega * hr_eV_s, self.g2fit.g2_measured[self.g2_plot_idx])
         self.g2_fit_curve.setData(self.g2fit.domega * hr_eV_s, self.g2fit.g2_fit[self.g2_plot_idx])
@@ -529,7 +584,10 @@ class AnalysisInterface:
             
     def clear_all_curves(self):
         for curve in [self.spec_mean_curve, self.spec_last_curve, self.spec_max_curve, self.spec_min_curve, self.spec_window_l, self.spec_window_r,
-        self.histogram_full, self.histogram_peak,
+        self.histogram_full_fit_curve, 
+        self.histogram_peak_fit_curve, 
         self.durr_curve, self.durr_comp_curve,
         self.g2_measured_curve, self.g2_fit_curve]:
             curve.clear()
+        self.histogram_full_curve.setData([0,0],[0])
+        self.histogram_peak_curve.setData([0,0],[0])

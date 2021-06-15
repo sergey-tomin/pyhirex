@@ -49,6 +49,7 @@ class HirexSettings(QWidget):
         table["logbook"] = self.ui.le_logbook.text()
         table["server_list"] = self.string2list(self.ui.le_server.text())
         table["server"] = self.ui.combo_server.currentText()
+        table["sb_nbunch_back"] = self.ui.sb_nbunch_back.value()
 
         table["le_trans_ch_sa2"] = self.ui.le_trans_ch_sa2.text()
         table["le_hirex_ch_sa2"] = self.ui.le_hirex_ch_sa2.text()
@@ -91,6 +92,19 @@ class HirexSettings(QWidget):
         table["le_fast_xgm_sa3_scs"] = self.ui.le_fast_xgm_sa3_scs.text()
         table["le_slow_xgm_sa3_scs"] = self.ui.le_slow_xgm_sa3_scs.text()
 
+        # TEST
+        table["le_hirex_ch_test1"] = self.ui.le_hirex_ch_test1.text()
+        table["le_ph_energy_test1"] = self.ui.le_ph_energy_test1.text()
+        table["le_ctrl_num_bunch_test1"] = self.ui.le_ctrl_num_bunch_test1.text()
+        # test 2
+        table["le_hirex_ch_test2"] = self.ui.le_hirex_ch_test2.text()
+        table["le_ph_energy_test2"] = self.ui.le_ph_energy_test2.text()
+        table["le_ctrl_num_bunch_test2"] = self.ui.le_ctrl_num_bunch_test2.text()
+        # test3
+        table["le_hirex_ch_test3"] = self.ui.le_hirex_ch_test3.text()
+        table["le_ph_energy_test3"] = self.ui.le_ph_energy_test3.text()
+        table["le_ctrl_num_bunch_test3"] = self.ui.le_ctrl_num_bunch_test3.text()
+
 
         table["sb_2d_hist_size"] = self.ui.sb_2d_hist_size.value()
         
@@ -121,6 +135,7 @@ class HirexSettings(QWidget):
         with open(filename, 'r') as f:
             table = json.load(f)
         if "le_logbook" in table.keys(): self.ui.le_logbook.setText(table["le_logbook"])
+        if "sb_nbunch_back" in table.keys(): self.ui.sb_nbunch_back.setValue(table["sb_nbunch_back"])
 
         if "le_hirex_ch_sa2" in table.keys(): self.ui.le_hirex_ch_sa2.setText(table["le_hirex_ch_sa2"])
         if "le_trans_ch_sa2" in table.keys(): self.ui.le_trans_ch_sa2.setText(table["le_trans_ch_sa2"])
@@ -154,6 +169,19 @@ class HirexSettings(QWidget):
         if "le_fast_xgm_sa3_scs" in table.keys(): self.ui.le_fast_xgm_sa3_scs.setText(table["le_fast_xgm_sa3_scs"])
         if "le_slow_xgm_sa3_scs" in table.keys(): self.ui.le_slow_xgm_sa3_scs.setText(table["le_slow_xgm_sa3_scs"])
 
+        # TEST
+        if "le_hirex_ch_test1" in table.keys(): self.ui.le_hirex_ch_test1.setText(table["le_hirex_ch_test1"])
+        if "le_ph_energy_test1" in table.keys(): self.ui.le_ph_energy_test1.setText(table["le_ph_energy_test1"])
+        if "le_ctrl_num_bunch_test1" in table.keys(): self.ui.le_ctrl_num_bunch_test1.setText(table["le_ctrl_num_bunch_test1"])
+        # test 2
+        if "le_hirex_ch_test2" in table.keys(): self.ui.le_hirex_ch_test2.setText(table["le_hirex_ch_test2"])
+        if "le_ph_energy_test2" in table.keys(): self.ui.le_ph_energy_test2.setText(table["le_ph_energy_test2"])
+        if "le_ctrl_num_bunch_test2" in table.keys(): self.ui.le_ctrl_num_bunch_test2.setText(table["le_ctrl_num_bunch_test2"])
+        # test3
+        if "le_hirex_ch_test3" in table.keys(): self.ui.le_hirex_ch_test3.setText(table["le_hirex_ch_test3"])
+        if "le_ph_energy_test3" in table.keys(): self.ui.le_ph_energy_test3.setText(table["le_ph_energy_test3"])
+        if "le_ctrl_num_bunch_test3" in table.keys(): self.ui.le_ctrl_num_bunch_test3.setText(table["le_ctrl_num_bunch_test3"])
+
 
         if "sb_2d_hist_size" in table.keys(): self.ui.sb_2d_hist_size.setValue(table["sb_2d_hist_size"])
 
@@ -162,8 +190,6 @@ class HirexSettings(QWidget):
 
         if "sb_max_spec_min" in table.keys(): self.ui.sb_max_spec_min.setValue(table["sb_max_spec_min"])
         if "sb_max_spec_max" in table.keys(): self.ui.sb_max_spec_max.setValue(table["sb_max_spec_max"])
-
-
 
         if "server_list" in table.keys():
             self.ui.le_server.setText(self.list2string(table["server_list"]))
