@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\DESYcloud\_code\pyhirex_release_v5\gui\UISpectrometer.ui'
+# Form implementation generated from reading ui file 'UISpectrometer.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.12
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1724, 1076)
+        MainWindow.resize(1440, 785)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -495,6 +496,14 @@ class Ui_MainWindow(object):
         self.sb_corr_2d_reset.setFont(font)
         self.sb_corr_2d_reset.setObjectName("sb_corr_2d_reset")
         self.horizontalLayout_2.addWidget(self.sb_corr_2d_reset)
+        self.line_12 = QtWidgets.QFrame(self.corr2d_acq_box)
+        self.line_12.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_12.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line_12.setObjectName("line_12")
+        self.horizontalLayout_2.addWidget(self.line_12)
+        self.pushButton = QtWidgets.QPushButton(self.corr2d_acq_box)
+        self.pushButton.setObjectName("pushButton")
+        self.horizontalLayout_2.addWidget(self.pushButton)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.gridLayout_21.addWidget(self.corr2d_acq_box, 1, 0, 1, 1)
         self.groupBox_9 = QtWidgets.QGroupBox(self.tab_corr2d)
@@ -1194,7 +1203,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.scan_tab)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1724, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1440, 24))
         self.menubar.setObjectName("menubar")
         self.menuExpert = QtWidgets.QMenu(self.menubar)
         self.menuExpert.setObjectName("menuExpert")
@@ -1232,7 +1241,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuSave.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.scan_tab.setCurrentIndex(0)
+        self.scan_tab.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -1289,6 +1298,7 @@ class Ui_MainWindow(object):
         self.sb_corr_2d_run.setShortcut(_translate("MainWindow", "Space"))
         self.sb_corr_2d_reset.setText(_translate("MainWindow", "Reset"))
         self.sb_corr_2d_reset.setShortcut(_translate("MainWindow", "Backspace"))
+        self.pushButton.setText(_translate("MainWindow", "Energy Offset Calculator"))
         self.groupBox_9.setTitle(_translate("MainWindow", "Display"))
         self.label_28.setText(_translate("MainWindow", "Spectrometer lag (events)"))
         self.label_25.setText(_translate("MainWindow", "DOOCS bin"))
@@ -1350,6 +1360,8 @@ class Ui_MainWindow(object):
         self.actionSend_spec_analysis_to_logbook.setText(_translate("MainWindow", "Send spec analysis to logbook"))
 
 
+
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
@@ -1358,4 +1370,3 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
-

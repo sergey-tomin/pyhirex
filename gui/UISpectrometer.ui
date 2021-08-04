@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1724</width>
-    <height>1076</height>
+    <width>1440</width>
+    <height>785</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
        <locale language="English" country="UnitedStates"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1028,6 +1028,20 @@
                </property>
                <property name="shortcut">
                 <string>Backspace</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_12">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton">
+               <property name="text">
+                <string>Energy Offset Calculator</string>
                </property>
               </widget>
              </item>
@@ -2569,8 +2583,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1724</width>
-     <height>26</height>
+     <width>1440</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">
