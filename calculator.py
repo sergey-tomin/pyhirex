@@ -18,6 +18,8 @@ import numpy as np
 import pandas as pd
 from scipy import ndimage
 from skimage.transform import hough_line, hough_line_peaks
+from model_functions.HXRSS_Bragg_fun_lim import HXRSSsim
+from model_functions.HXRSS_Bragg_fun_explorator import HXRSSopt
 from itertools import cycle
 # filename="logs/afb.log",
 #logging.basicConfig(level=logging.INFO)
@@ -243,11 +245,7 @@ class UICalculator(QWidget):
             self.plt = pg.PlotCurveItem(
                 line_range, (slope*line_range) + y_intercept, pen=pen)
             self.img_corr2d.addItem(self.plt)
-            #line.setParentItem(self.img)
-            #                     + y_intercept)
-            #plot_lines(line_range, (slope*line_range)
-            #           + y_intercept, linecolors, np_phen, ax)
-            logger.warn('Lines found')
+
             self.slope_list.append(slope)
             self.y_intercept_list.append(y_intercept)
             self.centroid_pa_list.append(centroid_pa)
@@ -260,6 +258,23 @@ class UICalculator(QWidget):
 
     def plot_images(self):
         self.add_corr2d_image_widget()
+
+    def generate_Bragg_curves(self):
+        self.roll = list(self.df_spec_lines['roll_angle'])
+        if self.mono_no == 2:
+            self.DTHP = -0.382
+            self.dthy = 1.17
+            self.DTHR = 0.04
+            self.alpha = 0.0028
+        else:
+            self.DTHP = -0.382
+            self.dthy = 1.17
+            self.DTHR = 0.04
+            self.alpha = 0.0028
+        pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
+        # pass pitch and roll errors and create Bragg curves
+        phen_list, p_angle_list, gid_list, roll_angle_list = HXRSSsim(
+            pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
 
     def stop_calc(self):
         logger.info("Stop Logger")
