@@ -4,3 +4,4 @@
 .pydevproject
 .vscode/
 **.ipynb_checkpoints/
+*.npz
