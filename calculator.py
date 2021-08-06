@@ -17,6 +17,11 @@ from matplotlib import cm
 import numpy as np
 import pandas as pd
 from scipy import ndimage
+from scipy.spatial import distance
+from scipy.optimize import newton, fsolve
+from scipy import interpolate, optimize, stats
+from numba import jit
+import re
 from skimage.transform import hough_line, hough_line_peaks
 from model_functions.HXRSS_Bragg_fun_lim import HXRSSsim
 from model_functions.HXRSS_Bragg_fun_explorator import HXRSSopt
@@ -75,6 +80,7 @@ class UICalculator(QWidget):
         self.max_phen = 0
         self.min_pangle = 0
         self.max_pangle = 0
+        self.dE_mean = 0
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.dP_list, self.ans_list = [], [], [], [], [], [], [], [], []
@@ -130,10 +136,30 @@ class UICalculator(QWidget):
             self.get_binarized_line()
             self.img_processing()
             self.get_binarized_line()
-            self.plot_images()
-            self.hough_line_transform()
+            self.add_corr2d_image_widget()
+            #self.hough_line_transform()
+            #self.generate_Bragg_curves()
+            #self.tangent_generator()
+            #self.line_comparator()
+            self.add_plot()
+            #if len(self.df_detected.index) != 0:
+            #    self.hkl_roll_separator()
+            # Get Bragg curves
+            #    pa, phen, linestyle_list, gid_list = HXRSSopt(
+            #        (self.h_list, self.k_list, self.l_list, self.roll_list, self.pa_range), self.DTHP, self.dthy, self.DTHR, self.alpha)
 
-            self.ui.pb_start_calc.setText("Stop")
+            #for r in range(len(pa)):
+            #    ax[1].plot(pa[r], phen[r], color=next(linecolors2))
+
+            #    self.dE_mean = np.mean(self.dE_list)
+
+            #    self.ui.mono_no.setText('Energy offset: '
+            #+ str(round(self.dE_mean, 1))+' eV')
+            # If no lines are detected
+            #else:
+            #    logger.info('No lines can be matched')
+
+            self.ui.pb_start_calc.setText("Reset")
 
             self.ui.pb_start_calc.setStyleSheet(
                 "color: rgb(63, 191, 95); font-size: 18pt")
@@ -255,9 +281,7 @@ class UICalculator(QWidget):
 
         self.df_spec_lines = pd.DataFrame(dict(slope=self.slope_list, intercept=self.y_intercept_list, min_angle=self.min_angle_list, max_angle=self.max_angle_list,
                                                centroid_pa=self.centroid_pa_list, centroid_phen=self.centroid_phen_list))
-
-    def plot_images(self):
-        self.add_corr2d_image_widget()
+        self.df_spec_lines['roll_angle'] = self.ui.roll_angle.value()
 
     def generate_Bragg_curves(self):
         self.roll = list(self.df_spec_lines['roll_angle'])
@@ -271,10 +295,169 @@ class UICalculator(QWidget):
             self.dthy = 1.17
             self.DTHR = 0.04
             self.alpha = 0.0028
-        pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
+        self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
         # pass pitch and roll errors and create Bragg curves
-        phen_list, p_angle_list, gid_list, roll_angle_list = HXRSSsim(
-            pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
+        self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list = HXRSSsim(
+            self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
+        logger.info("Bragg lines generated")
+
+    def tangent_generator(self):
+        for r, gid_raw, roll_angle in zip(range(len(self.p_angle_list)), self.gid_list, self.roll_angle_list):
+            x = np.asarray(self.p_angle_list[r])
+            y = np.asarray(self.phen_list[r])
+            # Interpolating range
+            x0 = np.linspace(min(self.p_angle_list[r]), max(
+                self.p_angle_list[r]), 200, endpoint=False)
+
+            gid = str(gid_raw)
+            f = interpolate.UnivariateSpline(
+                self.p_angle_list[r], self.phen_list[r])
+            for x0_ in x0:
+                i0 = np.argmin(np.abs(x-x0_))
+                x1 = x[i0:i0+2]
+                y1 = y[i0:i0+2]
+                dydx, = np.diff(y1)/np.diff(x1)
+                if y1[0] < max(self.np_phen)+1000 and y1[0] > min(self.np_phen)-1000:
+                    def tngnt(x): return dydx*x + (y1[0]-dydx*x1[0])
+                    tngnt_slope = (tngnt(x[1])-tngnt(x[0]))/(x[1]-x[0])
+                    self.tngnt_slope_list.append(tngnt_slope)
+                    tngnt_intercept = tngnt(0)
+                    self.tngnt_intercept_list.append(tngnt_intercept)
+                    self.tngnt_centroid_list.append(x1[0])
+                    self.tngnt_centroid_y_list.append(y1[0])
+                    self.tngnt_gid_list.append(gid)
+                    self.tngnt_roll_angle_list.append(roll_angle)
+                    self.interp_Bragg_list.append(f)
+        self.df_tangents = pd.DataFrame(dict(slope=self.tngnt_slope_list, intercept=self.tngnt_intercept_list, gid=self.tngnt_gid_list, interp=self.interp_Bragg_list,
+                                             centroid_pa=self.tngnt_centroid_list, centroid_phen=self.tngnt_centroid_y_list, roll_angle=self.tngnt_roll_angle_list))
+        logger.info("Tangents generated")
+
+    def line_comparator(self):
+        for slope, intercept, min_angle, max_angle, centroid_pa, centroid_phen, roll_angle in zip(self.df_spec_lines['slope'], self.df_spec_lines['intercept'], self.df_spec_lines['min_angle'], self.df_spec_lines['max_angle'], self.df_spec_lines['centroid_pa'], self.df_spec_lines['centroid_phen'], self.df_spec_lines['roll_angle']):
+            n = 0
+            pitch_angle_range = np.linspace(min_angle, max_angle, 10)
+            distance_list = []
+            for tngnt_slope, tngnt_intercept, curve_id, interp_fn_Bragg, centroid, centroid_y in zip(self.df_tangents['slope'], self.df_tangents['intercept'], self.df_tangents['gid'], self.df_tangents['interp'], self.df_tangents['centroid_pa'], self.df_tangents['centroid_phen']):
+                if (tngnt_slope-self.slope_allowance <= slope <= tngnt_slope+self.slope_allowance) and (tngnt_intercept-self.intercept_allowance <= intercept <= tngnt_intercept+self.intercept_allowance):
+                    a = (centroid, centroid_y)
+                    b = (centroid_pa, centroid_phen)
+                    dist = distance.euclidean(a, b)
+                    distance_list.append(dist)
+                    if n >= 1 and distance_list[n] < distance_list[n-1] and dist < self.max_distance:
+                        def func(x): return interp_fn_Bragg(
+                                x)-centroid_phen
+                        ans, = fsolve(func, centroid_pa)
+                        dE = (interp_fn_Bragg(centroid_pa)-centroid_phen)
+                        dP = (ans-centroid_pa)
+                        if abs(dE) < self.max_E and abs(dP) < self.max_P:
+                            self.detected_slope_list.pop()
+                            self.detected_intercept_list.pop()
+                            self.detected_id_list.pop()
+                            self.detected_line_min_angle_list.pop()
+                            self.detected_line_max_angle_list.pop()
+                            self.detected_line_roll_angle_list.pop()
+                            self.dE_list.pop()
+                            self.dP_list.pop()
+                            self.detected_slope_list.append(slope)
+                            self.detected_intercept_list.append(intercept)
+                            self.detected_id_list.append(curve_id)
+                            self.detected_line_min_angle_list.append(
+                                    min_angle)
+                            self.detected_line_max_angle_list.append(
+                                    max_angle)
+                            self.detected_line_roll_angle_list.append(
+                                    roll_angle)
+                            self.dE_list.append(dE)
+                            self.dP_list.append(dP)
+                            n = n+1
+                            logger.info('Its a match ', n, ' Curve id:', curve_id, 'Distance', np.round(
+                                    dist, 2), np.round(ans, 2), np.round(interp_fn_Bragg(ans), 2))
+                    elif n >= 1 and distance_list[n] >= distance_list[n-1]:
+                        pass
+                    elif dist < self.max_distance:
+                        def func(x): return interp_fn_Bragg(
+                            x)-centroid_phen
+                        ans, = fsolve(func, centroid_pa)
+                        dE = (interp_fn_Bragg(centroid_pa)-centroid_phen)
+                        dP = (ans-centroid_pa)
+                        if abs(dE) < self.max_E and abs(dP) < self.max_P:
+                            self.detected_slope_list.append(slope)
+                            self.detected_intercept_list.append(intercept)
+                            self.detected_id_list.append(curve_id)
+                            self.detected_line_min_angle_list.append(
+                                    min_angle)
+                            self.detected_line_max_angle_list.append(
+                                    max_angle)
+                            self.detected_line_roll_angle_list.append(
+                                    roll_angle)
+                            self.dE_list.append(dE)
+                            self.dP_list.append(dP)
+                            n = n+1
+                            print('Its a match ', n, ' Curve id:', curve_id, 'Distance', np.round(
+                                    dist, 2), np.round(ans, 2), np.round(interp_fn_Bragg(ans), 2))
+        self.df_detected = pd.DataFrame(dict(slope=self.detected_slope_list, intercept=self.detected_intercept_list, min_angle=self.detected_line_min_angle_list, max_angle=self.detected_line_max_angle_list, dE=self.dE_list,
+                                             dP=self.dP_list, gid=self.detected_id_list, roll_angle=self.detected_line_roll_angle_list))
+
+    def hkl_roll_separator(self):
+        for gid_item, roll in zip(self.df_detected['gid'], self.df_detected['roll_angle']):
+            num = [int(s) for s in re.findall(r'-?\d+', str(gid_item))]
+            self.h_list.append(num[0])
+            self.k_list.append(num[1])
+            self.l_list.append(num[2])
+            self.roll_list.append(roll)
+
+    def add_plot(self):
+        gui_index = self.parent.ui.get_style_name_index()
+        if "standard" in self.parent.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            single_pen = pg.mkPen("k")
+        else:
+            single_pen = pg.mkPen("w")
+
+        win = pg.GraphicsLayoutWidget()
+        #justify='right',,
+        self.label = pg.LabelItem(justify='left', row=0, col=0)
+        win.addItem(self.label)
+
+        #self.plot1 = win.addPlot(row=0, col=0)
+        self.plot1 = win.addPlot(row=1, col=0)
+
+        self.plot1.setLabel('left', "E_ph", units='eV')
+        self.plot1.setLabel('bottom', "Pitch angle", units='deg')
+
+        self.plot1.showGrid(1, 1, 1)
+
+        self.plot1.getAxis('left').enableAutoSIPrefix(
+            enable=False)  # stop the auto unit scaling on y axes
+        layout = QtGui.QGridLayout()
+        self.ui.widget_calc_2.setLayout(layout)
+        layout.addWidget(win, 0, 0)
+
+        self.plot1.setAutoVisible(y=True)
+
+        self.plot1.addLegend()
+
+        self.single = pg.PlotCurveItem(pen=single_pen, name='single')
+
+        self.plot1.addItem(self.single)
+
+        pen = pg.mkPen((51, 255, 51), width=2)
+        pen = pg.mkPen((255, 0, 0), width=3)
+        #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
+        self.average = pg.PlotCurveItem(pen=pen, name='average')
+
+        self.plot1.addItem(self.average)
+
+        pen = pg.mkPen((0, 255, 255), width=2)
+
+        #self.plot1.addItem(self.back_plot) ##################################### SS removed, as typically we don;t need it once start pySpectrometer
+
+        # cross hair
+        self.vLine = pg.InfiniteLine(angle=90, movable=False)
+        self.hLine = pg.InfiniteLine(angle=0, movable=False)
+        self.plot1.addItem(self.vLine, ignoreBounds=True)
+        self.plot1.addItem(self.hLine, ignoreBounds=True)
 
     def stop_calc(self):
         logger.info("Stop Logger")
