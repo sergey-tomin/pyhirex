@@ -11,6 +11,7 @@ import pyqtgraph as pg
 from gui.UICalculator import Ui_Form
 import time
 import os
+import glob
 from threading import Thread, Event
 import logging
 from matplotlib import cm
@@ -64,7 +65,6 @@ class UICalculator(QWidget):
         self.colors2 = ['b', 'g', 'c', 'y', 'k']
         self.linecolors = cycle(self.colors)
         self.linecolors1 = cycle(self.colors2)
-        self.linecolors2 = cycle(self.colors)
         self.thresh = 0.25
         self.n = 0
         self.d_kernel = 2
@@ -98,17 +98,19 @@ class UICalculator(QWidget):
         self.ui.roll_angle.setRange(0, 2)
         self.ui.roll_angle.setValue(1.5013)
         self.ui.roll_angle.setSingleStep(0.001)
+        # Set up and show the two graph axes
+        self.add_image_widget()
+        self.add_plot_widget()
+        self.get_latest_npz()
 
         #self.ui = self.parent.ui
 
     def reset(self):
         self.img_corr2d.clear()
+        self.plot1.clear()
+        self.legend.scene().removeItem(self.legend)
         #self.text.setText('')
         self.ui.output.setText('')
-        self.min_phen = 0
-        self.max_phen = 0
-        self.min_pangle = 0
-        self.max_pangle = 0
         self.dE_mean = 0
         self.counter = 0
         self.model.setData(x=[], y=[])
@@ -125,14 +127,13 @@ class UICalculator(QWidget):
         self.min_pangle = 0
         self.max_pangle = 0
         self.dE_mean = 0
-        self.load_corr2d()
         if self.mode == 1:
             self.ui.pb_start_calc.setStyleSheet(
-                "color: rgb(85, 255, 127); font-size: 18pt")
+                "color: rgb(85, 255, 127); font-size: 14pt")
             self.ui.pb_start_calc.setText("Calculate fom npz file")
         elif self.mode == 2:
             self.ui.pb_scan.setStyleSheet(
-                "color: rgb(85, 255, 127); font-size: 18pt")
+                "color: rgb(85, 255, 127); font-size: 14pt")
             self.ui.pb_scan.setText("Scan and calculate")
         #self.ui.roll_angle.clear()
 
@@ -150,12 +151,10 @@ class UICalculator(QWidget):
             if self.ui.mono_no.text() == "":
                 self.error_box("Select a valid npz file first")
                 return
+            self.load_corr2d()
             self.binarization()
             self.get_binarized_line()
             self.img_processing()
-            if self.counter == 0:  # Only load widgets on first run
-                self.add_image_widget()
-                self.add_plot_widget()
             self.add_corr2d_image_item()
             self.hough_line_transform()
             self.generate_Bragg_curves()
@@ -172,7 +171,7 @@ class UICalculator(QWidget):
             self.ui.pb_start_calc.setText("Reset")
 
             self.ui.pb_start_calc.setStyleSheet(
-                "color: rgb(255, 0, 0); font-size: 18pt")
+                "color: rgb(255, 0, 0); font-size: 14pt")
 
     def start_stop_calc_scan(self):
         self.mode = 2
@@ -190,12 +189,11 @@ class UICalculator(QWidget):
         self.ui.widget_calc.setLayout(self.layout)
         self.layout.addWidget(win)
         self.img_corr2d = win.addPlot()
+        self.img_corr2d.setLabel('left', "E_ph", units='eV')
+        self.img_corr2d.setLabel('bottom', "Pitch angle", units='°')
 
     def add_corr2d_image_item(self):
         self.img_corr2d.clear()
-
-        self.img_corr2d.setLabel('left', "E_ph", units='eV')
-        self.img_corr2d.setLabel('bottom', "Pitch angle", units='°')
 
         scale_yaxis = (self.np_phen[-1] - self.np_phen[0]) / len(self.np_phen)
         translate_yaxis = self.np_phen[0] / scale_yaxis
@@ -215,8 +213,61 @@ class UICalculator(QWidget):
         self.img.setImage(self.orig_image)
         self.img.scale(scale_xaxis, scale_yaxis)
         self.img.translate(translate_xaxis, translate_yaxis)
-        #self.text = pg.TextItem(color='w')
-        #self.img_corr2d.addItem(self.text)
+
+    def add_plot_widget(self):
+        gui_index = self.parent.ui.get_style_name_index()
+        if "standard" in self.parent.gui_styles[gui_index]:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            model_pen = pg.mkPen("k")
+        else:
+            model_pen = pg.mkPen("w")
+
+        win = pg.GraphicsLayoutWidget()
+        self.label = pg.LabelItem(justify='left', row=0, col=0)
+        win.addItem(self.label)
+
+        self.plot1 = win.addPlot(row=1, col=0)
+        self.plot1.setLabel('left', "E_ph", units='eV')
+        self.plot1.setLabel('bottom', "Pitch angle", units='°')
+        self.plot1.showGrid(1, 1, 1)
+        self.plot1.getAxis('left').enableAutoSIPrefix(
+            enable=False)  # stop the auto unit scaling on y axes
+        self.layout_2 = QtGui.QGridLayout()
+        self.ui.widget_calc_2.setLayout(self.layout_2)
+        self.layout_2.addWidget(win, 0, 0)
+        self.plot1.setAutoVisible(y=True)
+
+        # cross hair
+        self.vLine = pg.InfiniteLine(angle=90, movable=False)
+        self.hLine = pg.InfiniteLine(angle=0, movable=False)
+        self.plot1.addItem(self.vLine, ignoreBounds=True)
+        self.plot1.addItem(self.hLine, ignoreBounds=True)
+        self.plot1.enableAutoRange()
+
+    def add_plot(self):
+        #self.plot1.clear()
+        pen = pg.mkPen('r', width=3)
+        pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
+        self.legend = self.plot1.addLegend()
+
+        for r in range(len(self.pa)):
+            self.model = pg.PlotCurveItem(
+                x=self.pa[r], y=self.phen[r], pen=pen)
+            self.plot1.addItem(self.model)
+
+        for slope, intercept, min_angle, max_angle, gid in zip(self.df_detected['slope'], self.df_detected['intercept'], self.df_detected['min_angle'], self.df_detected['max_angle'], self.df_detected['gid']):
+            pitch_angle_range = np.linspace(min_angle, max_angle, 10)
+            self.yvalue = (pitch_angle_range*slope)+intercept
+            line_pen = pg.mkPen(next(self.linecolors1), width=3,
+                                style=QtCore.Qt.DashLine)
+            self.line = pg.PlotCurveItem(
+                x=pitch_angle_range, y=self.yvalue, pen=line_pen, name=gid)
+            self.line_shifted = pg.PlotCurveItem(x=pitch_angle_range, y=self.yvalue+self.dE_mean,
+                                                 pen=pen_shifted)
+            self.plot1.addItem(self.line)
+            self.plot1.addItem(self.line_shifted)
+            #self.change_label(gid)
 
     def binarization(self):
         # all values below 0 threshold are set to 0
@@ -427,75 +478,13 @@ class UICalculator(QWidget):
             self.l_list.append(num[2])
             self.roll_list.append(roll)
 
-    def add_plot_widget(self):
-        gui_index = self.parent.ui.get_style_name_index()
-        if "standard" in self.parent.gui_styles[gui_index]:
-            pg.setConfigOption('background', 'w')
-            pg.setConfigOption('foreground', 'k')
-            model_pen = pg.mkPen("k")
-        else:
-            model_pen = pg.mkPen("w")
-
-        win = pg.GraphicsLayoutWidget()
-        #justify='right',,
-        self.label = pg.LabelItem(justify='left', row=0, col=0)
-        win.addItem(self.label)
-
-        #self.plot1 = win.addPlot(row=0, col=0)
-        self.plot1 = win.addPlot(row=1, col=0)
-
-        self.plot1.setLabel('left', "E_ph", units='eV')
-        self.plot1.setLabel('bottom', "Pitch angle", units='°')
-
-        self.plot1.showGrid(1, 1, 1)
-
-        self.plot1.getAxis('left').enableAutoSIPrefix(
-            enable=False)  # stop the auto unit scaling on y axes
-        self.layout_2 = QtGui.QGridLayout()
-        self.ui.widget_calc_2.setLayout(self.layout_2)
-        self.layout_2.addWidget(win, 0, 0)
-        self.plot1.setAutoVisible(y=True)
-        self.plot1.addLegend()
-        pen = pg.mkPen('r', width=3)
-        line_pen = pg.mkPen(next(self.linecolors1), width=3,
-                            style=QtCore.Qt.DashLine)
-        pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
-        self.line = pg.PlotCurveItem(pen=line_pen)
-        self.line_shifted = pg.PlotCurveItem(pen=pen_shifted)
-        self.model = pg.PlotCurveItem(pen=pen)
-        self.plot1.addItem(self.model)
-        self.plot1.addItem(self.line)
-        self.plot1.addItem(self.line_shifted)
-
-        # cross hair
-        self.vLine = pg.InfiniteLine(angle=90, movable=False)
-        self.hLine = pg.InfiniteLine(angle=0, movable=False)
-        self.plot1.addItem(self.vLine, ignoreBounds=True)
-        self.plot1.addItem(self.hLine, ignoreBounds=True)
-        self.plot1.enableAutoRange()
-
-    def add_plot(self):
-        #self.plot1.clear()
-
-        for r in range(len(self.pa)):
-            self.model.setData(x=self.pa[r], y=self.phen[r])
-            self.model.show()
-
-        for slope, intercept, min_angle, max_angle, gid in zip(self.df_detected['slope'], self.df_detected['intercept'], self.df_detected['min_angle'], self.df_detected['max_angle'], self.df_detected['gid']):
-            pitch_angle_range = np.linspace(min_angle, max_angle, 10)
-            self.yvalue = (pitch_angle_range*slope)+intercept
-            self.line.setData(
-                x=pitch_angle_range, y=self.yvalue)
-            self.line_shifted.setData(
-                x=pitch_angle_range, y=self.yvalue+self.dE_mean)
-
     def offset_calc_and_plot(self):
         self.pa, self.phen, gid_list = HXRSS_Bragg_generator(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.pa_range), self.DTHP, self.dthy, self.DTHR, self.alpha)
         self.dE_mean = np.mean(self.df_detected['dE'])
         self.add_plot()
-        #for E, x, y in zip(self.df_detected['dE'], self.df_detected['centroid_x'], self.df_detected['centroid_y']):
-        #self.add_text_to_plot(x, y+10, E)
+        for E, x, y in zip(self.df_detected['dE'], self.df_detected['centroid_x'], self.df_detected['centroid_y']):
+            self.add_text_to_plot(x, y+50, E)
         self.ui.output.setText('Average Energy Offset: '
                                + str(np.round(self.dE_mean, 1))+' eV')
 
@@ -506,15 +495,17 @@ class UICalculator(QWidget):
             self.processed_image, size=(self.e_kernel, self.e_kernel))
 
     def add_text_to_plot(self, x, y, E):
+        self.text = pg.TextItem(color='w')
+        self.img_corr2d.addItem(self.text)
         self.text.setText(str(np.round(E, 1)))
         self.text.setPos(x, y)
         self.text.setZValue(5)
         self.text.show()
 
-    def zoom_signal(self):
-        pass
-        #s_up = self.plot_y.viewRange()[0][0]
-        #s_down = self.plot_y.viewRange()[0][1]
+    #def change_label(self, name):
+        # change the label of given PlotDataItem in the plot's legend
+    #    self.plot1.legend.removeItem(self.line)
+    #    self.plot1.legend.addItem(self.line, name)
 
     def loadStyleSheet(self, filename):
         """
@@ -541,15 +532,27 @@ class UICalculator(QWidget):
 
         return False
 
-    def open_file(self):
-        self.pathname = QtGui.QFileDialog.getOpenFileName(
-            self, 'Open Correlation Data', '(*.npz)')
-        filename = os.path.basename(self.pathname[0])
-        self.ui.file_name.setText(filename)
+    def open_file(self):  # self.parent.data_dir
+        self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
+            self, "Open Correlation Data", "/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz", 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
+        if self.pathname != "":
+            filename = os.path.basename(self.pathname)
+            self.ui.file_name.setText(filename)
+            self.load_corr2d()
+        else:
+            self.ui.file_name.setText('')
+            self.ui.mono_no.setText('')
+
+    def get_latest_npz(self):
+        # * means all if need specific format then *.csv
+        list_of_files = glob.glob(
+            '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/*')
+        self.pathname = max(list_of_files, key=os.path.getctime)
+        self.ui.file_name.setText(os.path.basename(self.pathname))
         self.load_corr2d()
 
     def load_corr2d(self):
-        tt = np.load(self.pathname[0])
+        tt = np.load(self.pathname)
         self.corr2d = tt['corr2d']
         self.orig_image = tt['corr2d']
         self.np_doocs = tt['doocs_scale']
