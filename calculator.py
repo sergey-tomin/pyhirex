@@ -9,19 +9,18 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget, QMessageBox, QApplication
 import pyqtgraph as pg
 from gui.UICalculator import Ui_Form
+from mint.opt_objects import Device
 import time
 import os
 import glob
 from threading import Thread, Event
 import logging
 from matplotlib import cm
-import numpy as np
 import pandas as pd
 from scipy import ndimage
 from scipy.spatial import distance
-from scipy.optimize import newton, fsolve
-from scipy import interpolate, optimize, stats
-from numba import jit
+from scipy.optimize import fsolve
+from scipy import interpolate
 import re
 from skimage.transform import hough_line, hough_line_peaks
 from model_functions.HXRSS_Bragg_max_generator import HXRSS_Bragg_max_generator
@@ -30,6 +29,11 @@ from itertools import cycle
 # filename="logs/afb.log",
 #logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def find_nearest_idx(array, value):
+    idx = np.abs(array - value).argmin()
+    return idx
 
 
 class Statistics(Thread):
@@ -85,6 +89,15 @@ class UICalculator(QWidget):
         self.dE_mean = 0
         self.counter = 0
         self.yvalue = []
+        self.spec_hist = []
+        self.doocs_vals_hist = []
+        self.transmission_vals_hist = []
+        self.cross_callibration_vals_hist = []
+        self.doocs_address_label = ''
+        self.spec_binned = []
+        self.doocs_bins = []
+        self.doocs_event_counts = []
+        self.doocs_vals_hist_lagged = []
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
@@ -98,6 +111,8 @@ class UICalculator(QWidget):
         self.ui.roll_angle.setRange(0, 2)
         self.ui.roll_angle.setValue(1.5013)
         self.ui.roll_angle.setSingleStep(0.001)
+        self.ui.combo_mono.addItem("Monochromator 1")
+        self.ui.combo_mono.addItem("Monochromator 2")
         # Set up and show the two graph axes
         self.add_image_widget()
         self.add_plot_widget()
@@ -106,35 +121,41 @@ class UICalculator(QWidget):
         #self.ui = self.parent.ui
 
     def reset(self):
-        self.img_corr2d.clear()
-        self.plot1.clear()
-        self.legend.scene().removeItem(self.legend)
+
         #self.text.setText('')
         self.ui.output.setText('')
         self.dE_mean = 0
-        self.counter = 0
-        self.model.setData(x=[], y=[])
-        self.line.setData(x=[], y=[])
-        self.line_shifted.setData(x=[], y=[])
-        self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
-        self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
-        self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
-        self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen = [
-            ], [], [], [], [], []
-        self.counter = self.counter + 1
         self.min_phen = 0
         self.max_phen = 0
         self.min_pangle = 0
         self.max_pangle = 0
         self.dE_mean = 0
-        if self.mode == 1:
-            self.ui.pb_start_calc.setStyleSheet(
-                "color: rgb(85, 255, 127); font-size: 14pt")
-            self.ui.pb_start_calc.setText("Calculate fom npz file")
-        elif self.mode == 2:
-            self.ui.pb_scan.setStyleSheet(
-                "color: rgb(85, 255, 127); font-size: 14pt")
-            self.ui.pb_scan.setText("Scan and calculate")
+        self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
+        self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
+        self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
+        self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen = [
+            ], [], [], [], [], []
+        if self.counter > 0:
+            if self.mode == 1:
+                self.img_corr2d.clear()
+                self.plot1.clear()
+                self.legend.scene().removeItem(self.legend)
+                self.model.setData(x=[], y=[])
+                self.line.setData(x=[], y=[])
+                self.line_shifted.setData(x=[], y=[])
+                self.ui.pb_start_calc.setStyleSheet(
+                    "color: rgb(85, 255, 127); font-size: 14pt")
+                self.ui.pb_start_calc.setText("Calculate fom npz file")
+
+            elif self.mode == 2:
+                self.img_corr2d.clear()
+                self.plot1.clear()
+                self.ui.pb_scan.setStyleSheet(
+                    "color: rgb(85, 255, 127); font-size: 14pt")
+                self.ui.pb_scan.setText("Scan and calculate")
+
+        self.counter = self.counter + 1
+
         #self.ui.roll_angle.clear()
 
     def closeEvent(self, QCloseEvent):
@@ -178,10 +199,18 @@ class UICalculator(QWidget):
         if self.ui.pb_scan.text() == "Reset":
             self.reset()
         else:
+            if self.parent.ui.pb_start.text() == "Start":
+                self.error_box("Start spectrometer first")
+                return
+            if not self.parent.spectrometer.is_online():
+                self.error_box("Spectrometer is not ONLINE")
+                return
+
+            self.plot_correl_scan()
             self.ui.pb_scan.setText("Reset")
 
             self.ui.pb_scan.setStyleSheet(
-                "color: rgb(255, 0, 0); font-size: 18pt")
+                "color: rgb(255, 0, 0); font-size: 14pt")
 
     def add_image_widget(self):
         win = pg.GraphicsLayoutWidget()
@@ -502,10 +531,144 @@ class UICalculator(QWidget):
         self.text.setZValue(5)
         self.text.show()
 
-    #def change_label(self, name):
-        # change the label of given PlotDataItem in the plot's legend
-    #    self.plot1.legend.removeItem(self.line)
-    #    self.plot1.legend.addItem(self.line, name)
+    def plot_correl_scan(self):
+        mono_no_text = self.ui.combo_mono.currentText()
+        num = re.findall(r'\d+', mono_no_text)[0]
+        self.mono_no = int(num)
+        if self.mono_no == 1:
+            # "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE"
+            self.doocs_address_label = "dummy label"
+        elif self.mono_no == 2:
+            # "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE"
+            self.doocs_address_label = "dummy label"
+        #self.get_device()
+
+        n_shots = int(self.ui.sb_n_shots_max.value())
+        if len(self.spec_hist) > n_shots:  # add lag value
+            self.spec_hist = self.spec_hist[-n_shots:]
+            self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
+
+        self.spec_hist.append(self.parent.spectrum_event)
+        if self.doocs_address_label == 'event':
+            self.doocs_vals_hist.append(self.event_counter)
+        elif self.doocs_address_label == 'dummy label':
+            self.doocs_vals_hist.append(np.sin(time.time()/10)*7.565432 + 25)
+        elif self.parent.ui.combo_hirex.currentText() != "DUMMY":
+            if self.doocs_dev is None:
+                self.ui.sb_corr_2d_run.setChecked(False)
+                self.parent.error_box("Wrong DOOCS channel")
+                return
+            self.doocs_vals_hist.append(self.doocs_dev.get_value())
+        else:
+            self.doocs_address_label = 'event',
+            self.doocs_vals_hist.append(self.event_counter)
+
+        self.transmission_vals_hist.append(self.parent.transmission_value)
+        self.cross_callibration_vals_hist.append(self.parent.calib_energy_coef)
+        self.sort_and_bin()
+        self.np_doocs = self.doocs_bins
+        self.np_phen = self.phen_scan
+        self.orig_image = self.spec_binned
+        self.add_corr2d_image_item()
+
+    def get_device(self):
+        if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor2d):
+            eid = self.ui.le_doocs_ch_cor2d.text()
+            self.doocs_dev = Device(eid=eid)
+            self.doocs_dev.mi = self.mi
+        else:
+            self.doocs_dev = None
+
+    def sort_and_bin(self):
+        try:
+            bin_doocs = float(self.ui.sb_corr2d_binning.text())  # bin size
+        except ValueError:
+            bin_doocs = 0
+
+        try:
+            phen_min = self.ui.sb_emin.value()/1000
+        except ValueError:
+            phen_min = -np.inf
+
+        self.phen_orig = self.parent.x_axis
+
+        try:
+            phen_max = self.ui.sb_emax.value()/1000
+        except ValueError:
+            phen_max = np.inf
+
+        d2, d1 = 0, 0
+
+        if phen_max > phen_min:
+            d1 = find_nearest_idx(self.phen_orig/1000, phen_min)
+            d2 = find_nearest_idx(self.phen_orig/1000, phen_max)
+        # else:
+        if d2 <= d1:
+            d1 = 0
+            d2 = len(self.phen_orig)
+
+        self.phen_scan = self.phen_orig[d1:d2]
+        n_phens = len(self.phen_scan)
+
+        #print('self.phen_orig',len(self.phen_orig))
+        #print('self.phen',len(self.phen))
+
+        if bin_doocs == 0:
+            bin_doocs = 1e10
+
+        try:
+            self.n_lag = int(self.ui.sb_corr2d_lag.value())  # lag size
+        except ValueError:
+            self.n_lag = 0
+
+        if len(self.doocs_vals_hist) > abs(self.n_lag)+5:
+            if self.n_lag >= 0:
+                self.doocs_vals_hist_lagged = self.doocs_vals_hist[:len(
+                    self.doocs_vals_hist)-self.n_lag]
+                spec_lagged = np.array(self.spec_hist)[self.n_lag:, :]
+            else:
+                self.doocs_vals_hist_lagged = self.doocs_vals_hist[abs(
+                    self.n_lag):]
+                spec_lagged = np.array(self.spec_hist)[:len(
+                    self.doocs_vals_hist)-abs(self.n_lag), :]
+
+        else:
+            self.doocs_vals_hist_lagged = self.doocs_vals_hist
+            spec_lagged = np.array(self.spec_hist) * np.array(self.cross_callibration_vals_hist)[
+                                   :, None] / np.array(self.transmission_vals_hist)[:, None]  # TODO: untested!!!
+            #spec_lagged = np.array(self.spec_hist)
+
+        min_val = bin_doocs * \
+            (int(min(self.doocs_vals_hist_lagged) / bin_doocs))
+        max_val = max(self.doocs_vals_hist_lagged) + bin_doocs * 1.01
+
+        if max_val - min_val <= bin_doocs:
+            # ensures there is at least one bin (two bin values)
+            max_val = min_val + 1.01 * bin_doocs
+
+        self.doocs_bins = np.arange(min_val, max_val, bin_doocs)
+        # print('shape of created doocs_bins', self.doocs_bins.shape)
+
+        self.doocs_event_counts, _ = np.histogram(
+            self.doocs_vals_hist_lagged, bins=self.doocs_bins)
+
+        self.bin_dest_idx = np.digitize(
+            self.doocs_vals_hist_lagged, self.doocs_bins)-1
+        self.spec_binned = np.zeros((len(self.doocs_bins)-1, n_phens))
+
+        for i in np.unique(self.bin_dest_idx):
+            idx = np.where(i == self.bin_dest_idx)[0]
+            # print('sorting', i, idx)
+            if len(idx) > 1:
+                self.spec_binned[i, :] = np.mean(
+                    spec_lagged[idx, d1:d2], axis=0)
+                #print('multiple', i, idx, len(self.spec_binned))
+            elif len(idx) == 1:
+                self.spec_binned[i, :] = spec_lagged[idx[0], d1:d2]
+                # else:
+                # self.spec_binned = np.array([spec_lagged[idx[0], :]])
+            else:
+                pass
 
     def loadStyleSheet(self, filename):
         """
