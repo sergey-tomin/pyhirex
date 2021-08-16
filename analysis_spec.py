@@ -142,26 +142,26 @@ class AnalysisInterface:
         
     
     def arange_spectra(self): #populate and trim spectrum array for analysis
-        if self.ui.pb_start.text() == "Start" or self.parent.spectrum_event is None or not self.ui.analysis_acquire.isChecked():
+        if self.ui.pb_start.text() == "Start" or self.parent.spectrum_event_disp is None or not self.ui.analysis_acquire.isChecked():
             return
         # print('arranging')
         
-        # wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
-        # shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        # wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event_disp)
+        # shifted_spec = self.spar.phen[0] != self.parent.x_axis_disp[0] or self.spar.phen[-1] != self.parent.x_axis_disp[-1]
         
         
         
-        if not np.array_equal(self.phen_last, self.parent.x_axis):
-            print('different axis, skippimg')
+        if not np.array_equal(self.phen_last, self.parent.x_axis_disp):
+            print('different axis, skipping')
             self.reset_spectra()
-            self.phen_last = self.parent.x_axis
+            self.phen_last = self.parent.x_axis_disp
             return
             
         
         #if shifted_spec:
         #    print('correlation analysis: photon energy scale changed')
         #    self.reset_spectra()
-        zeroscale = self.parent.x_axis[-1] == self.parent.x_axis[0]
+        zeroscale = self.parent.x_axis_disp[-1] == self.parent.x_axis_disp[0]
         
         if zeroscale:
             print('correlation analysis: x_axis[-1] == x_axis[0]')
@@ -185,14 +185,14 @@ class AnalysisInterface:
         # print('before append: , self.spar.spec.shape=',self.spar.spec.shape)
         if len(self.spar.spec) == 1: #fresh unpopulated array
             # print(' fresh unpopulated array')
-            self.spar.spec = self.parent.spectrum_event[:, np.newaxis] * self.parent.calib_energy_coef / transm
-            self.spar.phen = self.parent.x_axis
+            self.spar.spec = self.parent.spectrum_event_disp[:, np.newaxis] * self.parent.calib_energy_coef / transm
+            self.spar.phen = self.parent.x_axis_disp
         else:
             # print(' all ok, old self.spar.spec.shape=', self.spar.spec.shape)
-            self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event[:,np.newaxis] * self.parent.calib_energy_coef / transm, axis=1)
-            self.spar.phen = self.parent.x_axis
+            self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event_disp[:,np.newaxis] * self.parent.calib_energy_coef / transm, axis=1)
+            self.spar.phen = self.parent.x_axis_disp
             # print('  new shape self.spar.spec.shape=',self.spar.spec.shape)
-        # self.spec_hist.append(self.parent.spectrum_event)
+        # self.spec_hist.append(self.parent.spectrum_event_disp)
         if n_shots_analysis > 0:
             if self.spar.events > n_shots_analysis:
                 # print('before cut: , self.spar.spec.shape=',self.spar.spec.shape)

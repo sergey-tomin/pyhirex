@@ -118,7 +118,7 @@ class Correl2DInterface:
         except ValueError:
             phen_min = -np.inf
             
-        self.phen_orig = self.parent.x_axis
+        self.phen_orig = self.parent.x_axis_disp
             
         try:
             phen_max = self.ui.sb_emax.value()/1000
@@ -243,7 +243,7 @@ class Correl2DInterface:
         
         
         
-        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event is None:
+        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event_disp is None:
             return
             
         # print('DOOCS LABEL ',self.doocs_address_label)
@@ -261,7 +261,10 @@ class Correl2DInterface:
             self.spec_hist = self.spec_hist[-n_shots:]
             self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
         
-        self.spec_hist.append(self.parent.spectrum_event)
+        if len(self.spec_hist) >0:
+        	if len(self.spec_hist[0]) != len(self.parent.spectrum_event_disp):
+        		self.reset()
+        self.spec_hist.append(self.parent.spectrum_event_disp)
         
         
         #print(self.doocs_address_label)
