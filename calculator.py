@@ -148,7 +148,11 @@ class UICalculator(QWidget):
                 self.ui.pb_start_calc.setText("Calculate fom npz file")
 
             elif self.mode == 2:
+                self.spec_hist = []
+                self.doocs_vals_hist = []
                 self.img_corr2d.clear()
+                self.transmission_vals_hist = []
+                self.cross_callibration_vals_hist = []
                 self.plot1.clear()
                 self.ui.pb_scan.setStyleSheet(
                     "color: rgb(85, 255, 127); font-size: 14pt")
@@ -569,6 +573,10 @@ class UICalculator(QWidget):
         self.np_doocs = self.doocs_bins
         self.np_phen = self.phen_scan
         self.orig_image = self.spec_binned
+        #self.phen_res = self.np_phen[2] - self.np_phen[1]
+        #self.angle_res = self.np_doocs[2] - self.np_doocs[1]
+        #self.min_pangle = min(self.np_doocs)
+        #self.max_pangle = max(self.np_doocs)
         self.add_corr2d_image_item()
 
     def get_device(self):
