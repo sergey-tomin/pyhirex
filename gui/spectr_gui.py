@@ -23,6 +23,8 @@ from gui.UISpectrometer import Ui_MainWindow
 from PyQt5 import QtGui, QtCore
 from pathlib import Path
 from opt_lib import hr_eV_s
+
+from mint.xfel_interface import machine_readout_list
 import time
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -44,6 +46,7 @@ except AttributeError:
 
 def send_to_desy_elog(author, title, severity, text, elog, image=None):
     """
+    USED
     Send information to a supplied electronic logbook.
     Author: Christopher Behrens (DESY)
     """
@@ -225,16 +228,34 @@ class MainWindow(Ui_MainWindow):
                 doocs_vals_hist=cor2d_tab.doocs_vals_hist, 
                 corr2d=cor2d_tab.spec_binned, 
                 doocs_scale = cor2d_tab.doocs_bins, 
-                doocs_channel=cor2d_tab.doocs_address_label)
+                doocs_channel=cor2d_tab.doocs_address_label,
+                )
+                
+        self.save_machine_status_file()
+        
         return filename
+        
+    def save_machine_status_file(self):
+    	import csv
+    	filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_status.txt"
+    	with open(filename,'w') as f:
+    		writer = csv.writer(f)
+    		writer.writerow(['address','value'])
+    		for value in machine_readout_list:
+    			writer.writerow([value,self.Form.mi.get_value(value)])
+    	return filename
 
     def save_waterflow_file(self):
         Path(self.Form.data_dir).mkdir(parents=True, exist_ok=True)
         filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_waterflow.npz"
-        np.savez(filename, dumpversion=1,
-        e_axis=self.Form.x_axis, 
+        np.savez(filename, dumpversion=2,
+        e_axis_uncut=self.Form.x_axis,
+        e_axis=self.Form.x_axis_disp,
+        cut_px_first=self.Form.px_first, 
+        cut_px_last=self.Form.px_last,
         average=self.Form.ave_spectrum, 
-        map=self.Form.data_2d)
+        map=self.Form.data_2d,
+        background=self.Form.background)
         return filename
         
     def save_specanalysis_file(self):
@@ -259,12 +280,12 @@ class MainWindow(Ui_MainWindow):
 
     def logbook(self, widget, text=""):
         """
-        Method to send Optimization parameters + screenshot to eLogboob
+        Method to send Optimization parameters + screenshot to eLogbook
         :return:
         """
         screenshot = self.get_screenshot(widget)
-
-        res = send_to_desy_elog(author="", title="pySpectrometer", severity="INFO", text=text, elog=self.Form.mi.logbook_name,
+        device = self.Form.ui.combo_hirex.currentText()
+        res = send_to_desy_elog(author="", title="pySpectrometer "+ device, severity="INFO", text=text, elog=self.Form.mi.logbook_name,
                           image=screenshot)
         if not res:
             self.Form.error_box("error during eLogBook sending")
@@ -273,6 +294,7 @@ class MainWindow(Ui_MainWindow):
         if self.Form.doocs_permit:
             filename = self.save_waterflow_file()
             text = "Waterfall data is saved in: " + filename
+            
         else:
             text = ""
         self.logbook(widget, text=text)
@@ -280,7 +302,10 @@ class MainWindow(Ui_MainWindow):
     def log_cor2d(self, widget):
         if self.Form.doocs_permit:
             filename = self.save_cor2d_file()
-            text = "Correlation2D data is saved in: " + filename
+            #text = "Correlation2D data is saved in: " + filename
+            #tmp
+            filename_status = self.save_machine_status_file()
+            text = "Correlation2D data is saved in: " + filename + "\nMachine status data is saved in: " + filename_status
         else:
             text = ""
         self.logbook(widget, text=text)

@@ -108,9 +108,18 @@ class UILogger(QWidget):
             self.line2 = self.line2[1:]
             self.line3 = self.line3[1:]
             self.line4 = self.line4[1:]
-
-        self.line1 = np.append(self.line1, np.max(spec))
-        self.line2 = np.append(self.line2, np.max(av_spec))
+        
+        try:
+            maxspec = np.amax(spec)
+        except ValueError:
+            maxspec = 0
+        try:
+            maxspec_av = np.amax(av_spec)
+        except ValueError:
+            maxspec_av = 0
+            
+        self.line1 = np.append(self.line1, maxspec)
+        self.line2 = np.append(self.line2, maxspec_av)
         x = np.arange(len(self.line1))
         if self.ui.combo_log_ch_a.currentIndex() == 0:
             self.single.setData(x=x, y=self.line1)

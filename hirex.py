@@ -249,6 +249,7 @@ class SpectrometerWindow(QMainWindow):
         self.ave_spectrum = []
         self.peak_ev = None
         self.spectrum_event = None
+        self.spectrum_event_disp = None
         self.counter_spect = 0
         self.background = self.back_taker.load()
 
