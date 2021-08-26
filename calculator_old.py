@@ -5,7 +5,6 @@ based on logger.py by Sergey Tomin
 import sys
 import numpy as np
 import json
-import pathlib
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget, QMessageBox, QApplication
 import pyqtgraph as pg
@@ -21,24 +20,15 @@ import pandas as pd
 from scipy import ndimage
 from scipy.spatial import distance
 from scipy.optimize import fsolve
-from skimage.filters import threshold_yen
 from scipy import interpolate
 import re
 from skimage.transform import hough_line, hough_line_peaks
 from model_functions.HXRSS_Bragg_max_generator import HXRSS_Bragg_max_generator
 from model_functions.HXRSS_Bragg_generator import HXRSS_Bragg_generator
 from itertools import cycle
-path = os.path.realpath(__file__)
-indx = path.find("hirex.py")
-print("PATH to main file: " + os.path.realpath(__file__)
-      + " path to folder: " + path[:indx])
-sys.path.insert(0, path[:indx])
 # filename="logs/afb.log",
 #logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-PY_SPECTROMETER_DIR = "pySpectrometer"
-DIR_NAME = "hirex"
 
 
 def find_nearest_idx(array, value):
@@ -79,6 +69,7 @@ class UICalculator(QWidget):
         self.colors2 = ['b', 'g', 'c', 'y', 'k']
         self.linecolors = cycle(self.colors)
         self.linecolors1 = cycle(self.colors2)
+        self.thresh = 0.25
         self.n = 0
         self.d_kernel = 2
         self.e_kernel = 0
@@ -111,13 +102,6 @@ class UICalculator(QWidget):
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
         self.h_list, self.k_list, self.l_list, self.roll_list = [], [], [], []
-
-        DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
-        self.path = path[:path.find(DIR_NAME)]
-        self.data_dir = path[:path.find(
-            "user")] + "user" + os.sep + PY_SPECTROMETER_DIR + os.sep + "SASE2" + os.sep
-        print(self.data_dir)
-
         self.ui.pb_start_calc.clicked.connect(self.start_stop_calc_from_npz)
         self.ui.pb_scan.clicked.connect(self.start_stop_calc_scan)
         self.ui.browse_button.clicked.connect(self.open_file)
@@ -162,7 +146,6 @@ class UICalculator(QWidget):
                 self.ui.pb_start_calc.setStyleSheet(
                     "color: rgb(85, 255, 127); font-size: 14pt")
                 self.ui.pb_start_calc.setText("Calculate fom npz file")
-                self.mode = 0
 
             elif self.mode == 2:
                 self.spec_hist = []
@@ -174,15 +157,13 @@ class UICalculator(QWidget):
                 self.ui.pb_scan.setStyleSheet(
                     "color: rgb(85, 255, 127); font-size: 14pt")
                 self.ui.pb_scan.setText("Scan and calculate")
-                self.mode = 0
 
         self.counter = self.counter + 1
 
         #self.ui.roll_angle.clear()
 
     def closeEvent(self, QCloseEvent):
-    	self.mode = 0
-    	self.reset()
+        self.reset()
 
     def start_stop_calc_from_npz(self):
         self.mode = 1
@@ -295,10 +276,10 @@ class UICalculator(QWidget):
         self.hLine = pg.InfiniteLine(angle=0, movable=False)
         self.plot1.addItem(self.vLine, ignoreBounds=True)
         self.plot1.addItem(self.hLine, ignoreBounds=True)
+        self.plot1.enableAutoRange()
 
     def add_plot(self):
         #self.plot1.clear()
-        self.plot1.enableAutoRange()
         pen = pg.mkPen('r', width=3)
         pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
         self.legend = self.plot1.addLegend()
@@ -325,19 +306,15 @@ class UICalculator(QWidget):
         # all values below 0 threshold are set to 0
         self.corr2d[self.corr2d < 0] = 0
         # define parameters for binarization
-        #range_scale = np.ptp(self.corr2d)
-        #threshold = self.thresh * range_scale
-        #max_value = np.amax(self.corr2d)
-        #min_value = np.amin(self.corr2d)
+        range_scale = np.ptp(self.corr2d)
+        threshold = self.thresh * range_scale
+        max_value = np.amax(self.corr2d)
+        min_value = np.amin(self.corr2d)
         # all values above threshold are set to max_value
-        #self.corr2d[self.corr2d > threshold] = max_value
+        self.corr2d[self.corr2d > threshold] = max_value
         # all values above threshold are set to min_value
-        #self.corr2d[self.corr2d < threshold] = min_value
-        #self.processed_image = self.corr2d.T
-        self.image = self.corr2d.T
-        thresh = threshold_yen(self.image, nbins=256)
-        binary = self.image > thresh
-        self.processed_image = binary
+        self.corr2d[self.corr2d < threshold] = min_value
+        self.processed_image = self.corr2d.T
 
     def get_binarized_line(self):
         df = pd.DataFrame(data=self.processed_image.T)
@@ -363,9 +340,7 @@ class UICalculator(QWidget):
         # Classic straight-line Hough transform .accessibleDescription Set a precision of 0.5 degree.
         tested_angles = np.linspace(-np.pi/2, np.pi/2, 360, endpoint=False)
         h, theta, d = hough_line(self.processed_image, theta=tested_angles)
-        _, pitch_angle_list, rho_list = hough_line_peaks(
-            h, theta, d, num_peaks=5, min_distance=10, min_angle=10)
-        for pitch_angle, rho in zip(pitch_angle_list, rho_list):
+        for _, pitch_angle, rho in zip(*hough_line_peaks(h, theta, d, num_peaks=5, min_distance=10, min_angle=10)):
 
             # Calculate slope and intercept
             y_intercept = min(self.np_phen) + (rho*self.phen_res/np.sin(pitch_angle))+(
@@ -729,8 +704,6 @@ class UICalculator(QWidget):
         return False
 
     def open_file(self):  # self.parent.data_dir
-        #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
-        #    self, "Open Correlation Data", self.data_dir, 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
         self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
             self, "Open Correlation Data", "/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz", 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
         if self.pathname != "":
@@ -743,14 +716,10 @@ class UICalculator(QWidget):
 
     def get_latest_npz(self):
         # * means all if need specific format then *.csv
-        #list_of_files = glob.glob(
-        #    self.data_dir + "*_cor2d.npz")
         list_of_files = glob.glob(
             '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/*')
-        #self.pathname = max(list_of_files, key=os.path.getmtime)
         self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
-        print(self.pathname)
         self.load_corr2d()
 
     def load_corr2d(self):
