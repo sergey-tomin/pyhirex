@@ -80,15 +80,15 @@ class UICalculator(QWidget):
         self.linecolors = cycle(self.colors)
         self.linecolors1 = cycle(self.colors2)
         self.n = 0
-        self.d_kernel = 2
+        self.d_kernel = 0
         self.e_kernel = 0
         self.mode = 0
         self.mono_no = None
-        self.max_E = 1000
-        self.max_P = 2
+        self.max_E = 500
+        self.max_P = 1
         self.slope_allowance = 3
-        self.intercept_allowance = 180
-        self.max_distance = 2800
+        self.intercept_allowance = 100
+        self.max_distance = 1400
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.img_corr2d = None
         self.min_phen = 0
@@ -96,7 +96,7 @@ class UICalculator(QWidget):
         self.min_pangle = 0
         self.max_pangle = 0
         self.dE_mean = 0
-        self.counter = 0
+        self.legend_boolean = 0
         self.yvalue = []
         self.spec_hist = []
         self.doocs_vals_hist = []
@@ -139,7 +139,6 @@ class UICalculator(QWidget):
     def reset(self):
 
         #self.text.setText('')
-        self.ui.output.setText('')
         self.dE_mean = 0
         self.min_phen = 0
         self.max_phen = 0
@@ -151,32 +150,34 @@ class UICalculator(QWidget):
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
         self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen = [
             ], [], [], [], [], []
-        if self.counter > 0:
-            if self.mode == 1:
-                self.img_corr2d.clear()
-                self.plot1.clear()
+        #if self.counter > 0:
+        if self.mode == 1:
+            self.img_corr2d.clear()
+            self.plot1.clear()
+            if self.legend_boolean == 1:
                 self.legend.scene().removeItem(self.legend)
-                self.model.setData(x=[], y=[])
-                self.line.setData(x=[], y=[])
-                self.line_shifted.setData(x=[], y=[])
-                self.ui.pb_start_calc.setStyleSheet(
-                    "color: rgb(85, 255, 127); font-size: 14pt")
-                self.ui.pb_start_calc.setText("Calculate fom npz file")
-                self.mode = 0
+                self.legend_boolean = 0
+            self.ui.output.setText('')
+            self.model.setData(x=[], y=[])
+            self.line.setData(x=[], y=[])
+            self.line_shifted.setData(x=[], y=[])
+            self.ui.pb_start_calc.setStyleSheet(
+                "color: rgb(85, 255, 127); font-size: 14pt")
+            self.ui.pb_start_calc.setText("Calculate fom npz file")
+            self.mode = 0
 
-            elif self.mode == 2:
-                self.spec_hist = []
-                self.doocs_vals_hist = []
-                self.img_corr2d.clear()
-                self.transmission_vals_hist = []
-                self.cross_callibration_vals_hist = []
-                self.plot1.clear()
-                self.ui.pb_scan.setStyleSheet(
-                    "color: rgb(85, 255, 127); font-size: 14pt")
-                self.ui.pb_scan.setText("Scan and calculate")
-                self.mode = 0
-
-        self.counter = self.counter + 1
+        elif self.mode == 2:
+            self.spec_hist = []
+            self.doocs_vals_hist = []
+            self.img_corr2d.clear()
+            self.transmission_vals_hist = []
+            self.cross_callibration_vals_hist = []
+            self.plot1.clear()
+            self.ui.pb_scan.setStyleSheet(
+                "color: rgb(85, 255, 127); font-size: 14pt")
+            self.ui.pb_scan.setText("Scan and calculate")
+            self.mode = 0
+        #self.counter = self.counter + 1
 
         #self.ui.roll_angle.clear()
 
@@ -302,14 +303,14 @@ class UICalculator(QWidget):
         pen = pg.mkPen('r', width=3)
         pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
         self.legend = self.plot1.addLegend()
-
+        self.legend_boolean = 1
         for r in range(len(self.pa)):
             self.model = pg.PlotCurveItem(
                 x=self.pa[r], y=self.phen[r], pen=pen)
             self.plot1.addItem(self.model)
 
         for slope, intercept, min_angle, max_angle, gid in zip(self.df_detected['slope'], self.df_detected['intercept'], self.df_detected['min_angle'], self.df_detected['max_angle'], self.df_detected['gid']):
-            pitch_angle_range = np.linspace(min_angle, max_angle, 10)
+            pitch_angle_range = np.linspace(min_angle, max_angle, 100)
             self.yvalue = (pitch_angle_range*slope)+intercept
             line_pen = pg.mkPen(next(self.linecolors1), width=3,
                                 style=QtCore.Qt.DashLine)
@@ -323,6 +324,10 @@ class UICalculator(QWidget):
 
     def binarization(self):
         # all values below 0 threshold are set to 0
+        self.phen_res = self.np_phen[2] - self.np_phen[1]
+        self.angle_res = self.np_doocs[2] - self.np_doocs[1]
+        self.min_pangle = min(self.np_doocs)
+        self.max_pangle = max(self.np_doocs)
         self.corr2d[self.corr2d < 0] = 0
         # define parameters for binarization
         #range_scale = np.ptp(self.corr2d)
@@ -364,7 +369,7 @@ class UICalculator(QWidget):
         tested_angles = np.linspace(-np.pi/2, np.pi/2, 360, endpoint=False)
         h, theta, d = hough_line(self.processed_image, theta=tested_angles)
         _, pitch_angle_list, rho_list = hough_line_peaks(
-            h, theta, d, num_peaks=5, min_distance=10, min_angle=10)
+            h, theta, d, num_peaks=5, min_distance=30, min_angle=30)
         for pitch_angle, rho in zip(pitch_angle_list, rho_list):
 
             # Calculate slope and intercept
@@ -414,15 +419,15 @@ class UICalculator(QWidget):
     def generate_Bragg_curves(self):
         self.roll = list(self.df_spec_lines['roll_angle'])
         if self.mono_no == 2:
-            self.DTHP = -0.382
+            self.DTHP = -0.38565
             self.dthy = 1.17
-            self.DTHR = 0.04
-            self.alpha = 0.0028
+            self.DTHR = 0.1675
+            self.alpha = 0.00238
         else:
-            self.DTHP = -0.382
+            self.DTHP = -0.38565
             self.dthy = 1.17
-            self.DTHR = 0.04
-            self.alpha = 0.0028
+            self.DTHR = 0.1675
+            self.alpha = 0.00238
         self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
         # pass pitch and roll errors and create Bragg curves
         self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list = HXRSS_Bragg_max_generator(
@@ -445,7 +450,7 @@ class UICalculator(QWidget):
                 x1 = x[i0:i0+2]
                 y1 = y[i0:i0+2]
                 dydx, = np.diff(y1)/np.diff(x1)
-                if y1[0] < max(self.np_phen)+1000 and y1[0] > min(self.np_phen)-1000:
+                if y1[0] < max(self.np_phen)+500 and y1[0] > min(self.np_phen)-500:
                     def tngnt(x): return dydx*x + (y1[0]-dydx*x1[0])
                     tngnt_slope = (tngnt(x[1])-tngnt(x[0]))/(x[1]-x[0])
                     self.tngnt_slope_list.append(tngnt_slope)
@@ -746,7 +751,7 @@ class UICalculator(QWidget):
         #list_of_files = glob.glob(
         #    self.data_dir + "*_cor2d.npz")
         list_of_files = glob.glob(
-            '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/*')
+            '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
         #self.pathname = max(list_of_files, key=os.path.getmtime)
         self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
@@ -760,10 +765,6 @@ class UICalculator(QWidget):
         self.np_doocs = tt['doocs_scale']
         self.np_phen = tt['phen_scale']
         self.doocs_label = tt['doocs_channel']
-        self.phen_res = self.np_phen[2] - self.np_phen[1]
-        self.angle_res = self.np_doocs[2] - self.np_doocs[1]
-        self.min_pangle = min(self.np_doocs)
-        self.max_pangle = max(self.np_doocs)
         self.info_mono_no()
 
     def info_mono_no(self):
