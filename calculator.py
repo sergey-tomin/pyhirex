@@ -46,23 +46,6 @@ def find_nearest_idx(array, value):
     return idx
 
 
-class Statistics(Thread):
-    def __init__(self):
-        super(Statistics, self).__init__()
-        self._stop_event = Event()
-        self.do = None
-        self.delay = 0.1
-
-    def run(self):
-        while 1:
-            self.do()
-            logger.info("do")
-            time.sleep(self.delay)
-
-    def stop(self):
-        self._stop_event.set()
-
-
 class UICalculator(QWidget):
     def __init__(self, parent=None):
         #QWidget.__init__(self, parent)
@@ -100,8 +83,6 @@ class UICalculator(QWidget):
         self.yvalue = []
         self.spec_hist = []
         self.doocs_vals_hist = []
-        self.transmission_vals_hist = []
-        self.cross_callibration_vals_hist = []
         self.doocs_address_label = ''
         self.spec_binned = []
         self.doocs_bins = []
@@ -111,6 +92,7 @@ class UICalculator(QWidget):
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
         self.h_list, self.k_list, self.l_list, self.roll_list = [], [], [], []
+        self.event_counter = 0
 
         DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
         self.path = path[:path.find(DIR_NAME)]
@@ -119,7 +101,9 @@ class UICalculator(QWidget):
         print(self.data_dir)
 
         self.ui.pb_start_calc.clicked.connect(self.start_stop_calc_from_npz)
-        self.ui.pb_scan.clicked.connect(self.start_stop_calc_scan)
+        self.ui.pb_scan.clicked.connect(self.start_stop_scan)
+        self.ui.pb_calculate.clicked.connect(self.start_stop_calc)
+
         self.ui.browse_button.clicked.connect(self.open_file)
         self.ui.file_name.setText('')
         self.ui.roll_angle.setDecimals(4)
@@ -169,13 +153,18 @@ class UICalculator(QWidget):
         elif self.mode == 2:
             self.spec_hist = []
             self.doocs_vals_hist = []
+            self.spec_binned = []
+            self.doocs_bins = []
+            self.doocs_event_counts = []
+            self.doocs_vals_hist_lagged = []
             self.img_corr2d.clear()
-            self.transmission_vals_hist = []
-            self.cross_callibration_vals_hist = []
             self.plot1.clear()
             self.ui.pb_scan.setStyleSheet(
                 "color: rgb(85, 255, 127); font-size: 14pt")
-            self.ui.pb_scan.setText("Scan and calculate")
+            self.ui.pb_scan.setText("Scan")
+            self.ui.pb_scan.setStyleSheet(
+                "color: rgb(85, 255, 127); font-size: 14pt")
+            self.ui.pb_calculate.setText("Calculate")
             self.mode = 0
         #self.counter = self.counter + 1
 
@@ -197,6 +186,7 @@ class UICalculator(QWidget):
                 self.error_box("Select a valid npz file first")
                 return
             self.load_corr2d()
+            self.corr2d = self.tt['corr2d']
             self.binarization()
             self.ui.mono_no.setText('Image binarization complete')
             self.get_binarized_line()
@@ -216,13 +206,11 @@ class UICalculator(QWidget):
                 logger.info('No lines can be matched')
                 self.ui.mono_no.setText('No lines can be matched')
                 self.nomatch = 1
-
             self.ui.pb_start_calc.setText("Reset")
-
             self.ui.pb_start_calc.setStyleSheet(
                 "color: rgb(255, 0, 0); font-size: 14pt")
 
-    def start_stop_calc_scan(self):
+    def start_stop_scan(self):
         self.mode = 2
         if self.ui.pb_scan.text() == "Reset":
             self.reset()
@@ -233,11 +221,33 @@ class UICalculator(QWidget):
             if not self.parent.spectrometer.is_online():
                 self.error_box("Spectrometer is not ONLINE")
                 return
-
+            self.doocs_dev = None
+            self.get_device()
             self.plot_correl_scan()
             self.ui.pb_scan.setText("Reset")
 
             self.ui.pb_scan.setStyleSheet(
+                "color: rgb(255, 0, 0); font-size: 14pt")
+
+    def start_stop_calc(self):
+        self.mode = 2
+        if self.ui.pb_calculate.text() == "Reset":
+            self.reset()
+        else:
+            if self.parent.ui.pb_start.text() == "Start":
+                self.error_box("Start spectrometer first")
+                return
+            if self.ui.pb_scan.text() == "Scan":
+                self.error_box("Start scan first")
+                return
+            if not self.parent.spectrometer.is_online():
+                self.error_box("Spectrometer is not ONLINE")
+                return
+            self.corr2d = self.orig_image
+            self.binarization()
+            self.ui.pb_calculate.setText("Reset")
+
+            self.ui.pb_calculate.setStyleSheet(
                 "color: rgb(255, 0, 0); font-size: 14pt")
 
     def add_image_widget(self):
@@ -574,17 +584,10 @@ class UICalculator(QWidget):
         self.text.show()
 
     def plot_correl_scan(self):
-        mono_no_text = self.ui.combo_mono.currentText()
-        num = re.findall(r'\d+', mono_no_text)[0]
-        self.mono_no = int(num)
-        if self.mono_no == 1:
-            # "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE"
-            self.doocs_address_label = "dummy label"
-        elif self.mono_no == 2:
-            # "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE"
-            self.doocs_address_label = "dummy label"
-        #self.get_device()
 
+        #self.doocs_address_label = "dummy label"
+        #self.get_device()
+        self.event_counter += 1
         n_shots = int(self.ui.sb_n_shots_max.value())
         if len(self.spec_hist) > n_shots:  # add lag value
             self.spec_hist = self.spec_hist[-n_shots:]
@@ -605,8 +608,6 @@ class UICalculator(QWidget):
             self.doocs_address_label = 'event',
             self.doocs_vals_hist.append(self.event_counter)
 
-        self.transmission_vals_hist.append(self.parent.transmission_value)
-        self.cross_callibration_vals_hist.append(self.parent.calib_energy_coef)
         self.sort_and_bin()
         self.np_doocs = self.doocs_bins
         self.np_phen = self.phen_scan
@@ -618,12 +619,17 @@ class UICalculator(QWidget):
         self.add_corr2d_image_item()
 
     def get_device(self):
-        if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor2d):
-            eid = self.ui.le_doocs_ch_cor2d.text()
-            self.doocs_dev = Device(eid=eid)
-            self.doocs_dev.mi = self.mi
-        else:
-            self.doocs_dev = None
+        mono_no_text = self.ui.combo_mono.currentText()
+        num = re.findall(r'\d+', mono_no_text)[0]
+        self.mono_no = int(num)
+        if self.mono_no == 1:
+            self.doocs_address_label = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE"
+            #self.doocs_address_label = "dummy label"
+        elif self.mono_no == 2:
+            self.doocs_address_label = "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE"
+        eid = self.doocs_address_label
+        self.doocs_dev = Device(eid=eid)
+        self.doocs_dev.mi = self.mi
 
     def sort_and_bin(self):
         try:
@@ -680,9 +686,9 @@ class UICalculator(QWidget):
 
         else:
             self.doocs_vals_hist_lagged = self.doocs_vals_hist
-            spec_lagged = np.array(self.spec_hist) * np.array(self.cross_callibration_vals_hist)[
-                                   :, None] / np.array(self.transmission_vals_hist)[:, None]  # TODO: untested!!!
-            #spec_lagged = np.array(self.spec_hist)
+            #spec_lagged = np.array(self.spec_hist) * np.array(self.cross_callibration_vals_hist)[
+            #                       :, None] / np.array(self.transmission_vals_hist)[:, None]  # TODO: untested!!!
+            spec_lagged = np.array(self.spec_hist)
 
         min_val = bin_doocs * \
             (int(min(self.doocs_vals_hist_lagged) / bin_doocs))
@@ -767,12 +773,11 @@ class UICalculator(QWidget):
         self.load_corr2d()
 
     def load_corr2d(self):
-        tt = np.load(self.pathname)
-        self.corr2d = tt['corr2d']
-        self.orig_image = tt['corr2d']
-        self.np_doocs = tt['doocs_scale']
-        self.np_phen = tt['phen_scale']
-        self.doocs_label = tt['doocs_channel']
+        self.tt = np.load(self.pathname)
+        self.orig_image = self.tt['corr2d']
+        self.np_doocs = self.tt['doocs_scale']
+        self.np_phen = self.tt['phen_scale']
+        self.doocs_label = self.tt['doocs_channel']
         self.info_mono_no()
 
     def info_mono_no(self):
