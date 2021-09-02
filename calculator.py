@@ -84,8 +84,8 @@ class UICalculator(QWidget):
         self.e_kernel = 0
         self.mode = 0
         self.mono_no = None
-        self.max_E = 500
-        self.max_P = 1
+        self.max_E = 800
+        self.max_P = 2
         self.slope_allowance = 3
         self.intercept_allowance = 100
         self.max_distance = 1400
@@ -96,7 +96,7 @@ class UICalculator(QWidget):
         self.min_pangle = 0
         self.max_pangle = 0
         self.dE_mean = 0
-        self.legend_boolean = 0
+        self.nomatch = 0
         self.yvalue = []
         self.spec_hist = []
         self.doocs_vals_hist = []
@@ -154,13 +154,13 @@ class UICalculator(QWidget):
         if self.mode == 1:
             self.img_corr2d.clear()
             self.plot1.clear()
-            if self.legend_boolean == 1:
+            if self.nomatch == 0:
                 self.legend.scene().removeItem(self.legend)
-                self.legend_boolean = 0
+                self.model.setData(x=[], y=[])
+                self.line.setData(x=[], y=[])
+                self.line_shifted.setData(x=[], y=[])
             self.ui.output.setText('')
-            self.model.setData(x=[], y=[])
-            self.line.setData(x=[], y=[])
-            self.line_shifted.setData(x=[], y=[])
+            self.info_mono_no()
             self.ui.pb_start_calc.setStyleSheet(
                 "color: rgb(85, 255, 127); font-size: 14pt")
             self.ui.pb_start_calc.setText("Calculate fom npz file")
@@ -198,6 +198,7 @@ class UICalculator(QWidget):
                 return
             self.load_corr2d()
             self.binarization()
+            self.ui.mono_no.setText('Image binarization complete')
             self.get_binarized_line()
             self.img_processing()
             self.add_corr2d_image_item()
@@ -206,12 +207,15 @@ class UICalculator(QWidget):
             self.tangent_generator()
             self.line_comparator()
             if len(self.df_detected.index) != 0:
+                self.nomatch = 0
                 self.hkl_roll_separator()
             # Get Bragg curves
                 self.offset_calc_and_plot()
             # If no lines are detected
             else:
                 logger.info('No lines can be matched')
+                self.ui.mono_no.setText('No lines can be matched')
+                self.nomatch = 1
 
             self.ui.pb_start_calc.setText("Reset")
 
@@ -303,7 +307,7 @@ class UICalculator(QWidget):
         pen = pg.mkPen('r', width=3)
         pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
         self.legend = self.plot1.addLegend()
-        self.legend_boolean = 1
+        #self.legend_boolean = 1
         for r in range(len(self.pa)):
             self.model = pg.PlotCurveItem(
                 x=self.pa[r], y=self.phen[r], pen=pen)
@@ -370,6 +374,10 @@ class UICalculator(QWidget):
         h, theta, d = hough_line(self.processed_image, theta=tested_angles)
         _, pitch_angle_list, rho_list = hough_line_peaks(
             h, theta, d, num_peaks=5, min_distance=30, min_angle=30)
+        if len(pitch_angle_list) == 0:
+            self.ui.mono_no.setText('No lines detected')
+        else:
+            self.ui.mono_no.setText('%d line(s) found' % len(pitch_angle_list))
         for pitch_angle, rho in zip(pitch_angle_list, rho_list):
 
             # Calculate slope and intercept
