@@ -151,6 +151,7 @@ class UICalculator(QWidget):
             self.mode = 0
 
         elif self.mode == 2:
+            self.plot_timer.stop()
             self.spec_hist = []
             self.doocs_vals_hist = []
             self.spec_binned = []
@@ -162,7 +163,7 @@ class UICalculator(QWidget):
             self.ui.pb_scan.setStyleSheet(
                 "color: rgb(85, 255, 127); font-size: 14pt")
             self.ui.pb_scan.setText("Scan")
-            self.ui.pb_scan.setStyleSheet(
+            self.ui.pb_calculate.setStyleSheet(
                 "color: rgb(85, 255, 127); font-size: 14pt")
             self.ui.pb_calculate.setText("Calculate")
             self.mode = 0
@@ -187,6 +188,7 @@ class UICalculator(QWidget):
                 return
             self.load_corr2d()
             self.corr2d = self.tt['corr2d']
+            self.angle_res = self.np_doocs[2] - self.np_doocs[1]
             self.binarization()
             self.ui.mono_no.setText('Image binarization complete')
             self.get_binarized_line()
@@ -221,9 +223,12 @@ class UICalculator(QWidget):
             if not self.parent.spectrometer.is_online():
                 self.error_box("Spectrometer is not ONLINE")
                 return
+
             self.doocs_dev = None
             self.get_device()
-            self.plot_correl_scan()
+            self.plot_timer = pg.QtCore.QTimer()
+            self.plot_timer.timeout.connect(self.plot_correl_scan)
+            self.plot_timer.start(100)
             self.ui.pb_scan.setText("Reset")
 
             self.ui.pb_scan.setStyleSheet(
@@ -245,6 +250,22 @@ class UICalculator(QWidget):
                 return
             self.corr2d = self.orig_image
             self.binarization()
+            self.get_binarized_line()
+            self.img_processing()
+            self.add_corr2d_image_item()
+            self.hough_line_transform()
+            self.generate_Bragg_curves()
+            self.tangent_generator()
+            self.line_comparator()
+            if len(self.df_detected.index) != 0:
+                self.nomatch = 0
+                self.hkl_roll_separator()
+            # Get Bragg curves
+                self.offset_calc_and_plot()
+            # If no lines are detected
+            else:
+                self.ui.mono_no.setText('No lines can be matched')
+                self.nomatch = 1
             self.ui.pb_calculate.setText("Reset")
 
             self.ui.pb_calculate.setStyleSheet(
@@ -339,7 +360,7 @@ class UICalculator(QWidget):
     def binarization(self):
         # all values below 0 threshold are set to 0
         self.phen_res = self.np_phen[2] - self.np_phen[1]
-        self.angle_res = self.np_doocs[2] - self.np_doocs[1]
+
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
         self.corr2d[self.corr2d < 0] = 0
@@ -612,10 +633,6 @@ class UICalculator(QWidget):
         self.np_doocs = self.doocs_bins
         self.np_phen = self.phen_scan
         self.orig_image = self.spec_binned
-        #self.phen_res = self.np_phen[2] - self.np_phen[1]
-        #self.angle_res = self.np_doocs[2] - self.np_doocs[1]
-        #self.min_pangle = min(self.np_doocs)
-        #self.max_pangle = max(self.np_doocs)
         self.add_corr2d_image_item()
 
     def get_device(self):
@@ -707,6 +724,7 @@ class UICalculator(QWidget):
         self.bin_dest_idx = np.digitize(
             self.doocs_vals_hist_lagged, self.doocs_bins)-1
         self.spec_binned = np.zeros((len(self.doocs_bins)-1, n_phens))
+        self.angle_res = bin_doocs
 
         for i in np.unique(self.bin_dest_idx):
             idx = np.where(i == self.bin_dest_idx)[0]
@@ -762,10 +780,10 @@ class UICalculator(QWidget):
 
     def get_latest_npz(self):
         # * means all if need specific format then *.csv
-        #list_of_files = glob.glob(
-        #    self.data_dir + "*_cor2d.npz")
         list_of_files = glob.glob(
-            '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
+            self.data_dir + "*_cor2d.npz")
+        #list_of_files = glob.glob(
+        #    '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
         #self.pathname = max(list_of_files, key=os.path.getmtime)
         self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
