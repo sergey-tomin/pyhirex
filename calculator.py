@@ -10,6 +10,7 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget, QMessageBox, QApplication
 import pyqtgraph as pg
 from gui.UICalculator import Ui_Form
+from gui.calc_gui import *
 from mint.opt_objects import Device
 import time
 import os
@@ -780,12 +781,12 @@ class UICalculator(QWidget):
 
     def get_latest_npz(self):
         # * means all if need specific format then *.csv
-        list_of_files = glob.glob(
-            self.data_dir + "*_cor2d.npz")
         #list_of_files = glob.glob(
-        #    '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
-        #self.pathname = max(list_of_files, key=os.path.getmtime)
-        self.pathname = max(list_of_files, key=os.path.getctime)
+        #    self.data_dir + "*_cor2d.npz")
+        list_of_files = glob.glob(
+            '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
+        self.pathname = max(list_of_files, key=os.path.getmtime)
+        #self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
         print(self.pathname)
         self.load_corr2d()
