@@ -364,20 +364,17 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QDoubleSpinBox" name="roll_angle"/>
-          </item>
           <item row="0" column="1" colspan="3">
            <widget class="QLineEdit" name="file_name"/>
           </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QLabel" name="mono_no">
+          <item row="0" column="4">
+           <widget class="QPushButton" name="browse_button">
             <property name="text">
-             <string/>
+             <string>Browse</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="4">
+          <item row="3" column="4">
            <widget class="QPushButton" name="pb_start_calc">
             <property name="minimumSize">
              <size>
@@ -406,12 +403,8 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="4">
-           <widget class="QPushButton" name="browse_button">
-            <property name="text">
-             <string>Browse</string>
-            </property>
-           </widget>
+          <item row="3" column="1" colspan="2">
+           <widget class="QDoubleSpinBox" name="roll_angle"/>
           </item>
          </layout>
         </widget>
@@ -432,8 +425,8 @@
             </property>
             <property name="font">
              <font>
-              <weight>75</weight>
-              <bold>true</bold>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">

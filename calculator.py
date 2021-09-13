@@ -159,6 +159,7 @@ class UICalculator(QWidget):
             self.doocs_bins = []
             self.doocs_event_counts = []
             self.doocs_vals_hist_lagged = []
+            self.ui.output.setText('')
             self.img_corr2d.clear()
             self.plot1.clear()
             self.ui.pb_scan.setStyleSheet(
@@ -181,17 +182,19 @@ class UICalculator(QWidget):
         if self.ui.pb_start_calc.text() == "Reset":
             self.reset()
         else:
-            if self.ui.mono_no.text() == "Invalid input":
+            if self.ui.output.text() == "Invalid input\n":
                 self.error_box("Select a valid npz file first")
                 return
-            if self.ui.mono_no.text() == "":
+            if self.ui.output.text() == "":
                 self.error_box("Select a valid npz file first")
                 return
             self.load_corr2d()
+            self.ui.output.setText(self.ui.output.text() + 'npz file loaded\n')
             self.corr2d = self.tt['corr2d']
             self.angle_res = self.np_doocs[2] - self.np_doocs[1]
             self.binarization()
-            self.ui.mono_no.setText('Image binarization complete')
+            self.ui.output.setText(
+                self.ui.output.text() + 'Image binarization complete\n')
             self.get_binarized_line()
             self.img_processing()
             self.add_corr2d_image_item()
@@ -206,8 +209,8 @@ class UICalculator(QWidget):
                 self.offset_calc_and_plot()
             # If no lines are detected
             else:
-                logger.info('No lines can be matched')
-                self.ui.mono_no.setText('No lines can be matched')
+                self.ui.output.setText(
+                    self.ui.output.text() + 'No lines can be matched\n')
                 self.nomatch = 1
             self.ui.pb_start_calc.setText("Reset")
             self.ui.pb_start_calc.setStyleSheet(
@@ -230,6 +233,7 @@ class UICalculator(QWidget):
             self.plot_timer = pg.QtCore.QTimer()
             self.plot_timer.timeout.connect(self.plot_correl_scan)
             self.plot_timer.start(100)
+            self.ui.output.setText('Scan complete\n')
             self.ui.pb_scan.setText("Reset")
 
             self.ui.pb_scan.setStyleSheet(
@@ -251,6 +255,8 @@ class UICalculator(QWidget):
                 return
             self.corr2d = self.orig_image
             self.binarization()
+            self.ui.output.setText(
+                self.ui.output.text() + 'Image binarization complete\n')
             self.get_binarized_line()
             self.img_processing()
             self.add_corr2d_image_item()
@@ -265,7 +271,8 @@ class UICalculator(QWidget):
                 self.offset_calc_and_plot()
             # If no lines are detected
             else:
-                self.ui.mono_no.setText('No lines can be matched')
+                self.ui.output.setText(
+                    self.ui.output.text() + 'No lines can be matched\n')
                 self.nomatch = 1
             self.ui.pb_calculate.setText("Reset")
 
@@ -407,9 +414,11 @@ class UICalculator(QWidget):
         _, pitch_angle_list, rho_list = hough_line_peaks(
             h, theta, d, num_peaks=5, min_distance=30, min_angle=30)
         if len(pitch_angle_list) == 0:
-            self.ui.mono_no.setText('No lines detected')
+            self.ui.output.setText(
+                self.ui.output.text() + 'No lines detected\n')
         else:
-            self.ui.mono_no.setText('%d line(s) found' % len(pitch_angle_list))
+            self.ui.output.setText(self.ui.output.text(
+            ) + '%d line(s) found\n' % len(pitch_angle_list))
         for pitch_angle, rho in zip(pitch_angle_list, rho_list):
 
             # Calculate slope and intercept
@@ -588,8 +597,8 @@ class UICalculator(QWidget):
         self.add_plot()
         for E, x, y in zip(self.df_detected['dE'], self.df_detected['centroid_x'], self.df_detected['centroid_y']):
             self.add_text_to_plot(x, y+50, E)
-        self.ui.output.setText('Average Energy Offset: '
-                               + str(np.round(self.dE_mean, 1))+' eV')
+        self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
+                               + str(np.round(self.dE_mean, 1))+' eV\n')
 
     def img_processing(self):
         self.processed_image = ndimage.grey_dilation(
@@ -777,7 +786,7 @@ class UICalculator(QWidget):
             self.load_corr2d()
         else:
             self.ui.file_name.setText('')
-            self.ui.mono_no.setText('')
+            #self.ui.output.setText('')
 
     def get_latest_npz(self):
         # * means all if need specific format then *.csv
@@ -785,8 +794,8 @@ class UICalculator(QWidget):
         #    self.data_dir + "*_cor2d.npz")
         list_of_files = glob.glob(
             '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
-        self.pathname = max(list_of_files, key=os.path.getmtime)
-        #self.pathname = max(list_of_files, key=os.path.getctime)
+        #self.pathname = max(list_of_files, key=os.path.getmtime)
+        self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
         print(self.pathname)
         self.load_corr2d()
@@ -803,12 +812,12 @@ class UICalculator(QWidget):
         if "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE" in self.doocs_label or "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE" in self.doocs_label:
             if "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE" in self.doocs_label:
                 self.mono_no = 1
-                self.ui.mono_no.setText('Monochromator 1 image found.')
+                self.ui.output.setText('Monochromator 1 image found.\n')
             elif "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE" in self.doocs_label:
                 self.mono_no = 2
-                self.ui.mono_no.setText('Monochromator 2 image found.')
+                self.ui.output.setText('Monochromator 2 image found.\n')
         else:
-            self.ui.mono_no.setText('Invalid input')
+            self.ui.output.setText('Invalid input\n')
 
 
 def main():
