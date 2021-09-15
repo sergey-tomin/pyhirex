@@ -51,262 +51,6 @@
        <property name="spacing">
         <number>6</number>
        </property>
-       <item row="2" column="3">
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Scan</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="2" column="1">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Eph range</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="5">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>DOOCS bin</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>N shots</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="5">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Spectrometer lag (events)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="7">
-           <widget class="QLineEdit" name="sb_corr2d_binning">
-            <property name="text">
-             <string>1</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="7">
-           <widget class="QSpinBox" name="sb_corr2d_lag"/>
-          </item>
-          <item row="2" column="2">
-           <widget class="QDoubleSpinBox" name="sb_emin">
-            <property name="locale">
-             <locale language="English" country="UnitedStates"/>
-            </property>
-            <property name="maximum">
-             <double>99999.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QDoubleSpinBox" name="sb_emax">
-            <property name="locale">
-             <locale language="English" country="UnitedStates"/>
-            </property>
-            <property name="maximum">
-             <double>99999.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>99999.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="7">
-           <widget class="QPushButton" name="pb_calculate">
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>60</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>14</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(85, 255, 127);</string>
-            </property>
-            <property name="text">
-             <string>Calculate</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="5">
-           <widget class="QPushButton" name="pb_scan">
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>60</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>1000</width>
-              <height>1000</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>14</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(85, 255, 127);</string>
-            </property>
-            <property name="text">
-             <string>Scan</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" colspan="4">
-           <widget class="QComboBox" name="combo_mono">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="Button">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="Base">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="Window">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="Button">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="Base">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="Window">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="Button">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="Base">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-               <colorrole role="Window">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>255</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
-            <property name="currentText">
-             <string/>
-            </property>
-            <property name="maxCount">
-             <number>2147483647</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2" colspan="2">
-           <widget class="QSpinBox" name="sb_n_shots_max">
-            <property name="locale">
-             <locale language="English" country="UnitedStates"/>
-            </property>
-            <property name="maximum">
-             <number>10000000</number>
-            </property>
-            <property name="singleStep">
-             <number>1000</number>
-            </property>
-            <property name="value">
-             <number>100000</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="4">
-           <widget class="QPushButton" name="pb_calc_logbook">
-            <property name="text">
-             <string>Logbook</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="5">
-        <widget class="QWidget" name="widget" native="true"/>
-       </item>
        <item row="0" column="0" colspan="3">
         <widget class="QWidget" name="widget_calc" native="true">
          <property name="sizePolicy">
@@ -409,7 +153,23 @@
          </layout>
         </widget>
        </item>
-       <item row="2" column="4" colspan="2">
+       <item row="0" column="3" colspan="3">
+        <widget class="QWidget" name="widget_calc_2" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>200</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3" colspan="3">
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
           <string>Logs</string>
@@ -435,22 +195,6 @@
            </widget>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item row="0" column="3" colspan="2">
-        <widget class="QWidget" name="widget_calc_2" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>300</width>
-           <height>200</height>
-          </size>
-         </property>
         </widget>
        </item>
       </layout>
