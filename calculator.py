@@ -4,18 +4,13 @@ based on logger.py by Sergey Tomin
 """
 import sys
 import numpy as np
-import json
 import pathlib
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QWidget, QMessageBox, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication
 import pyqtgraph as pg
 from gui.UICalculator import Ui_Form
-from gui.calc_gui import *
-from mint.opt_objects import Device
-import time
 import os
 import glob
-from threading import Thread, Event
 import logging
 from matplotlib import cm
 import pandas as pd
@@ -63,9 +58,7 @@ class UICalculator(QWidget):
         self.colors2 = ['b', 'g', 'c', 'y', 'k']
         self.linecolors = cycle(self.colors)
         self.linecolors1 = cycle(self.colors2)
-        self.n = 0
-        self.d_kernel = 0
-        self.e_kernel = 0
+        self.n, self.d_kernel, self.e_kernel = 0, 0, 0
         self.mode = 0
         self.mono_no = None
         self.max_E = 800
@@ -75,18 +68,15 @@ class UICalculator(QWidget):
         self.max_distance = 1400
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.img_corr2d = None
-        self.min_phen = 0
-        self.max_phen = 0
-        self.min_pangle = 0
-        self.max_pangle = 0
+        self.min_phen, self.max_phen = 0, 0
+        self.min_pangle, self.max_pangle = 0, 0
         self.dE_mean = 0
         self.nomatch = 0
         self.yvalue = []
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
-        self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
+        self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.actual_E, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], [], []
         self.h_list, self.k_list, self.l_list, self.roll_list = [], [], [], []
-        self.event_counter = 0
 
         DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
         self.path = path[:path.find(DIR_NAME)]
@@ -113,18 +103,14 @@ class UICalculator(QWidget):
     def reset(self):
 
         #self.text.setText('')
-        self.dE_mean = 0
-        self.min_phen = 0
-        self.max_phen = 0
-        self.min_pangle = 0
-        self.max_pangle = 0
+        self.dE_mean, self.min_phen, self.max_phen = 0, 0, 0
+        self.min_pangle, self.max_pangle = 0, 0
         self.dE_mean = 0
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
-        self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], []
+        self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list, self.actual_E = [], [], [], [], [], [], [], [], [], [], []
         self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen = [
             ], [], [], [], [], []
-        #if self.counter > 0:
         if self.mode == 1:
             self.img_corr2d.clear()
             self.plot1.clear()
@@ -139,10 +125,6 @@ class UICalculator(QWidget):
                 "color: rgb(85, 255, 127); font-size: 14pt")
             self.ui.pb_start_calc.setText("Calculate fom npz file")
             self.mode = 0
-
-        #self.counter = self.counter + 1
-
-        #self.ui.roll_angle.clear()
 
     def closeEvent(self, QCloseEvent):
     	self.mode = 0
@@ -206,7 +188,6 @@ class UICalculator(QWidget):
 
     def add_corr2d_image_item(self):
         self.img_corr2d.clear()
-
         scale_yaxis = (self.np_phen[-1] - self.np_phen[0]) / len(self.np_phen)
         translate_yaxis = self.np_phen[0] / scale_yaxis
 
@@ -288,16 +269,6 @@ class UICalculator(QWidget):
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
         self.corr2d[self.corr2d < 0] = 0
-        # define parameters for binarization
-        #range_scale = np.ptp(self.corr2d)
-        #threshold = self.thresh * range_scale
-        #max_value = np.amax(self.corr2d)
-        #min_value = np.amin(self.corr2d)
-        # all values above threshold are set to max_value
-        #self.corr2d[self.corr2d > threshold] = max_value
-        # all values above threshold are set to min_value
-        #self.corr2d[self.corr2d < threshold] = min_value
-        #self.processed_image = self.corr2d.T
         self.image = self.corr2d.T
         thresh = threshold_yen(self.image, nbins=256)
         binary = self.image > thresh
@@ -397,7 +368,6 @@ class UICalculator(QWidget):
         # pass pitch and roll errors and create Bragg curves
         self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list = HXRSS_Bragg_max_generator(
             self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
-        logger.info("Bragg lines generated")
 
     def tangent_generator(self):
         for r, gid_raw, roll_angle in zip(range(len(self.p_angle_list)), self.gid_list, self.roll_angle_list):
@@ -428,7 +398,6 @@ class UICalculator(QWidget):
                     self.interp_Bragg_list.append(f)
         self.df_tangents = pd.DataFrame(dict(slope=self.tngnt_slope_list, intercept=self.tngnt_intercept_list, gid=self.tngnt_gid_list, interp=self.interp_Bragg_list,
                                              centroid_pa=self.tngnt_centroid_list, centroid_phen=self.tngnt_centroid_y_list, roll_angle=self.tngnt_roll_angle_list))
-        logger.info("Tangents generated")
 
     def line_comparator(self):
         for slope, intercept, min_angle, max_angle, centroid_pa, centroid_phen, roll_angle in zip(self.df_spec_lines['slope'], self.df_spec_lines['intercept'], self.df_spec_lines['min_angle'], self.df_spec_lines['max_angle'], self.df_spec_lines['centroid_pa'], self.df_spec_lines['centroid_phen'], self.df_spec_lines['roll_angle']):
@@ -456,6 +425,7 @@ class UICalculator(QWidget):
                             self.detected_centroid_x_list.pop()
                             self.detected_centroid_y_list.pop()
                             self.dE_list.pop()
+                            self.actual_E.pop()
                             self.detected_slope_list.append(slope)
                             self.detected_intercept_list.append(intercept)
                             self.detected_id_list.append(curve_id)
@@ -468,6 +438,7 @@ class UICalculator(QWidget):
                             self.dE_list.append(dE)
                             self.detected_centroid_x_list.append(centroid_pa)
                             self.detected_centroid_y_list.append(centroid_phen)
+                            self.actual_E.append(interp_fn_Bragg(centroid_pa))
                             n = n+1
                             #logger.info('Its a match ', n, ' Curve id:', curve_id, 'Distance', np.round(
                             #dist, 2), np.round(ans, 2), np.round(interp_fn_Bragg(ans), 2))
@@ -492,13 +463,14 @@ class UICalculator(QWidget):
                             self.dE_list.append(dE)
                             self.detected_centroid_x_list.append(centroid_pa)
                             self.detected_centroid_y_list.append(centroid_phen)
+                            self.actual_E.append(interp_fn_Bragg(centroid_pa))
                             n = n+1
                             msg = 'Line with id:' + curve_id + ' matched \n'
                             self.ui.output.setText(self.ui.output.text(
                             ) + msg)
 
         self.df_detected = pd.DataFrame(dict(slope=self.detected_slope_list, intercept=self.detected_intercept_list, min_angle=self.detected_line_min_angle_list,
-                                             max_angle=self.detected_line_max_angle_list, dE=self.dE_list, gid=self.detected_id_list, roll_angle=self.detected_line_roll_angle_list, centroid_x=self.detected_centroid_x_list, centroid_y=self.detected_centroid_y_list))
+                                             max_angle=self.detected_line_max_angle_list, dE=self.dE_list, gid=self.detected_id_list, roll_angle=self.detected_line_roll_angle_list, centroid_x=self.detected_centroid_x_list, centroid_y=self.detected_centroid_y_list, actual_E=self.actual_E))
 
     def hkl_roll_separator(self):
         for gid_item, roll in zip(self.df_detected['gid'], self.df_detected['roll_angle']):
@@ -512,11 +484,14 @@ class UICalculator(QWidget):
         self.pa, self.phen, gid_list = HXRSS_Bragg_generator(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.pa_range), self.DTHP, self.dthy, self.DTHR, self.alpha)
         self.dE_mean = np.mean(self.df_detected['dE'])
+        self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
         for E, x, y in zip(self.df_detected['dE'], self.df_detected['centroid_x'], self.df_detected['centroid_y']):
-            self.add_text_to_plot(x, y+50, E)
+            self.add_text_to_plot(x, max(self.np_phen)-10, E)
         self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
                                + str(np.round(self.dE_mean, 1))+' eV\n')
+        self.ui.output.setText(self.ui.output.text() + 'Actual Energy: '
+                               + str(np.round(self.E_actual_mean, 0))+' eV\n')
 
     def img_processing(self):
         self.processed_image = ndimage.grey_dilation(
@@ -527,7 +502,7 @@ class UICalculator(QWidget):
     def add_text_to_plot(self, x, y, E):
         self.text = pg.TextItem(color='w')
         self.img_corr2d.addItem(self.text)
-        self.text.setText(str(np.round(E, 1)))
+        self.text.setText(str(np.round(E, 1)) + ' eV')
         self.text.setPos(x, y)
         self.text.setZValue(5)
         self.text.show()
