@@ -351,7 +351,7 @@ class UICalculator(QWidget):
 
         self.df_spec_lines = pd.DataFrame(dict(slope=self.slope_list, intercept=self.y_intercept_list, min_angle=self.min_angle_list, max_angle=self.max_angle_list,
                                                centroid_pa=self.centroid_pa_list, centroid_phen=self.centroid_phen_list))
-        self.df_spec_lines['roll_angle'] = self.ui.roll_angle.value()
+        self.df_spec_lines['roll_angle'] = self.set_roll_angle
 
     def generate_Bragg_curves(self):
         self.roll = list(self.df_spec_lines['roll_angle'])
@@ -572,10 +572,46 @@ class UICalculator(QWidget):
         if "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE" in self.doocs_label or "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE" in self.doocs_label:
             if "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE" in self.doocs_label:
                 self.mono_no = 1
-                self.ui.output.setText('Monochromator 1 image found.\n')
+                try:
+                    filedata = np.loadtxt(
+                        self.pathname+'_status.txt', dtype='str', delimiter=',', skiprows=1)
+                    pa_pos = np.where(
+                        filedata == 'XFEL.FEL/UNDULATOR.SASE2/MONOPA.2252.SA2/ANGLE')
+                    ra_pos = np.where(
+                        filedata == 'XFEL.FEL/UNDULATOR.SASE2/MONORA.2252.SA2/ANGLE')
+                    pa_row = pa_pos[0][0]
+                    self.set_pitch_angle = float(filedata[pa_row][1])
+                    ra_row = ra_pos[0][0]
+                    self.set_roll_angle = float(filedata[ra_row][1])
+                    self.ui.output.setText(
+                        'Monochromator 1 image found; Machine status file found: pitch angle='+str(np.round(self.set_pitch_angle, 4)) + ' deg; roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
+                except:
+                    self.set_roll_angle = self.ui.roll_angle.value()
+                    self.set_pitch_angle = (
+                        max(self.np_doocs)-min(self.np_doocs)/2)
+                    self.ui.output.setText(
+                        'Monochromator 1 image found; Machine status file not found.\n')
             elif "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE" in self.doocs_label:
                 self.mono_no = 2
-                self.ui.output.setText('Monochromator 2 image found.\n')
+                try:
+                    filedata = np.loadtxt(
+                        self.pathname+'_status.txt', dtype='str', delimiter=',', skiprows=1)
+                    pa_pos = np.where(
+                        filedata == 'XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE')
+                    ra_pos = np.where(
+                        filedata == 'XFEL.FEL/UNDULATOR.SASE2/MONORA.2307.SA2/ANGLE')
+                    pa_row = pa_pos[0][0]
+                    self.set_pitch_angle = float(filedata[pa_row][1])
+                    ra_row = ra_pos[0][0]
+                    self.set_roll_angle = float(filedata[ra_row][1])
+                    self.ui.output.setText(
+                        'Monochromator 2 image found; Machine status file found: pitch angle='+str(np.round(self.set_pitch_angle, 4)) + ' deg; roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
+                except:
+                    self.set_roll_angle = self.ui.roll_angle.value()
+                    self.set_pitch_angle = (
+                        max(self.np_doocs)-min(self.np_doocs)/2)
+                    self.ui.output.setText(
+                        'Monochromator 2 image found; Machine status file not found.\n')
         else:
             self.ui.output.setText('Invalid input\n')
 
