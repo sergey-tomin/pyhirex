@@ -144,7 +144,10 @@ class UICalculator(QWidget):
             self.load_corr2d()
             self.corr2d = self.tt['corr2d']
             if len(self.np_doocs) > 2:
-                self.angle_res = self.np_doocs[2] - self.np_doocs[1]
+                #self.angle_res = self.np_doocs[2] - self.np_doocs[1]
+                self.scale_xaxis = (max(self.np_doocs)
+                                    - min(self.np_doocs)) / len(self.np_doocs)
+                self.angle_res = self.scale_xaxis
             else:
                 self.nomatch = 1
                 self.ui.output.setText(
@@ -188,12 +191,10 @@ class UICalculator(QWidget):
 
     def add_corr2d_image_item(self):
         self.img_corr2d.clear()
-        scale_yaxis = (self.np_phen[-1] - self.np_phen[0]) / len(self.np_phen)
-        translate_yaxis = self.np_phen[0] / scale_yaxis
-
-        scale_xaxis = (max(self.np_doocs) - min(self.np_doocs)
-                       ) / len(self.np_doocs)
-        translate_xaxis = min(self.np_doocs) / scale_xaxis
+        self.scale_yaxis = (
+            self.np_phen[-1] - self.np_phen[0]) / len(self.np_phen)
+        translate_yaxis = self.np_phen[0] / self.scale_yaxis
+        translate_xaxis = min(self.np_doocs) / self.scale_xaxis
 
         self.img = pg.ImageItem()
         self.img_corr2d.addItem(self.img)
@@ -204,7 +205,7 @@ class UICalculator(QWidget):
         # Apply the colormap
         self.img.setLookupTable(lut)
         self.img.setImage(self.orig_image)
-        self.img.scale(scale_xaxis, scale_yaxis)
+        self.img.scale(self.scale_xaxis, self.scale_yaxis)
         self.img.translate(translate_xaxis, translate_yaxis)
 
     def add_plot_widget(self):
@@ -466,9 +467,11 @@ class UICalculator(QWidget):
                             self.actual_E.append(interp_fn_Bragg(centroid_pa))
                             n = n+1
                             msg = 'Line with id:' + curve_id + ' matched \n'
+                            msg_dispersion = 'Calibration: ' + \
+                                str(np.round(tngnt_slope/slope, 2)) + ' Current ev/px: ' + str(
+                                    np.round(self.scale_yaxis, 2)) + '; Proposed ev/px:' + str(np.round(self.scale_yaxis*tngnt_slope/slope, 2))+'\n'
                             self.ui.output.setText(self.ui.output.text(
-                            ) + msg)
-
+                            ) + msg + msg_dispersion)
         self.df_detected = pd.DataFrame(dict(slope=self.detected_slope_list, intercept=self.detected_intercept_list, min_angle=self.detected_line_min_angle_list,
                                              max_angle=self.detected_line_max_angle_list, dE=self.dE_list, gid=self.detected_id_list, roll_angle=self.detected_line_roll_angle_list, centroid_x=self.detected_centroid_x_list, centroid_y=self.detected_centroid_y_list, actual_E=self.actual_E))
 
