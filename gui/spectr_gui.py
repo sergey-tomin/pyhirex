@@ -114,8 +114,9 @@ class MainWindow(Ui_MainWindow):
 
         self.le_doocs_ch_hist.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_hist))
         #self.le_b.editingFinished.connect(self.check_address)
-        self.pb_logbook.clicked.connect(lambda: self.log_waterflow(self.Form))
-        self.actionSend_to_logbook.triggered.connect(lambda: self.log_waterflow(self.Form))
+        self.pb_logbook.clicked.connect(lambda: self.log_waterflow(self.Form, save_data=1))
+        # self.pb_logbook_only.clicked.connect(lambda: self.log_waterflow(self.Form, save_data=0))
+        self.actionSend_to_logbook.triggered.connect(lambda: self.log_waterflow(self.Form, save_data=1))
         
         self.pb_logbook_cor2d.clicked.connect(lambda: self.log_cor2d(self.Form))
         self.actionSend_cor2d_to_logbook.triggered.connect(lambda: self.log_cor2d(self.Form))
@@ -231,13 +232,14 @@ class MainWindow(Ui_MainWindow):
                 doocs_channel=cor2d_tab.doocs_address_label,
                 )
                 
-        self.save_machine_status_file()
+        #self.save_machine_status_file(filename = filename+"_status.txt")
         
         return filename
         
-    def save_machine_status_file(self):
+    def save_machine_status_file(self, filename=None):
     	import csv
-    	filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_status.txt"
+    	if filename == None:
+    		filename = self.Form.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_status.txt"
     	with open(filename,'w') as f:
     		writer = csv.writer(f)
     		writer.writerow(['address','value'])
@@ -290,8 +292,8 @@ class MainWindow(Ui_MainWindow):
         if not res:
             self.Form.error_box("error during eLogBook sending")
 
-    def log_waterflow(self, widget):
-        if self.Form.doocs_permit:
+    def log_waterflow(self, widget, save_data=1):
+        if self.Form.doocs_permit and save_data:
             filename = self.save_waterflow_file()
             text = "Waterfall data is saved in: " + filename
             
@@ -304,7 +306,7 @@ class MainWindow(Ui_MainWindow):
             filename = self.save_cor2d_file()
             #text = "Correlation2D data is saved in: " + filename
             #tmp
-            filename_status = self.save_machine_status_file()
+            filename_status = self.save_machine_status_file(filename = filename+"_status.txt")
             text = "Correlation2D data is saved in: " + filename + "\nMachine status data is saved in: " + filename_status
         else:
             text = ""
