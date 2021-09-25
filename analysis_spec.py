@@ -142,26 +142,26 @@ class AnalysisInterface:
         
     
     def arange_spectra(self): #populate and trim spectrum array for analysis
-        if self.ui.pb_start.text() == "Start" or self.parent.spectrum_event is None or not self.ui.analysis_acquire.isChecked():
+        if self.ui.pb_start.text() == "Start" or self.parent.spectrum_event_disp is None or not self.ui.analysis_acquire.isChecked():
             return
         # print('arranging')
         
-        # wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event)
-        # shifted_spec = self.spar.phen[0] != self.parent.x_axis[0] or self.spar.phen[-1] != self.parent.x_axis[-1]
+        # wrong_size = self.spar.spec.shape[0] != len(self.parent.spectrum_event_disp)
+        # shifted_spec = self.spar.phen[0] != self.parent.x_axis_disp[0] or self.spar.phen[-1] != self.parent.x_axis_disp[-1]
         
         
         
-        if not np.array_equal(self.phen_last, self.parent.x_axis):
-            print('different axis, skippimg')
+        if not np.array_equal(self.phen_last, self.parent.x_axis_disp):
+            print('different axis, skipping')
             self.reset_spectra()
-            self.phen_last = self.parent.x_axis
+            self.phen_last = self.parent.x_axis_disp
             return
             
         
         #if shifted_spec:
         #    print('correlation analysis: photon energy scale changed')
         #    self.reset_spectra()
-        zeroscale = self.parent.x_axis[-1] == self.parent.x_axis[0]
+        zeroscale = self.parent.x_axis_disp[-1] == self.parent.x_axis_disp[0]
         
         if zeroscale:
             print('correlation analysis: x_axis[-1] == x_axis[0]')
@@ -185,14 +185,14 @@ class AnalysisInterface:
         # print('before append: , self.spar.spec.shape=',self.spar.spec.shape)
         if len(self.spar.spec) == 1: #fresh unpopulated array
             # print(' fresh unpopulated array')
-            self.spar.spec = self.parent.spectrum_event[:, np.newaxis] * self.parent.calib_energy_coef / transm
-            self.spar.phen = self.parent.x_axis
+            self.spar.spec = self.parent.spectrum_event_disp[:, np.newaxis] * self.parent.calib_energy_coef / transm
+            self.spar.phen = self.parent.x_axis_disp
         else:
             # print(' all ok, old self.spar.spec.shape=', self.spar.spec.shape)
-            self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event[:,np.newaxis] * self.parent.calib_energy_coef / transm, axis=1)
-            self.spar.phen = self.parent.x_axis
+            self.spar.spec = np.append(self.spar.spec, self.parent.spectrum_event_disp[:,np.newaxis] * self.parent.calib_energy_coef / transm, axis=1)
+            self.spar.phen = self.parent.x_axis_disp
             # print('  new shape self.spar.spec.shape=',self.spar.spec.shape)
-        # self.spec_hist.append(self.parent.spectrum_event)
+        # self.spec_hist.append(self.parent.spectrum_event_disp)
         if n_shots_analysis > 0:
             if self.spar.events > n_shots_analysis:
                 # print('before cut: , self.spar.spec.shape=',self.spar.spec.shape)
@@ -330,7 +330,7 @@ class AnalysisInterface:
             self.n_last_correlated = 0
             return
         self.g2fit = self.corrn.fit_g2func(g2_gauss, thresh=0.1)
-        print("self.g2fit", self.g2fit)
+        # print("self.g2fit", self.g2fit)
         self.g2fit.fit_t_comp = self.g2fit.fit_t * self.g2fit.fit_pedestal / self.g2fit.fit_contrast
         
         E_ph = self.E_ph_box_used
@@ -383,7 +383,7 @@ class AnalysisInterface:
             bin_width = W_bins[1]-W_bins[0]
 
             Wm = numpy.mean(W) #average power calculated
-            print("Wm_full", Wm)
+            # print("Wm_full", Wm)
             sigm2 = numpy.mean((W - Wm)**2) / Wm**2 #sigma square (power fluctuations)
             M_calc = 1 / sigm2 #calculated number of modes  
             
@@ -403,14 +403,14 @@ class AnalysisInterface:
             #self.histogram_full.clear()
             self.histogram_full_curve.setData(W_bins/Wm, W_hist*Wm*self.spar.events/self.hist_nbins)
             #self.histogram_full.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
-            
-            
-            
-            
+             
             fit_p0 = [Wm, Wm**2 / numpy.mean((W - Wm)**2)]
             _, fit_p = fit_gamma_dist(W_bins[1:]-bin_width/2, W_hist, gamma_dist_function, fit_p0)
             Wm_fit, M_fit = fit_p # fit of average power and number of modes
-            self.histogram_full_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm,gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins)
+            gama_dist = gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins
+            gama_dist[gama_dist==np.inf]=np.nan
+            #print('gama_dist_full=',gama_dist)
+            self.histogram_full_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
             self.label_hist_full.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
             
@@ -475,13 +475,16 @@ class AnalysisInterface:
             
             # pen_avg=pg.mkPen(color=(200, 0, 0), width=3)
             # pen_single=pg.mkPen(color=(200, 200, 200), width=1)
-            
-            self.histogram_peak_curve.setData(W_bins/Wm, W_hist*Wm*self.spar.events/self.hist_nbins)
+            gama_hist = W_hist*Wm*self.spar.events/self.hist_nbins
+            self.histogram_peak_curve.setData(W_bins/Wm, gama_hist)
             
             fit_p0 = [Wm, Wm**2 / numpy.mean((W - Wm)**2)]
             _, fit_p = fit_gamma_dist(W_bins[1:]-bin_width/2, W_hist, gamma_dist_function, fit_p0)
             Wm_fit, M_fit = fit_p # fit of average power and number of modes
-            self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm,gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins)
+            gama_dist = gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins
+            gama_dist[gama_dist==np.inf]=np.nan
+            #print('gama_dist_peak=',gama_dist)
+            self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
             #self.histogram_peak.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
             self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
@@ -515,11 +518,15 @@ class AnalysisInterface:
         self.durr_comp_curve.setData(self.g2fit.omega[idx] * hr_eV_s, self.g2fit.fit_t_comp[idx])
         self.durr0_curve.setData(self.g2fit.omega[idx] * hr_eV_s, np.zeros_like(self.g2fit.fit_t_comp[idx]))
         
-        maxdur = np.nanmax(self.g2fit.fit_t_comp[idx])
-        centerphen = self.g2fit.omega[self.g2_plot_idx] * hr_eV_s
-        # print(maxdur, centerphen)
-        self.g2_phen_curve.setData([centerphen, centerphen], [0,maxdur])
-        
+        try:
+            if len(self.g2fit.fit_t_comp)>0:
+                maxdur = np.nanmax(self.g2fit.fit_t_comp[idx])
+                centerphen = self.g2fit.omega[self.g2_plot_idx] * hr_eV_s
+                # print(maxdur, centerphen)
+                self.g2_phen_curve.setData([centerphen, centerphen], [0,maxdur])
+        except ValueError:
+            print('ValueError in update_durr_plot')
+            pass
         # self.fit_pulse_dur.setLimits(yMin=0)
         # self.fit_pulse_dur.setLimits([0,2])
         

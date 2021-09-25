@@ -118,7 +118,7 @@ class Correl2DInterface:
         except ValueError:
             phen_min = -np.inf
             
-        self.phen_orig = self.parent.x_axis
+        self.phen_orig = self.parent.x_axis_disp
             
         try:
             phen_max = self.ui.sb_emax.value()/1000
@@ -174,7 +174,7 @@ class Correl2DInterface:
         # spec = np.array(self.spec_hist)
         # min_val = bin_doocs * (int(min(self.doocs_vals_hist) / bin_doocs))
         # max_val = max(self.doocs_vals_hist)
-        min_val = bin_doocs * (int(min(self.doocs_vals_hist_lagged) / bin_doocs)) #ensures the minimum value is integer of bin width and figure does not jitter
+        min_val = bin_doocs * (int(np.nanmin(self.doocs_vals_hist_lagged) / bin_doocs)) #ensures the minimum value is integer of bin width and figure does not jitter
         max_val = max(self.doocs_vals_hist_lagged) + bin_doocs * 1.01
         
         if max_val - min_val <= bin_doocs:
@@ -243,7 +243,7 @@ class Correl2DInterface:
         
         
         
-        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event is None:
+        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event_disp is None:
             return
             
         # print('DOOCS LABEL ',self.doocs_address_label)
@@ -261,7 +261,10 @@ class Correl2DInterface:
             self.spec_hist = self.spec_hist[-n_shots:]
             self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
         
-        self.spec_hist.append(self.parent.spectrum_event)
+        if len(self.spec_hist) >0:
+        	if len(self.spec_hist[0]) != len(self.parent.spectrum_event_disp):
+        		self.reset()
+        self.spec_hist.append(self.parent.spectrum_event_disp)
         
         
         #print(self.doocs_address_label)
