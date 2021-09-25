@@ -50,8 +50,8 @@ class UILogger(QWidget):
         self.add_plot()
         self.timer_live = pg.QtCore.QTimer()
         self.timer_live.timeout.connect(self.plot_data)
-        self.ui.combo_log_ch_a.addItems(["max(spectrum)"])
-        self.ui.combo_log_ch_b.addItems(["max(av_spectrum)"])
+        # self.ui.combo_log_ch_a.addItems(["max(spectrum)"])
+        # self.ui.combo_log_ch_b.addItems(["max(av_spectrum)"])
         self.ui.pb_start_log.clicked.connect(self.start_stop_logger)
         #self.ui = self.parent.ui
 
@@ -100,7 +100,7 @@ class UILogger(QWidget):
             self.ui.pb_start_log.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
     def plot_data(self):
-        spec = self.parent.spectrum_event_disp
+        
         av_spec = self.parent.ave_spectrum
 
         if len(self.maxspec_vals) >= self.ui.sb_nponts.value():
@@ -119,12 +119,12 @@ class UILogger(QWidget):
         #x = np.arange(len(maxspec_av))
         # if self.ui.combo_log_ch_a.currentIndex() == 0:
             # self.single.setData(x=x, y=self.line1)
-        if self.ui.combo_log_ch_b.currentIndex() == 0:
-            self.average.setData(x=np.arange(np.size(self.line2)), y=self.line2)
+        # if self.ui.combo_log_ch_b.currentIndex() == 0:
+        self.average.setData(x=np.arange(np.size(self.line2)), y=self.line2)
         
         if self.ui.chkbx_spec_pk_single.isChecked():
             try:
-                maxspec_val = np.amax(spec)
+                maxspec_val = np.amax(self.parent.spectrum_event_disp)
             except ValueError:
                 maxspec_val = 0
             self.maxspec_vals = np.append(self.maxspec_vals, maxspec_val)

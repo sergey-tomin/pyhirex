@@ -299,7 +299,9 @@ class SpectrometerWindow(QMainWindow):
 
         self.timer_live = pg.QtCore.QTimer()
         self.timer_live.timeout.connect(self.get_transmission)
-        self.timer_live.timeout.connect(self.live_spec)
+        self.timer_live.timeout.connect(self.calc_spec)
+        self.timer_plot = pg.QtCore.QTimer()
+        self.timer_plot.timeout.connect(self.plot_spec)
 
 
         self.ui.pb_start.clicked.connect(self.start_stop_live_spectrum)
@@ -309,7 +311,12 @@ class SpectrometerWindow(QMainWindow):
         self.peak_ev = None
         self.spectrum_event = None
         self.spectrum_event_disp = None
+        self.peak_ev = 0 #position of peak in eV (middle of fwhm)
+        self.fwhm_ev = 0 # fwhm width in eV ()
+        self.ave_integ = 0 # pulse energy from spectrometer integral
+        self.pulse_energy = 0 # pulse energy from XGM
         self.counter_spect = 0
+        
         self.background = self.back_taker.load()
 
         self.ui.sb_ev_px.valueChanged.connect(self.calibrate_axis)
@@ -453,12 +460,12 @@ class SpectrometerWindow(QMainWindow):
             return
 
         if self.ui.combo_hirex.currentText() in ["DUMMY", "DUMMYSASE"]:
-            pulse_energy = DummyXGM('','').get_value()
+            self.pulse_energy = DummyXGM('','').get_value()
         else:
-            pulse_energy = self.mi.get_value(self.slow_xgm_signal)
+            self.pulse_energy = self.mi.get_value(self.slow_xgm_signal)
 
         self.get_transmission()
-        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.x_axis_disp, self.transmission_value, pulse_energy)
+        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.x_axis_disp, self.transmission_value, self.pulse_energy)
 
     def run_settings_window(self):
         if self.settings is None:
@@ -580,7 +587,7 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_background.setText("Taking ...              ")
             self.ui.pb_background.setStyleSheet("color: rgb(85, 255, 127);")
 
-    def live_spec(self):
+    def calc_spec(self):
 
         self.spectrum_event = self.spectrometer.get_value().astype("float64")
         self.spectrum_event_disp = self.spectrum_event[self.px_first:self.px_last]
@@ -619,17 +626,29 @@ class SpectrometerWindow(QMainWindow):
         #print(self.peak_ev_list)
 
         # single_integr = np.trapz(spectrum, self.x_axis_disp)/self.get_transmission() * self.calib_energy_coef
-        ave_integ = np.trapz(self.ave_spectrum, self.x_axis_disp) / self.transmission_value * self.calib_energy_coef
+        self.ave_integ = np.trapz(self.ave_spectrum, self.x_axis_disp) / self.transmission_value * self.calib_energy_coef
         if self.doocs_permit and self.ui.cb_doocs_send_data.isChecked():
-            self.mi.set_value(self.dynprop_integ, ave_integ)
+            self.mi.set_value(self.dynprop_integ, self.ave_integ)
             self.mi.set_value(self.dynprop_max, np.max(self.ave_spectrum[self.max_spec_min_inx: self.max_spec_max_inx]))
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.max(self.ave_spectrum[570:580]))
         self.peak_ev = self.x_axis_disp[np.argmax(self.ave_spectrum)]
 
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
-
+        
         self.data_2d[:, 0] = self.spectrum_event_disp# single_sig_wo_noise
+        
+        try:
+            p1interp, p2interp = fwhm3(np.array(self.ave_spectrum))
+            fwhm_px = p2interp - p1interp
+            peak_px = (p2interp + p1interp)/2
+        except:
+            fwhm_px = 0
+            peak_px = 0
+        px_ev = (self.x_axis_disp[1] - self.x_axis_disp[0])
+        self.peak_ev = self.x_axis_disp[int(np.floor(peak_px))] + px_ev * (peak_px - np.floor(peak_px))
+        self.fwhm_ev = fwhm_px * px_ev
 
+    def plot_spec(self):
         # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
             if self.ui.chb_uj_ev.isChecked():
@@ -648,25 +667,16 @@ class SpectrometerWindow(QMainWindow):
 
         if self.energy_axis_thread.trigger:
             self.calibrate_axis()
-        pulse_energy = self.xgm.get_value()
+        self.pulse_energy = self.xgm.get_value()
         if self.counter_spect % 10 == 1:
             self.label2.setText(
             "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
-            pulse_energy, ave_integ, self.peak_ev))
+            self.pulse_energy, self.ave_integ, self.peak_ev))
             # try:
             # print('self.x_axis_disp = {}'.format(self.x_axis_disp))
-            try:
-                p1interp, p2interp = fwhm3(np.array(self.ave_spectrum))
-                fwhm_px = p2interp - p1interp
-                peak_px = (p2interp + p1interp)/2
-            except:
-                fwhm_px = 0
-                peak_px = 0
-            px_ev = (self.x_axis_disp[1] - self.x_axis_disp[0])
-            peak_ev = self.x_axis_disp[int(np.floor(peak_px))] + px_ev * (peak_px - np.floor(peak_px))
-            fwhm_ev = fwhm_px * px_ev
-            self.ui.label_sigma.setText(str(np.round(fwhm_ev, 3)))
-            self.ui.label_peak_ev.setText(str(np.round(peak_ev, 3)))
+            
+            self.ui.label_sigma.setText(str(np.round(self.fwhm_ev, 3)))
+            self.ui.label_peak_ev.setText(str(np.round(self.peak_ev, 3)))
             # print('self.counter_spect {}'.format(self.counter_spect))
             # print('peak_ave {}'.format(np.nanmax(self.ave_spectrum)))
             # print('peak at {} with fwhm of {}'.format(peak_ev, fwhm_ev))
@@ -741,6 +751,7 @@ class SpectrometerWindow(QMainWindow):
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
+            self.timer_plot.stop()
             self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0); font-size: 18pt")
             self.ui.pb_start.setText("Start")
         else:
@@ -756,6 +767,7 @@ class SpectrometerWindow(QMainWindow):
             self.ave_spectrum = []
 
             self.timer_live.start(100)
+            self.timer_plot.start(250)
             self.ui.pb_start.setText("Stop")
 
             #self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127); font-size: 18pt")
