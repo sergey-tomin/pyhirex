@@ -89,7 +89,7 @@ class UILogger(QWidget):
                 return
             #self.counter_spect = 0
             #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
-            self.line1 = []
+            self.maxspec_vals = []
             self.line2 = []
             self.line3 = []
             self.line4 = []
@@ -103,29 +103,34 @@ class UILogger(QWidget):
         spec = self.parent.spectrum_event_disp
         av_spec = self.parent.ave_spectrum
 
-        if len(self.line1) >= self.ui.sb_nponts.value():
-            self.line1 = self.line1[1:]
+        if len(self.maxspec_vals) >= self.ui.sb_nponts.value():
+            self.maxspec_vals = self.maxspec_vals[1:]
             self.line2 = self.line2[1:]
             self.line3 = self.line3[1:]
             self.line4 = self.line4[1:]
         
-        try:
-            maxspec = np.amax(spec)
-        except ValueError:
-            maxspec = 0
+        
         try:
             maxspec_av = np.amax(av_spec)
         except ValueError:
             maxspec_av = 0
             
-        self.line1 = np.append(self.line1, maxspec)
         self.line2 = np.append(self.line2, maxspec_av)
-        x = np.arange(len(self.line1))
-        if self.ui.combo_log_ch_a.currentIndex() == 0:
-            self.single.setData(x=x, y=self.line1)
+        #x = np.arange(len(maxspec_av))
+        # if self.ui.combo_log_ch_a.currentIndex() == 0:
+            # self.single.setData(x=x, y=self.line1)
         if self.ui.combo_log_ch_b.currentIndex() == 0:
-            self.average.setData(x=x, y=self.line2)
-
+            self.average.setData(x=np.arange(np.size(self.line2)), y=self.line2)
+        
+        if self.ui.chkbx_spec_pk_single.isChecked():
+            try:
+                maxspec_val = np.amax(spec)
+            except ValueError:
+                maxspec_val = 0
+            self.maxspec_vals = np.append(self.maxspec_vals, maxspec_val)
+            self.maxspec_plot.setData(x=np.arange(np.size(self.maxspec_vals)), y=self.maxspec_vals)
+        else:
+            self.maxspec_vals = np.append(self.maxspec_vals, np.nan)
 
     def add_plot(self):
         gui_index = self.parent.ui.get_style_name_index()
@@ -161,9 +166,9 @@ class UILogger(QWidget):
 
         self.plot1.addLegend()
 
-        self.single = pg.PlotCurveItem(pen=single_pen, name='single')
+        self.maxspec_plot = pg.PlotCurveItem(pen=single_pen, name='maxspec_single_plot')
 
-        self.plot1.addItem(self.single)
+        self.plot1.addItem(self.maxspec_plot)
 
         pen = pg.mkPen((51, 255, 51), width=2)
         pen = pg.mkPen((255, 0, 0), width=3)
