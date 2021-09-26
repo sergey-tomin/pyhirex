@@ -107,32 +107,10 @@ class UILogger(QWidget):
             self.line3 = self.line3[1:]
             self.line4 = self.line4[1:]
         
-        
-        try:
-            maxspec_av = np.amax(av_spec)
-        except ValueError:
-            maxspec_av = 0
-            
-        self.line2 = np.append(self.line2, maxspec_av)
-        
-        self.parent.peak_ev = self.parent.x_axis_disp[np.argmax(self.parent.ave_spectrum)]
-        try:
-            p1interp, p2interp = fwhm3(np.array(self.parent.ave_spectrum))
-            fwhm_px = p2interp - p1interp
-            peak_px = (p2interp + p1interp)/2
-        except ValueError:
-            fwhm_px = 0
-            peak_px = 0 
-        px_ev = (self.parent.x_axis_disp[1] - self.parent.x_axis_disp[0])
-        self.parent.peak_ev = self.parent.x_axis_disp[int(np.floor(peak_px))] + px_ev * (peak_px - np.floor(peak_px))
-        self.parent.fwhm_ev = fwhm_px * px_ev
-
         #x = np.arange(len(maxspec_av))
         # if self.ui.combo_log_ch_a.currentIndex() == 0:
             # self.single.setData(x=x, y=self.line1)
         # if self.ui.combo_log_ch_b.currentIndex() == 0:
-        
-        self.average.setData(x=np.arange(np.size(self.line2)), y=self.line2)
         
         #spec peak single checkbox
         if self.ui.chkbx_spec_pk_single.isChecked():
@@ -141,29 +119,32 @@ class UILogger(QWidget):
             except ValueError:
                 maxspec_val = 0
             self.maxspec_vals = np.append(self.maxspec_vals, maxspec_val)
-            self.maxspec_plot.setData(x=np.arange(np.size(self.maxspec_vals)), y=self.maxspec_vals)
+            self.maxspec_plot.setData(x=np.flip(np.arange(np.size(self.maxspec_vals))), y=self.maxspec_vals)
         else:
             self.maxspec_vals = np.append(self.maxspec_vals, np.nan)
         
-        # #spec peak average checkbox 
-        # if self.ui.chkbx_spec_pk_average.isCheckable():
-        #     try:
-        #         pass
-        #     except ValueError:
-        #         pass
-        # else:
-        #     pass 
+        #spec peak average checkbox 
+        if self.ui.chkbx_spec_pk_average.isChecked():
+            try:
+                maxspec_av = np.amax(av_spec)
+            except ValueError:
+                maxspec_av = 0
+            self.line2 = np.append(self.line2, maxspec_av)
+            self.average.setData(x=np.flip(np.arange(np.size(self.line2))), y=self.line2)
+        else:
+            self.line2 = np.append(self.line2, np.nan)
+ 
 
         #spec pos and BW checkboxes         
-        if self.ui.chkbx_spec_pos.isChecked():
+        if self.ui.chkbx_spec_BW.isChecked():
             self.line3 = np.append(self.line3, self.parent.fwhm_ev)
-            self.fwhm_ev_pos.setData(x=np.arange(np.size(self.line3)), y=self.line3)
+            self.fwhm_ev_pos.setData(x=np.flip(np.arange(np.size(self.line3))), y=self.line3)
         else:
             self.line3 = np.append(self.line3, np.nan)
             
-        if self.ui.chkbx_spec_BW.isChecked():
+        if self.ui.chkbx_spec_pos.isChecked():
             self.line4 = np.append(self.line4, self.parent.peak_ev)
-            self.peak_ev_pos.setData(x=np.arange(np.size(self.line4)), y=self.line4)
+            self.peak_ev_pos.setData(x=np.flip(np.arange(np.size(self.line4))), y=self.line4)
         else:
             self.line4 = np.append(self.line4, np.nan)
             
@@ -179,62 +160,79 @@ class UILogger(QWidget):
         else:
             single_pen = pg.mkPen("w")
 
-        win = pg.GraphicsLayoutWidget() # justify='right',,
-        self.label = pg.LabelItem(justify='left', row=0, col=0)
-        win.addItem(self.label)
+        # win = pg.GraphicsLayoutWidget() # justify='right',,
+        win = pg.GraphicsView()
+        win.setWindowTitle('pyqtgraph example: multiple y-axis')
+        win.show()
+        # self.label = pg.LabelItem(justify='left', row=0, col=0)
+        # win.addItem(self.label)
+        l = pg.GraphicsLayout()
+        win.setCentralWidget(l)
         
-        a2 = pg.AxisItem("left")
+        # a2 = pg.AxisItem("left")
         a3 = pg.AxisItem("left")
         a4 = pg.AxisItem("left")
             
-        v2 = pg.ViewBox()
-        v3 = pg.ViewBox()
-        v4 = pg.ViewBox()
+        # v2 = pg.ViewBox()
+        v3 = pg.ViewBox(invertX=True)
+        v4 = pg.ViewBox(invertX=True)
         
         # add axis to layout
         ## watch the col parameter here for the position
-        win.addItem(a2, row = 2, col = 5,  rowspan=1, colspan=1)
-        win.addItem(a3, row = 2, col = 4,  rowspan=1, colspan=1)
-        win.addItem(a4, row = 2, col = 3,  rowspan=1, colspan=1)
-     
+        # win.addItem(a2, row = 2, col = 5,  rowspan=1, colspan=1)
+        l.addItem(a3, row = 2, col = 2,  rowspan=1, colspan=1)
+        l.addItem(a4, row = 2, col = 1,  rowspan=1, colspan=1)
+        
         # plotitem and viewbox
         ## at least one plotitem is used whioch holds its own viewbox and left axis
         pI = pg.PlotItem()
         v1 = pI.vb # reference to viewbox of the plotitem
-        win.addItem(pI, row = 2, col = 6,  rowspan=1, colspan=1) # add plotitem to layout
-        
-        
+        l.addItem(pI, row = 2, col = 3,  rowspan=1, colspan=1) # add plotitem to layout
         pI.getAxis('left').enableAutoSIPrefix(enable=False)  # stop the auto unit scaling on y axes
+        pI.hideAxis('left')
+        pI.showAxis('right')     
+        # pI.getAxis("right").setLabel('Signal, arb.un', color='#ff0000')
+        pI.setLabel("right", 'Signal, arb.un', color='#ff0000')
+        pI.setLabel('bottom', 'N of shots', color='#000000')
+        # pI.showGrid(1, 1, 1)
+        # self.vLine = pg.InfiniteLine(angle=90, movable=False)
+        # self.hLine = pg.InfiniteLine(angle=0, movable=False)
+        # pg.PlotItem().addItem(self.vLine, ignoreBounds=False)
+        # pg.PlotItem().addItem(self.hLine, ignoreBounds=True)
+        v1.invertX(True)
+        
+        v1.setLimits(xMin=0, yMin=0)
+        v3.setLimits(xMin=0)
+        v4.setLimits(xMin=0)
+         ###### very important lines
         layout = QtGui.QGridLayout()
         self.ui.widget_log.setLayout(layout)
         layout.addWidget(win, 0, 0)
+        ###### 
         
-        pI.addLegend()
-
         # add viewboxes to layout 
-        win.scene().addItem(v2)
-        win.scene().addItem(v3)
-        win.scene().addItem(v4)
+        # l.scene().addItem(v2)
+        l.scene().addItem(v3)
+        l.scene().addItem(v4)
         
         # link axis with viewboxes
-        a2.linkToView(v2)
+        
+        # a1.linkToView(v1)
         a3.linkToView(v3)
         a4.linkToView(v4)
         
         # link viewboxes
-        v2.setXLink(v1)
-        v3.setXLink(v2)
+        # v2.setXLink(v1)
+        v3.setXLink(v1)
         v4.setXLink(v3)
         
         # axes labels
-        pI.getAxis("left").setLabel('maxspec_single_plot', color='#FFFFFF')
-        a2.setLabel('average', color='#ff0000')
-        a3.setLabel('fwhm', color='#008000')
-        a4.setLabel('peak_pos', color='#0000ff')
-        
+        # pI.getAxis("right").setLabel('Signal, arb.un', color='#FFFFFF')
+        a3.setLabel('FWHM, eV', color='#008000')
+        a4.setLabel('Peak position, eV', color='#0000ff')
         # slot: update view when resized
         def updateViews():
-            v2.setGeometry(v1.sceneBoundingRect())
+            # v2.setGeometry(v1.sceneBoundingRect())
             v3.setGeometry(v1.sceneBoundingRect())
             v4.setGeometry(v1.sceneBoundingRect())
                 
@@ -251,17 +249,16 @@ class UILogger(QWidget):
         self.peak_ev_pos =  pg.PlotCurveItem(pen=pen3, name='peak_pos')
     
         v1.addItem(self.maxspec_plot)
-        v2.addItem(self.average)
+        v1.addItem(self.average)
         v3.addItem(self.fwhm_ev_pos)
         v4.addItem(self.peak_ev_pos)      
         
         # updates when resized
-        v1.sigResized.connect(updateViews)
-        
+        v1.sigResized.connect(updateViews)        
         # autorange once to fit views at start
-        v2.enableAutoRange(axis= pg.ViewBox.XYAxes, enable=True)
-        v3.enableAutoRange(axis= pg.ViewBox.XYAxes, enable=True)
-        v4.enableAutoRange(axis= pg.ViewBox.XYAxes, enable=True)
+        # v2.enableAutoRange(axis= pg.ViewBox.XYAxes, enable=True)
+        v3.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
+        v4.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
         
         # updateViews()
         
