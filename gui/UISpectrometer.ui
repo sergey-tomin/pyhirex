@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1440</width>
-    <height>780</height>
+    <width>1979</width>
+    <height>1076</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -244,7 +244,20 @@
            </property>
            <item row="0" column="1">
             <layout class="QGridLayout" name="gridLayout_5">
-             <item row="1" column="1">
+             <item row="0" column="1">
+              <widget class="QPushButton" name="pb_background">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Take Background</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
               <widget class="QCheckBox" name="chb_a">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -257,23 +270,17 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="2">
+             <item row="1" column="1">
               <widget class="QPushButton" name="pb_hide_show_backplot">
                <property name="text">
                 <string>Show Background</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1" colspan="2">
-              <widget class="QPushButton" name="pb_background">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+             <item row="1" column="2">
+              <widget class="QPushButton" name="pb_hide_average">
                <property name="text">
-                <string>Take Background</string>
+                <string>Hide Average</string>
                </property>
               </widget>
              </item>
@@ -407,30 +414,6 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_13">
-             <item row="0" column="1">
-              <widget class="QPushButton" name="pb_logbook">
-               <property name="text">
-                <string>Logbook</string>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+P</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QCheckBox" name="cb_doocs_send_data">
-               <property name="text">
-                <string>DOOCS: Send Data</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QPushButton" name="pb_cross_calib">
-               <property name="text">
-                <string>Cross-calibration with XGM</string>
-               </property>
-              </widget>
-             </item>
              <item row="2" column="0">
               <widget class="QPushButton" name="pb_logger">
                <property name="sizePolicy">
@@ -441,6 +424,60 @@
                </property>
                <property name="text">
                 <string>Open Logger</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QCheckBox" name="cb_doocs_send_data">
+               <property name="text">
+                <string>DOOCS: Send Data</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QPushButton" name="pb_logbook">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>255</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>255</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
+               <property name="text">
+                <string>Logbook with data</string>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+P</string>
                </property>
               </widget>
              </item>
@@ -471,23 +508,23 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLabel" name="label_50">
+              <widget class="QLabel" name="label_peak_ev">
                <property name="text">
-                <string>TextLabel</string>
+                <string>0</string>
                </property>
               </widget>
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>Sigma Av [eV]</string>
+                <string>FWHM avr [eV]</string>
                </property>
               </widget>
              </item>
              <item row="2" column="0">
               <widget class="QLabel" name="label_49">
                <property name="text">
-                <string>TextLabel</string>
+                <string>PEAK avr [eV]</string>
                </property>
               </widget>
              </item>
@@ -522,17 +559,56 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_8">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_48">
+               <property name="text">
+                <string>Px last</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="sb_px_last">
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="minimum">
+                <number>-2000</number>
+               </property>
+               <property name="maximum">
+                <number>0</number>
+               </property>
+               <property name="singleStep">
+                <number>10</number>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QPushButton" name="pb_cross_calib">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Cross-calibration with XGM</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QCheckBox" name="chb_uj_ev">
+               <property name="text">
+                <string>uJ/eV scale</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
               <widget class="QLabel" name="label_47">
                <property name="text">
                 <string>Px first</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLabel" name="label_48">
-               <property name="text">
-                <string>Px last</string>
                </property>
               </widget>
              </item>
@@ -544,32 +620,12 @@
                <property name="maximum">
                 <number>2000</number>
                </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Avarage over N</string>
+               <property name="singleStep">
+                <number>10</number>
                </property>
               </widget>
              </item>
-             <item row="0" column="3">
-              <widget class="QSpinBox" name="sb_px_last">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="minimum">
-                <number>-2000</number>
-               </property>
-               <property name="maximum">
-                <number>0</number>
-               </property>
-               <property name="value">
-                <number>0</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
+             <item row="0" column="4">
               <widget class="QDoubleSpinBox" name="sb_av_nbunch">
                <property name="locale">
                 <locale language="English" country="UnitedStates"/>
@@ -591,17 +647,10 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="2">
-              <widget class="QPushButton" name="pb_hide_average">
+             <item row="0" column="3">
+              <widget class="QLabel" name="label">
                <property name="text">
-                <string>Hide Average</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="3">
-              <widget class="QCheckBox" name="chb_uj_ev">
-               <property name="text">
-                <string>uJ/eV</string>
+                <string>Avarage over N bunches</string>
                </property>
               </widget>
              </item>
@@ -823,7 +872,7 @@
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="2,2,1">
+           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="2,2,2">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -1007,7 +1056,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Calculate</string>
+                <string>Acquire</string>
                </property>
                <property name="shortcut">
                 <string>Space</string>
@@ -1016,6 +1065,70 @@
              </item>
              <item>
               <widget class="QPushButton" name="sb_corr_2d_reset">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>13</pointsize>
@@ -1084,7 +1197,7 @@
               <widget class="QSpinBox" name="sb_corr2d_lag">
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>8</pointsize>
                 </font>
                </property>
                <property name="minimum">
@@ -1097,6 +1210,49 @@
              </item>
              <item>
               <widget class="QLabel" name="label_25">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                 <italic>false</italic>
+                </font>
+               </property>
                <property name="text">
                 <string>DOOCS bin</string>
                </property>
@@ -1135,9 +1291,47 @@
              </item>
              <item>
               <widget class="QLabel" name="label_26">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>8</pointsize>
+                 <italic>true</italic>
                 </font>
                </property>
                <property name="text">
@@ -1147,9 +1341,47 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="sb_emin">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>8</pointsize>
+                 <italic>true</italic>
                 </font>
                </property>
                <property name="locale">
@@ -1174,6 +1406,49 @@
              </item>
              <item>
               <widget class="QLabel" name="label_29">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>8</pointsize>
+                 <italic>true</italic>
+                </font>
+               </property>
                <property name="text">
                 <string>:</string>
                </property>
@@ -1181,9 +1456,47 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="sb_emax">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>140</red>
+                     <green>140</green>
+                     <blue>140</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="WindowText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>8</pointsize>
+                 <italic>true</italic>
                 </font>
                </property>
                <property name="locale">
@@ -1214,8 +1527,45 @@
            </item>
            <item>
             <widget class="QPushButton" name="pb_logbook_cor2d">
+             <property name="palette">
+              <palette>
+               <active>
+                <colorrole role="ButtonText">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>0</red>
+                   <green>0</green>
+                   <blue>255</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </active>
+               <inactive>
+                <colorrole role="ButtonText">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>0</red>
+                   <green>0</green>
+                   <blue>255</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </inactive>
+               <disabled>
+                <colorrole role="ButtonText">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>120</red>
+                   <green>120</green>
+                   <blue>120</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </disabled>
+              </palette>
+             </property>
              <property name="text">
-              <string>Logbook</string>
+              <string>Logbook with data</string>
              </property>
             </widget>
            </item>
@@ -1733,8 +2083,45 @@
           </property>
           <item>
            <widget class="QPushButton" name="pb_logbook_specanalysis">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="ButtonText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>0</green>
+                  <blue>255</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="ButtonText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>0</green>
+                  <blue>255</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="ButtonText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>120</red>
+                  <green>120</green>
+                  <blue>120</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
             <property name="text">
-             <string>Logbook</string>
+             <string>Logbook with data</string>
             </property>
            </widget>
           </item>
@@ -1831,6 +2218,43 @@
           </item>
           <item>
            <widget class="QPushButton" name="analysis_resetbutton">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="ButtonText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>255</red>
+                  <green>0</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="ButtonText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>255</red>
+                  <green>0</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="ButtonText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>120</red>
+                  <green>120</green>
+                  <blue>120</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
             <property name="font">
              <font>
               <weight>75</weight>
@@ -1848,6 +2272,11 @@
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
            <widget class="QLabel" name="label_35">
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Histogram: bins</string>
             </property>
@@ -1855,6 +2284,11 @@
           </item>
           <item>
            <widget class="QSpinBox" name="analysis_nbins_box">
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
             <property name="singleStep">
              <number>5</number>
             </property>
@@ -1865,6 +2299,11 @@
           </item>
           <item>
            <widget class="QLabel" name="label_36">
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>E_ph [eV]</string>
             </property>
@@ -1872,6 +2311,11 @@
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="analysis_Eph_box">
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
             <property name="decimals">
              <number>1</number>
             </property>
@@ -1889,6 +2333,11 @@
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="analysis_dEph_box">
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
             <property name="maximum">
              <double>100.000000000000000</double>
             </property>
@@ -1906,56 +2355,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_45">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-              <italic>true</italic>
-             </font>
-            </property>
-            <property name="text">
-             <string>Ruin spectrum (for debug):</string>
-            </property>
-           </widget>
           </item>
           <item>
            <widget class="Line" name="line_8">
@@ -2005,7 +2404,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>6</pointsize>
               <italic>true</italic>
              </font>
             </property>
@@ -2055,7 +2454,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>6</pointsize>
               <italic>true</italic>
              </font>
             </property>
@@ -2063,6 +2462,11 @@
           </item>
           <item>
            <widget class="Line" name="line_9">
+            <property name="font">
+             <font>
+              <pointsize>6</pointsize>
+             </font>
+            </property>
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -2109,7 +2513,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>6</pointsize>
               <italic>true</italic>
              </font>
             </property>
@@ -2159,7 +2563,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>6</pointsize>
               <italic>true</italic>
              </font>
             </property>
@@ -2173,116 +2577,11 @@
           </item>
           <item>
            <widget class="Line" name="line_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_43">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>116</red>
-                  <green>116</green>
-                  <blue>116</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>116</red>
-                  <green>116</green>
-                  <blue>116</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
-              <italic>true</italic>
+              <pointsize>6</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>Pedestal</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="box_pedestal">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>116</red>
-                  <green>116</green>
-                  <blue>116</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>116</red>
-                  <green>116</green>
-                  <blue>116</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-              <italic>true</italic>
-             </font>
-            </property>
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="maximum">
-             <double>10000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="Line" name="line_10">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -2329,7 +2628,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>6</pointsize>
               <italic>true</italic>
              </font>
             </property>
@@ -2379,7 +2678,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>6</pointsize>
               <italic>true</italic>
              </font>
             </property>
@@ -2391,6 +2690,122 @@
             </property>
             <property name="singleStep">
              <double>0.050000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_10">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_43">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>0</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>0</red>
+                  <green>0</green>
+                  <blue>0</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>120</red>
+                  <green>120</green>
+                  <blue>120</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <italic>false</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Pedestal adjustment</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="box_pedestal">
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>116</red>
+                  <green>116</green>
+                  <blue>116</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>116</red>
+                  <green>116</green>
+                  <blue>116</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>120</red>
+                  <green>120</green>
+                  <blue>120</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <italic>false</italic>
+             </font>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-100000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>1.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -2443,56 +2858,6 @@
            </spacer>
           </item>
           <item>
-           <widget class="QLabel" name="label_40">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>170</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>170</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="WindowText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-              <italic>true</italic>
-             </font>
-            </property>
-            <property name="text">
-             <string>in progress, bugs or wishes -&gt; svitozar.serkez@xfel.eu</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -2525,7 +2890,7 @@
              <number>100000</number>
             </property>
             <property name="singleStep">
-             <number>10</number>
+             <number>9</number>
             </property>
            </widget>
           </item>
@@ -2569,8 +2934,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1440</width>
-     <height>24</height>
+     <width>1979</width>
+     <height>31</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">

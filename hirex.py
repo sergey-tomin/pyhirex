@@ -52,6 +52,70 @@ DIR_NAME = "hirex"
 PY_SPECTROMETER_DIR = "pySpectrometer"
 
 
+def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
+    """calculates the full width at half maximum (fwhm) of the array.
+    the function will return the fwhm with sub-pixel interpolation. 
+    It will start at the maximum position and 'walk' left and right until it approaches the half values.
+    if total==1, it will start at the edges and 'walk' towards peak until it approaches the half values.
+    INPUT:
+    - valuelist: e.g. the list containing the temporal shape of a pulse
+    OPTIONAL INPUT:
+    -peakpos: position of the peak to examine (list index)
+    the global maximum will be used if omitted.
+    if total = 1 - 
+    OUTPUT:
+    - peakpos(index), interpolated_width(npoints), [index_l, index_r]
+    """
+    if peakpos == -1:  # no peakpos given -> take maximum
+        peak = np.max(valuelist)
+        peakpos = np.min(np.nonzero(valuelist == peak))
+    peakvalue = valuelist[peakpos]
+    phalf = peakvalue * height
+    if total == 0:
+        # go left and right, starting from peakpos
+        ind1 = peakpos
+        ind2 = peakpos
+        while ind1 > 2 and valuelist[ind1] > phalf:
+            ind1 = ind1 - 1
+        while ind2 < len(valuelist) - 1 and valuelist[ind2] > phalf:
+            ind2 = ind2 + 1
+        grad1 = valuelist[ind1 + 1] - valuelist[ind1]
+        grad2 = valuelist[ind2] - valuelist[ind2 - 1]
+        if grad1 == 0 or grad2 == 0:
+            width = None
+        else:
+            # calculate the linear interpolations
+            # print(ind1,ind2)
+            p1interp = ind1 + (phalf - valuelist[ind1]) / grad1
+            p2interp = ind2 + (phalf - valuelist[ind2]) / grad2
+            # calculate the width
+            width = p2interp - p1interp
+    else:
+        # go to center from edges
+        ind1 = 1
+        ind2 = valuelist.size-2
+        # print(peakvalue,phalf)
+        # print(ind1,ind2,valuelist[ind1],valuelist[ind2])
+        while ind1 < peakpos and valuelist[ind1] < phalf:
+            ind1 = ind1 + 1
+        while ind2 > peakpos and valuelist[ind2] < phalf:
+            ind2 = ind2 - 1
+        # print(ind1,ind2)
+        # ind1 and 2 are now just above phalf
+        grad1 = valuelist[ind1] - valuelist[ind1 - 1]
+        grad2 = valuelist[ind2 + 1] - valuelist[ind2]
+        if grad1 == 0 or grad2 == 0:
+            width = None
+        else:
+            # calculate the linear interpolations
+            p1interp = ind1 + (phalf - valuelist[ind1]) / grad1
+            p2interp = ind2 + (phalf - valuelist[ind2]) / grad2
+            # calculate the width
+            width = p2interp - p1interp
+        # print(p1interp, p2interp)
+        
+    return (p1interp, p2interp)
+
 class Background(Thread):
     def __init__(self, mi, device, dev_name):
         super(Background, self).__init__()
@@ -554,11 +618,11 @@ class SpectrometerWindow(QMainWindow):
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.sum(spectrum))
 
         self.spectrum_list.insert(0, self.spectrum_event_disp)
-        self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
-
+        # self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
         n_av = int(self.ui.sb_av_nbunch.value())
         if len(self.spectrum_list) > n_av:
             self.spectrum_list = self.spectrum_list[:n_av]
+        self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
 
         if not old_scipy:
             filtr_av_spectrum = ndimage.gaussian_filter(
@@ -612,17 +676,27 @@ class SpectrometerWindow(QMainWindow):
         if self.energy_axis_thread.trigger:
             self.calibrate_axis()
         pulse_energy = self.xgm.get_value()
-        if self.counter_spect % 10 == 0:
+        if self.counter_spect % 10 == 1:
             self.label2.setText(
-                "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>" % (
-                    pulse_energy, ave_integ, self.peak_ev))
+            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
+            pulse_energy, ave_integ, self.peak_ev))
+            # try:
+            # print('self.x_axis_disp = {}'.format(self.x_axis_disp))
             try:
-                sigma_px = self.sigma_gauss_fit(self.ave_spectrum)
+                p1interp, p2interp = fwhm3(np.array(self.ave_spectrum))
+                fwhm_px = p2interp - p1interp
+                peak_px = (p2interp + p1interp)/2
             except:
-                sigma_px = 0
-            px_ev = self.x_axis_disp[1] - self.x_axis_disp[0]
-            self.ui.label_sigma.setText(str(np.round(sigma_px * px_ev, 2)))
-
+                fwhm_px = 0
+                peak_px = 0
+            px_ev = (self.x_axis_disp[1] - self.x_axis_disp[0])
+            peak_ev = self.x_axis_disp[int(np.floor(peak_px))] + px_ev * (peak_px - np.floor(peak_px))
+            fwhm_ev = fwhm_px * px_ev
+            self.ui.label_sigma.setText(str(np.round(fwhm_ev, 3)))
+            self.ui.label_peak_ev.setText(str(np.round(peak_ev, 3)))
+            # print('self.counter_spect {}'.format(self.counter_spect))
+            # print('peak_ave {}'.format(np.nanmax(self.ave_spectrum)))
+            # print('peak at {} with fwhm of {}'.format(peak_ev, fwhm_ev))
         self.counter_spect += 1
 
     def sigma_gauss_fit(self, y):
@@ -640,6 +714,8 @@ class SpectrometerWindow(QMainWindow):
             return 0
         sigma = gauss_coeff_fit[2]
         return sigma
+        
+        
 
     def show_hide_background(self):
         if self.ui.pb_hide_show_backplot.text() == "Hide Background":

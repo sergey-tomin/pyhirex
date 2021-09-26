@@ -330,7 +330,7 @@ class AnalysisInterface:
             self.n_last_correlated = 0
             return
         self.g2fit = self.corrn.fit_g2func(g2_gauss, thresh=0.1)
-        print("self.g2fit", self.g2fit)
+        # print("self.g2fit", self.g2fit)
         self.g2fit.fit_t_comp = self.g2fit.fit_t * self.g2fit.fit_pedestal / self.g2fit.fit_contrast
         
         E_ph = self.E_ph_box_used
@@ -383,7 +383,7 @@ class AnalysisInterface:
             bin_width = W_bins[1]-W_bins[0]
 
             Wm = numpy.mean(W) #average power calculated
-            print("Wm_full", Wm)
+            # print("Wm_full", Wm)
             sigm2 = numpy.mean((W - Wm)**2) / Wm**2 #sigma square (power fluctuations)
             M_calc = 1 / sigm2 #calculated number of modes  
             
@@ -403,14 +403,14 @@ class AnalysisInterface:
             #self.histogram_full.clear()
             self.histogram_full_curve.setData(W_bins/Wm, W_hist*Wm*self.spar.events/self.hist_nbins)
             #self.histogram_full.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
-            
-            
-            
-            
+             
             fit_p0 = [Wm, Wm**2 / numpy.mean((W - Wm)**2)]
             _, fit_p = fit_gamma_dist(W_bins[1:]-bin_width/2, W_hist, gamma_dist_function, fit_p0)
             Wm_fit, M_fit = fit_p # fit of average power and number of modes
-            self.histogram_full_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm,gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins)
+            gama_dist = gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins
+            gama_dist[gama_dist==np.inf]=np.nan
+            #print('gama_dist_full=',gama_dist)
+            self.histogram_full_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
             self.label_hist_full.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
             
@@ -475,13 +475,16 @@ class AnalysisInterface:
             
             # pen_avg=pg.mkPen(color=(200, 0, 0), width=3)
             # pen_single=pg.mkPen(color=(200, 200, 200), width=1)
-            
-            self.histogram_peak_curve.setData(W_bins/Wm, W_hist*Wm*self.spar.events/self.hist_nbins)
+            gama_hist = W_hist*Wm*self.spar.events/self.hist_nbins
+            self.histogram_peak_curve.setData(W_bins/Wm, gama_hist)
             
             fit_p0 = [Wm, Wm**2 / numpy.mean((W - Wm)**2)]
             _, fit_p = fit_gamma_dist(W_bins[1:]-bin_width/2, W_hist, gamma_dist_function, fit_p0)
             Wm_fit, M_fit = fit_p # fit of average power and number of modes
-            self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm,gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins)
+            gama_dist = gamma_dist_function(W_bins[1:]-bin_width/2, Wm_fit, M_fit)*Wm*self.spar.events/self.hist_nbins
+            gama_dist[gama_dist==np.inf]=np.nan
+            #print('gama_dist_peak=',gama_dist)
+            self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
             #self.histogram_peak.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
             self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
@@ -515,11 +518,15 @@ class AnalysisInterface:
         self.durr_comp_curve.setData(self.g2fit.omega[idx] * hr_eV_s, self.g2fit.fit_t_comp[idx])
         self.durr0_curve.setData(self.g2fit.omega[idx] * hr_eV_s, np.zeros_like(self.g2fit.fit_t_comp[idx]))
         
-        maxdur = np.nanmax(self.g2fit.fit_t_comp[idx])
-        centerphen = self.g2fit.omega[self.g2_plot_idx] * hr_eV_s
-        # print(maxdur, centerphen)
-        self.g2_phen_curve.setData([centerphen, centerphen], [0,maxdur])
-        
+        try:
+            if len(self.g2fit.fit_t_comp)>0:
+                maxdur = np.nanmax(self.g2fit.fit_t_comp[idx])
+                centerphen = self.g2fit.omega[self.g2_plot_idx] * hr_eV_s
+                # print(maxdur, centerphen)
+                self.g2_phen_curve.setData([centerphen, centerphen], [0,maxdur])
+        except ValueError:
+            print('ValueError in update_durr_plot')
+            pass
         # self.fit_pulse_dur.setLimits(yMin=0)
         # self.fit_pulse_dur.setLimits([0,2])
         

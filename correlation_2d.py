@@ -174,7 +174,7 @@ class Correl2DInterface:
         # spec = np.array(self.spec_hist)
         # min_val = bin_doocs * (int(min(self.doocs_vals_hist) / bin_doocs))
         # max_val = max(self.doocs_vals_hist)
-        min_val = bin_doocs * (int(min(self.doocs_vals_hist_lagged) / bin_doocs)) #ensures the minimum value is integer of bin width and figure does not jitter
+        min_val = bin_doocs * (int(np.nanmin(self.doocs_vals_hist_lagged) / bin_doocs)) #ensures the minimum value is integer of bin width and figure does not jitter
         max_val = max(self.doocs_vals_hist_lagged) + bin_doocs * 1.01
         
         if max_val - min_val <= bin_doocs:
