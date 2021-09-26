@@ -536,7 +536,6 @@ class SpectrometerWindow(QMainWindow):
             self.x_axis = self.spectrometer.calibrate_axis(ev_px, E0, px1)
         except:
             self.error_box("WRONG channel or Device is not available")
-
             self.x_axis = np.arange(self.hrx_n_px)
         self.reset_waterfall()
 
@@ -588,7 +587,6 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_background.setStyleSheet("color: rgb(85, 255, 127);")
 
     def calc_spec(self):
-
         self.spectrum_event = self.spectrometer.get_value().astype("float64")
         self.spectrum_event_disp = self.spectrum_event[self.px_first:self.px_last]
         self.x_axis_disp = self.x_axis[self.px_first: self.px_last]
@@ -646,37 +644,42 @@ class SpectrometerWindow(QMainWindow):
             peak_px = 0
         px_ev = (self.x_axis_disp[1] - self.x_axis_disp[0])
         #print('peak_px',peak_px)
-        self.peak_ev = self.x_axis_disp[int(np.floor(peak_px))] + px_ev * (peak_px - np.floor(peak_px))
+        try:
+            peak_px_int = int(np.floor(peak_px))
+            self.peak_ev = self.x_axis_disp[peak_px_int] + px_ev * (peak_px - np.floor(peak_px))
+        except:
+            self.peak_ev = np.nan
         self.fwhm_ev = fwhm_px * px_ev
 
     def plot_spec(self):
-        try:
-            #print('self.spectrum_event_disp.shape',self.spectrum_event_disp.shape)
-            #print('self.x_axis_disp.shape',self.x_axis_disp.shape)
-            if self.spectrum_event_disp.shape != self.x_axis_disp.shape:
-                return
-                # if tab is not active plotting paused
-            if self.ui.scan_tab.currentIndex() == 0:
-                if self.ui.chb_uj_ev.isChecked():
-                    transm = self.transmission_value
-                    self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp * self.calib_energy_coef / transm)
-                    self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum * self.calib_energy_coef / transm)
-                else:
-                    self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp)
-                    self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum)
-                n_ppoints = len(self.x_axis_disp)
-                if len(self.background_disp) != n_ppoints:
-                    self.background_disp = np.zeros(n_ppoints)
-                self.back_plot.setData(self.x_axis_disp, self.background_disp)
-                self.img.setImage(self.data_2d) #SS: do not cut, limits window
-        except:
-            print("could not plot spectra, hirex.py -> plot_spec")
-            pass
-            # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
-
         if self.energy_axis_thread.trigger:
             self.calibrate_axis()
+            self.reset_spectrum()
+            return
         self.pulse_energy = self.xgm.get_value()
+        
+        #print('self.spectrum_event_disp.shape',self.spectrum_event_disp.shape)
+        #print('self.x_axis_disp.shape',self.x_axis_disp.shape)
+        if self.spectrum_event_disp.shape != self.x_axis_disp.shape:
+            return
+            # if tab is not active plotting paused
+        if self.ui.scan_tab.currentIndex() == 0:
+            if self.ui.chb_uj_ev.isChecked():
+                transm = self.transmission_value
+                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp * self.calib_energy_coef / transm)
+                self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum * self.calib_energy_coef / transm)
+            else:
+                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp)
+                self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum)
+            n_ppoints = len(self.x_axis_disp)
+            if len(self.background_disp) != n_ppoints:
+                self.background_disp = np.zeros(n_ppoints)
+            self.back_plot.setData(self.x_axis_disp, self.background_disp)
+            self.img.setImage(self.data_2d) #SS: do not cut, limits window
+        #except:
+            #print("could not plot spectra, hirex.py -> plot_spec")
+            #pass
+            # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
         if self.counter_spect % 10 == 1:
             self.label2.setText(
             "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
@@ -757,6 +760,12 @@ class SpectrometerWindow(QMainWindow):
         self.img.scale(scale_coef_xaxis, 1)
         self.img.translate(translate_coef_xaxis, 0)
 
+    def reset_spectrum(self):
+        self.counter_spect = 0
+        #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
+        self.spectrum_list = []
+        self.ave_spectrum = []
+
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
@@ -770,11 +779,7 @@ class SpectrometerWindow(QMainWindow):
             if not self.spectrometer.is_online():
                 self.error_box("Spectrometer is not ONLINE")
                 return
-            self.counter_spect = 0
-            #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
-            self.spectrum_list = []
-            self.ave_spectrum = []
-
+            self.reset_spectrum()
             self.timer_live.start(100)
             self.timer_plot.start(200)
             self.ui.pb_start.setText("Stop")
