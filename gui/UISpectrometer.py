@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\DESYcloud\_code\pyhirex_release_v7\gui\UISpectrometer.ui'
+# Form implementation generated from reading ui file 'Documents/pyhirex/gui/UISpectrometer.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
