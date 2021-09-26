@@ -4,3 +4,5 @@
 .pydevproject
 .vscode/
 **.ipynb_checkpoints/
+*.npz
+correlation_2d_ss.py

@@ -2,11 +2,12 @@
 
 # Form implementation generated from reading ui file 'D:\DESYcloud\_code\pyhirex_release_v7\gui\UISpectrometer.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.12
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -1345,7 +1346,10 @@ class Ui_MainWindow(object):
         self.actionSend_cor2d_to_logbook.setObjectName("actionSend_cor2d_to_logbook")
         self.actionSend_spec_analysis_to_logbook = QtWidgets.QAction(MainWindow)
         self.actionSend_spec_analysis_to_logbook.setObjectName("actionSend_spec_analysis_to_logbook")
+        self.actionSelf_Seeding_tools = QtWidgets.QAction(MainWindow)
+        self.actionSelf_Seeding_tools.setObjectName("actionSelf_Seeding_tools")
         self.menuExpert.addAction(self.actionSettings)
+        self.menuExpert.addAction(self.actionSelf_Seeding_tools)
         self.menuLogbook.addAction(self.actionSend_to_logbook)
         self.menuLogbook.addAction(self.actionSend_cor2d_to_logbook)
         self.menuLogbook.addAction(self.actionSend_spec_analysis_to_logbook)
@@ -1470,6 +1474,9 @@ class Ui_MainWindow(object):
         self.actionSave_Corelation.setShortcut(_translate("MainWindow", "Ctrl+Alt+S"))
         self.actionSend_cor2d_to_logbook.setText(_translate("MainWindow", "Send cor2d to logbook"))
         self.actionSend_spec_analysis_to_logbook.setText(_translate("MainWindow", "Send spec analysis to logbook"))
+        self.actionSelf_Seeding_tools.setText(_translate("MainWindow", "Self Seeding tools"))
+
+
 
 
 if __name__ == "__main__":
@@ -1480,4 +1487,3 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
-
