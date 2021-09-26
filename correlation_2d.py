@@ -40,7 +40,7 @@ class Correl2DInterface:
         self.plot_timer.timeout.connect(self.plot_hist_event)
         self.plot_timer.timeout.connect(self.plot_Ipk_event)
         self.plot_timer.timeout.connect(self.plot_Isum_event)
-        self.plot_timer.start(250)
+        self.plot_timer.start(200)
         
         # self.plot_timer_hist_event = pg.QtCore.QTimer()
         # self.plot_timer_hist_event.timeout.connect(self.plot_hist_event)
@@ -241,9 +241,13 @@ class Correl2DInterface:
         self.doocs_vals_hist = []
         self.img_hist.clear()
         self.img_corr2d.clear()
+        self.img_Ipk.clear()
+        self.img_Isum.clear()
         self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
         self.transmission_vals_hist = []
         self.cross_callibration_vals_hist = []
+        self.doocs_bins = []
+        self.event_counter = 0
         
     def calc_correl(self):
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event_disp is None:
@@ -298,7 +302,8 @@ class Correl2DInterface:
     def plot_correl(self):
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event_disp is None or self.ui.scan_tab.currentIndex() != 2:
             return
-        else:
+        
+        try:
             scale_yaxis = (self.phen[-1] - self.phen[0]) / len(self.phen)
             translate_yaxis = self.phen[0] / scale_yaxis
             
@@ -316,7 +321,8 @@ class Correl2DInterface:
             self.img.scale(scale_xaxis, scale_yaxis)
             self.img.translate(translate_xaxis, translate_yaxis)
             self.img_corr2d.setLabel('bottom', self.doocs_address_label, units='_')
-            
+        except:
+            pass     
         
         
 
