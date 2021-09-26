@@ -493,7 +493,7 @@ class UICalculator(QWidget):
             self.add_text_to_plot(x, max(self.np_phen)-10, E)
         self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
                                + str(np.round(self.dE_mean, 1))+' eV\n')
-        self.ui.output.setText(self.ui.output.text() + 'Actual Energy: '
+        self.ui.output.setText(self.ui.output.text() + 'Actual Energy at pitch angle ' + str(np.round(self.set_pitch_angle)) + 'deg: '
                                + str(np.round(self.E_actual_mean, 0))+' eV\n')
 
     def img_processing(self):
@@ -583,6 +583,7 @@ class UICalculator(QWidget):
                     self.set_pitch_angle = float(filedata[pa_row][1])
                     ra_row = ra_pos[0][0]
                     self.set_roll_angle = float(filedata[ra_row][1])
+                    self.ui.roll_angle.setValue(self.set_roll_angle)
                     self.ui.output.setText(
                         'Monochromator 1 image found; Machine status file found: pitch angle='+str(np.round(self.set_pitch_angle, 4)) + ' deg; roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
                 except:
@@ -604,6 +605,7 @@ class UICalculator(QWidget):
                     self.set_pitch_angle = float(filedata[pa_row][1])
                     ra_row = ra_pos[0][0]
                     self.set_roll_angle = float(filedata[ra_row][1])
+                    self.ui.roll_angle.setValue(self.set_roll_angle)
                     self.ui.output.setText(
                         'Monochromator 2 image found; Machine status file found: pitch angle='+str(np.round(self.set_pitch_angle, 4)) + ' deg; roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
                 except:
