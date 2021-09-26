@@ -100,10 +100,7 @@ class UILogger(QWidget):
             self.ui.pb_start_log.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
     def plot_data(self):
-        from hirex import fwhm3   
-
         av_spec = self.parent.ave_spectrum
-
         if len(self.maxspec_vals) >= self.ui.sb_nponts.value():
             self.maxspec_vals = self.maxspec_vals[1:]
             self.line2 = self.line2[1:]
