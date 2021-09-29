@@ -14,7 +14,7 @@ import time
 import logging
 
 
-def HXRSS_Bragg_max_generator(thplist, h_max, k_max, l_max, dthp, dthy, roll_angle_list, dthr, alpha):
+def HXRSS_Bragg_max_generator_window(thplist, h_max, k_max, l_max, dthp, dthy, roll_angle_list, dthr, alpha, minE, maxE):
     p_angle_list = []
     phen_list = []
     label_list = []
@@ -71,9 +71,12 @@ def HXRSS_Bragg_max_generator(thplist, h_max, k_max, l_max, dthp, dthy, roll_ang
     def plotene(thplist, fact, n, h, k, l, a, DTHP, thylist, thr, n0, pitchax, rollax, yawax):
         count = 0
         for thp, thy in zip(thplist/180*np.pi, thylist):
-            eevlist[count] = (phev(fact, 1, h, k, l, a, thp,
-                                   thy, thr, n0, pitchax, rollax, yawax))
-            count = count+1
+            eev = phev(fact, 1, h, k, l, a, thp,
+                       thy, thr, n0, pitchax, rollax, yawax)
+            if eev >= minE or eev <= maxE:
+                eevlist[count] = (eev)
+                thplist_filt[count] = thp
+                count = count+1
         rosso = np.array((1, 1, 1))
         verde = np.array((2, 2, 0))
         nero = np.array((1, 1, 3))
@@ -130,7 +133,7 @@ def HXRSS_Bragg_max_generator(thplist, h_max, k_max, l_max, dthp, dthy, roll_ang
         if not(h == k):
             simbolo = 'dashdot'
         gid = [h, k, l]
-        thplist_f = thplist+DTHP
+        thplist_f = thplist_filt+DTHP
         color = colore
         linestyle = str(simbolo)
         return thplist_f, eevlist, gid, linestyle, color
@@ -156,6 +159,7 @@ def HXRSS_Bragg_max_generator(thplist, h_max, k_max, l_max, dthp, dthy, roll_ang
     lmax = l_max
 
     eevlist = np.zeros(len(thplist))
+    thplist_filt = np.zeros(len(thplist))
 
     DTHP = dthp  # -0.6921-0.09
 

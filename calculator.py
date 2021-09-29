@@ -22,7 +22,7 @@ from scipy import interpolate
 import re
 from skimage.transform import hough_line, hough_line_peaks
 from model_functions.HXRSS_Bragg_max_generator import HXRSS_Bragg_max_generator
-from model_functions.HXRSS_Bragg_generator import HXRSS_Bragg_generator
+#from model_functions.HXRSS_Bragg_generator import HXRSS_Bragg_generator
 from itertools import cycle
 path = os.path.realpath(__file__)
 indx = path.find("hirex.py")
@@ -58,7 +58,7 @@ class UICalculator(QWidget):
         self.colors2 = ['b', 'g', 'c', 'y', 'k']
         self.linecolors = cycle(self.colors)
         self.linecolors1 = cycle(self.colors2)
-        self.n, self.d_kernel, self.e_kernel = 0, 0, 0
+        self.n, self.d_kernel, self.e_kernel = 0, 2, 0
         self.mode = 0
         self.mono_no = None
         self.max_E = 800
@@ -117,8 +117,6 @@ class UICalculator(QWidget):
             if self.nomatch == 0:
                 self.legend.scene().removeItem(self.legend)
                 self.model.setData(x=[], y=[])
-                self.line.setData(x=[], y=[])
-                self.line_shifted.setData(x=[], y=[])
             self.ui.output.setText('')
             self.info_mono_no()
             self.ui.pb_start_calc.setStyleSheet(
@@ -241,27 +239,24 @@ class UICalculator(QWidget):
     def add_plot(self):
         #self.plot1.clear()
         self.plot1.enableAutoRange()
-        pen = pg.mkPen('r', width=3)
-        pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
+        #pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
         self.legend = self.plot1.addLegend()
         #self.legend_boolean = 1
         for r in range(len(self.pa)):
+            if self.linestyle_list[r] == 'dashed':
+                style_type = QtCore.Qt.DashLine
+            if self.linestyle_list[r] == 'solid':
+                style_type = QtCore.Qt.SolidLine
+            if self.linestyle_list[r] == 'dashdot':
+                style_type = QtCore.Qt.DashDotLine
+            pen = pg.mkPen(str(self.color_list[r]), width=3, style=style_type)
             self.model = pg.PlotCurveItem(
-                x=self.pa[r], y=self.phen[r], pen=pen)
-            self.plot1.addItem(self.model)
-
-        for slope, intercept, min_angle, max_angle, gid in zip(self.df_detected['slope'], self.df_detected['intercept'], self.df_detected['min_angle'], self.df_detected['max_angle'], self.df_detected['gid']):
-            pitch_angle_range = np.linspace(min_angle, max_angle, 100)
-            self.yvalue = (pitch_angle_range*slope)+intercept
-            line_pen = pg.mkPen(next(self.linecolors1), width=3,
-                                style=QtCore.Qt.DashLine)
-            self.line = pg.PlotCurveItem(
-                x=pitch_angle_range, y=self.yvalue, pen=line_pen, name=gid)
-            self.line_shifted = pg.PlotCurveItem(x=pitch_angle_range, y=self.yvalue+self.dE_mean,
-                                                 pen=pen_shifted)
-            self.plot1.addItem(self.line)
-            self.plot1.addItem(self.line_shifted)
-            #self.change_label(gid)
+                x=self.pa[r], y=self.phen[r], pen=pen, name=self.gid_list[r])
+            if self.phen[r][0] <= max(self.np_phen)+500 and self.phen[r][0] >= min(self.np_phen)-500:
+                self.plot1.addItem(self.model)
+        self.plot1.setYRange(min(self.np_phen)-500,
+                             max(self.np_phen)+500, padding=None, update=True)
+        #self.change_label(gid)
 
     def binarization(self):
         # all values below 0 threshold are set to 0
@@ -356,7 +351,7 @@ class UICalculator(QWidget):
     def generate_Bragg_curves(self):
         self.roll = list(self.df_spec_lines['roll_angle'])
         if self.mono_no == 2:
-            self.DTHP = -0.38565
+            self.DTHP = -0.392
             self.dthy = 1.17
             self.DTHR = 0.1675
             self.alpha = 0.00238
@@ -367,7 +362,7 @@ class UICalculator(QWidget):
             self.alpha = 0.00238
         self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
         # pass pitch and roll errors and create Bragg curves
-        self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list = HXRSS_Bragg_max_generator(
+        self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list, color_list, linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
 
     def tangent_generator(self):
@@ -484,8 +479,9 @@ class UICalculator(QWidget):
             self.roll_list.append(roll)
 
     def offset_calc_and_plot(self):
-        self.pa, self.phen, gid_list = HXRSS_Bragg_generator(
-            (self.h_list, self.k_list, self.l_list, self.roll_list, self.pa_range), self.DTHP, self.dthy, self.DTHR, self.alpha)
+        self.roll_list = [self.set_roll_angle]
+        self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
+            self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
         self.dE_mean = np.mean(self.df_detected['dE'])
         self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
