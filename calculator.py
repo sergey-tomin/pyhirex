@@ -463,8 +463,8 @@ class UICalculator(QWidget):
                             n = n+1
                             msg = 'Line with id:' + curve_id + ' matched \n'
                             msg_dispersion = 'Calibration: ' + \
-                                str(np.round(tngnt_slope/slope, 2)) + ' Current ev/px: ' + str(
-                                    np.round(self.scale_yaxis, 2)) + '; Proposed ev/px:' + str(np.round(self.scale_yaxis*tngnt_slope/slope, 2))+'\n'
+                                str(np.round(tngnt_slope/slope, 3)) + ' Current ev/px: ' + str(
+                                    np.round(self.scale_yaxis, 3)) + '; Proposed ev/px:' + str(np.round(self.scale_yaxis*tngnt_slope/slope, 3))+'\n'
                             self.ui.output.setText(self.ui.output.text(
                             ) + msg + msg_dispersion)
         self.df_detected = pd.DataFrame(dict(slope=self.detected_slope_list, intercept=self.detected_intercept_list, min_angle=self.detected_line_min_angle_list,
@@ -489,8 +489,8 @@ class UICalculator(QWidget):
             self.add_text_to_plot(x, max(self.np_phen)-10, E)
         self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
                                + str(np.round(self.dE_mean, 1))+' eV\n')
-        self.ui.output.setText(self.ui.output.text() + 'Actual Energy at pitch angle ' + str(np.round(self.set_pitch_angle)) + 'deg: '
-                               + str(np.round(self.E_actual_mean, 0))+' eV\n')
+        self.ui.output.setText(self.ui.output.text() + 'Currently set Central Energy: ' + str(np.round(self.parent.ui.sb_E0.value(), 0)) + 'eV, Proposed calibrated Central Energy'
+                               + str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV\n')
 
     def img_processing(self):
         self.processed_image = ndimage.grey_dilation(
