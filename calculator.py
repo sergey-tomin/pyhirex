@@ -184,6 +184,8 @@ class UICalculator(QWidget):
         self.img_corr2d = self.win1.addPlot()
         self.img_corr2d.setLabel('left', "E_ph", units='eV')
         self.img_corr2d.setLabel('bottom', "Pitch angle", units='°')
+        self.img_corr2d.getAxis('left').enableAutoSIPrefix(
+                    enable=False)  # stop the auto unit scaling on y axes
 
     def add_corr2d_image_item(self):
         self.img_corr2d.clear()
@@ -233,6 +235,8 @@ class UICalculator(QWidget):
         self.hLine = pg.InfiniteLine(angle=0, movable=False)
         self.plot1.addItem(self.vLine, ignoreBounds=True)
         self.plot1.addItem(self.hLine, ignoreBounds=True)
+        self.plot1.setXLink(self.img_corr2d)
+        self.plot1.setYLink(self.img_corr2d)
 
     def add_plot(self):
         #self.plot1.clear()
@@ -250,10 +254,8 @@ class UICalculator(QWidget):
             pen = pg.mkPen(str(self.color_list[r]), width=3, style=style_type)
             self.model = pg.PlotCurveItem(
                 x=self.pa[r], y=self.phen[r], pen=pen, name=self.gid_list[r])
-            if self.phen[r][100] <= max(self.np_phen)+400 and self.phen[r][100] >= min(self.np_phen)-400:
+            if self.phen[r][100] <= max(self.np_phen)+700 and self.phen[r][100] >= min(self.np_phen)-700:
                 self.plot1.addItem(self.model)
-        self.plot1.setYRange(min(self.np_phen),
-                             max(self.np_phen), padding=None, update=True)
         self.plot1.setXRange(min(self.np_doocs),
                              max(self.np_doocs), padding=None, update=True)
 
@@ -498,6 +500,8 @@ class UICalculator(QWidget):
         self.dE_mean = np.mean(self.df_detected['dE'])
         self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
+        self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
+                             max(self.np_phen)+self.dE_mean, padding=None, update=True)
         for E, x, y in zip(self.df_detected['dE'], self.df_detected['centroid_x'], self.df_detected['centroid_y']):
             self.add_text_to_plot(x, max(self.np_phen)-10, E)
         self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
