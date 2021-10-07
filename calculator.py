@@ -58,14 +58,14 @@ class UICalculator(QWidget):
         self.colors2 = ['b', 'g', 'c', 'y', 'k']
         self.linecolors = cycle(self.colors)
         self.linecolors1 = cycle(self.colors2)
-        self.n, self.d_kernel, self.e_kernel = 0, 2, 0
+        self.n, self.d_kernel, self.e_kernel = 0, 2, 2
         self.mode = 0
         self.mono_no = None
-        self.max_E = 800
+        self.max_E = 500
         self.max_P = 2
-        self.slope_allowance = 3
-        self.intercept_allowance = 100
-        self.max_distance = 1400
+        self.slope_allowance = 4
+        self.intercept_allowance = 400
+        self.max_distance = 1000
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.img_corr2d = None
         self.min_phen, self.max_phen = 0, 0
@@ -92,7 +92,6 @@ class UICalculator(QWidget):
         self.ui.roll_angle.setRange(0, 2)
         self.ui.roll_angle.setValue(1.5013)
         self.ui.roll_angle.setSingleStep(0.001)
-
         # Set up and show the two graph axes
         self.add_image_widget()
         self.add_plot_widget()
@@ -133,10 +132,10 @@ class UICalculator(QWidget):
         if self.ui.pb_start_calc.text() == "Reset":
             self.reset()
         else:
-            if self.ui.output.text() == "Invalid input\n":
+            if self.ui.status.text() == "Invalid input\n":
                 self.error_box("Select a valid npz file first")
                 return
-            if self.ui.output.text() == "":
+            if self.ui.status.text() == "":
                 self.error_box("Select a valid npz file first")
                 return
             self.load_corr2d()
@@ -165,7 +164,6 @@ class UICalculator(QWidget):
             self.tangent_generator()
             self.line_comparator()
             if len(self.df_detected.index) != 0:
-                self.nomatch = 0
                 self.hkl_roll_separator()
             # Get Bragg curves
                 self.offset_calc_and_plot()
@@ -173,17 +171,17 @@ class UICalculator(QWidget):
             else:
                 self.ui.output.setText(
                     self.ui.output.text() + 'No lines can be matched\n')
-                self.nomatch = 1
+                self.nomatch_plot()
             self.ui.pb_start_calc.setText("Reset")
             self.ui.pb_start_calc.setStyleSheet(
                 "color: rgb(255, 0, 0); font-size: 14pt")
 
     def add_image_widget(self):
-        win = pg.GraphicsLayoutWidget()
+        self.win1 = pg.GraphicsLayoutWidget()
         self.layout = QtGui.QGridLayout()
         self.ui.widget_calc.setLayout(self.layout)
-        self.layout.addWidget(win)
-        self.img_corr2d = win.addPlot()
+        self.layout.addWidget(self.win1)
+        self.img_corr2d = self.win1.addPlot()
         self.img_corr2d.setLabel('left', "E_ph", units='eV')
         self.img_corr2d.setLabel('bottom', "Pitch angle", units='°')
 
@@ -215,11 +213,11 @@ class UICalculator(QWidget):
         else:
             model_pen = pg.mkPen("w")
 
-        win = pg.GraphicsLayoutWidget()
+        self.win2 = pg.GraphicsLayoutWidget()
         self.label = pg.LabelItem(justify='left', row=0, col=0)
-        win.addItem(self.label)
+        self.win2.addItem(self.label)
 
-        self.plot1 = win.addPlot(row=1, col=0)
+        self.plot1 = self.win2.addPlot(row=1, col=0)
         self.plot1.setLabel('left', "E_ph", units='eV')
         self.plot1.setLabel('bottom', "Pitch angle", units='°')
         self.plot1.showGrid(1, 1, 1)
@@ -227,7 +225,7 @@ class UICalculator(QWidget):
             enable=False)  # stop the auto unit scaling on y axes
         self.layout_2 = QtGui.QGridLayout()
         self.ui.widget_calc_2.setLayout(self.layout_2)
-        self.layout_2.addWidget(win, 0, 0)
+        self.layout_2.addWidget(self.win2, 0, 0)
         self.plot1.setAutoVisible(y=True)
 
         # cross hair
@@ -252,10 +250,13 @@ class UICalculator(QWidget):
             pen = pg.mkPen(str(self.color_list[r]), width=3, style=style_type)
             self.model = pg.PlotCurveItem(
                 x=self.pa[r], y=self.phen[r], pen=pen, name=self.gid_list[r])
-            if self.phen[r][0] <= max(self.np_phen)+500 and self.phen[r][0] >= min(self.np_phen)-500:
+            if self.phen[r][100] <= max(self.np_phen)+400 and self.phen[r][100] >= min(self.np_phen)-400:
                 self.plot1.addItem(self.model)
-        self.plot1.setYRange(min(self.np_phen)-500,
-                             max(self.np_phen)+500, padding=None, update=True)
+        self.plot1.setYRange(min(self.np_phen),
+                             max(self.np_phen), padding=None, update=True)
+        self.plot1.setXRange(min(self.np_doocs),
+                             max(self.np_doocs), padding=None, update=True)
+
         #self.change_label(gid)
 
     def binarization(self):
@@ -264,11 +265,21 @@ class UICalculator(QWidget):
 
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
-        self.corr2d[self.corr2d < 0] = 0
+        self.corr2d[self.corr2d < -10] = 0
         self.image = self.corr2d.T
         thresh = threshold_yen(self.image, nbins=256)
         binary = self.image > thresh
         self.processed_image = binary
+        #### ALTERNATE MANUAL THRESHOLDING
+        #range_scale = np.ptp(self.corr2d)
+        #threshold = 0.15 * range_scale
+        #max_value = np.amax(self.corr2d)
+        #min_value = np.amin(self.corr2d)
+        # all values above threshold are set to max_value
+        #self.corr2d[self.corr2d > threshold] = max_value
+        # all values above threshold are set to min_value
+        #self.corr2d[self.corr2d < threshold] = min_value
+        #self.processed_image = self.corr2d.T
 
     def get_binarized_line(self):
         df = pd.DataFrame(data=self.processed_image.T)
@@ -361,6 +372,8 @@ class UICalculator(QWidget):
             self.DTHR = 0.1675
             self.alpha = 0.00238
         self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
+        self.pa_range_plot = np.linspace(
+            self.min_pangle-1, self.max_pangle+1, 200)
         # pass pitch and roll errors and create Bragg curves
         self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list, color_list, linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
@@ -371,7 +384,7 @@ class UICalculator(QWidget):
             y = np.asarray(self.phen_list[r])
             # Interpolating range
             x0 = np.linspace(min(self.p_angle_list[r]), max(
-                self.p_angle_list[r]), 200, endpoint=False)
+                self.p_angle_list[r]), 300, endpoint=False)
 
             gid = str(gid_raw)
             f = interpolate.UnivariateSpline(
@@ -481,7 +494,7 @@ class UICalculator(QWidget):
     def offset_calc_and_plot(self):
         self.roll_list = [self.set_roll_angle]
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
-            self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
+            self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
         self.dE_mean = np.mean(self.df_detected['dE'])
         self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
@@ -489,8 +502,16 @@ class UICalculator(QWidget):
             self.add_text_to_plot(x, max(self.np_phen)-10, E)
         self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
                                + str(np.round(self.dE_mean, 1))+' eV\n')
-        self.ui.output.setText(self.ui.output.text() + 'Currently set Central Energy: ' + str(np.round(self.parent.ui.sb_E0.value(), 0)) + 'eV, Proposed calibrated Central Energy'
+        self.ui.output.setText(self.ui.output.text() + 'Currently set Central Energy: ' + str(np.round(self.parent.ui.sb_E0.value(), 0)) + 'eV, Proposed calibrated Central Energy: '
                                + str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV\n')
+
+    def nomatch_plot(self):
+        self.roll_list = [self.set_roll_angle]
+        self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
+            self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
+        self.add_plot()
+        self.ui.output.setText(self.ui.output.text(
+        ) + 'No calibration offset value calculated but possible lines plotted on the right.\n')
 
     def img_processing(self):
         self.processed_image = ndimage.grey_dilation(
@@ -580,13 +601,13 @@ class UICalculator(QWidget):
                     ra_row = ra_pos[0][0]
                     self.set_roll_angle = float(filedata[ra_row][1])
                     self.ui.roll_angle.setValue(self.set_roll_angle)
-                    self.ui.output.setText(
-                        'Monochromator 1 image found; Machine status file found: pitch angle='+str(np.round(self.set_pitch_angle, 4)) + ' deg; roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
+                    self.ui.status.setText(
+                        'Monochromator 1 image found; \nMachine status file found: roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
                 except:
                     self.set_roll_angle = self.ui.roll_angle.value()
                     self.set_pitch_angle = (
                         max(self.np_doocs)-min(self.np_doocs)/2)
-                    self.ui.output.setText(
+                    self.ui.status.setText(
                         'Monochromator 1 image found; Machine status file not found.\n')
             elif "XFEL.FEL/UNDULATOR.SASE2/MONOPA.2307.SA2/ANGLE" in self.doocs_label:
                 self.mono_no = 2
@@ -602,16 +623,16 @@ class UICalculator(QWidget):
                     ra_row = ra_pos[0][0]
                     self.set_roll_angle = float(filedata[ra_row][1])
                     self.ui.roll_angle.setValue(self.set_roll_angle)
-                    self.ui.output.setText(
-                        'Monochromator 2 image found; Machine status file found: pitch angle='+str(np.round(self.set_pitch_angle, 4)) + ' deg; roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
+                    self.ui.status.setText(
+                        'Monochromator 2 image found; \nMachine status file found: roll angle=' + str(np.round(self.set_roll_angle, 4)) + ' deg \n')
                 except:
                     self.set_roll_angle = self.ui.roll_angle.value()
                     self.set_pitch_angle = (
                         max(self.np_doocs)-min(self.np_doocs)/2)
-                    self.ui.output.setText(
+                    self.ui.status.setText(
                         'Monochromator 2 image found; Machine status file not found.\n')
         else:
-            self.ui.output.setText('Invalid input\n')
+            self.ui.status.setText('Invalid input\n')
 
 
 def main():
