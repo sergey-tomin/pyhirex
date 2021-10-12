@@ -27,7 +27,7 @@ from matplotlib import cm
 from gui.spectr_gui import *
 from mint.xfel_interface import *
 from gui.settings_gui import *
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3, CrazySpectrometer
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerViking, SpectrometerSA3, CrazySpectrometer
 from scan import ScanInterface
 from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY", "DUMMYSASE", "TEST1", "TEST2", "TEST3"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "VIKING", "DUMMY", "DUMMYSASE", "TEST1", "TEST2", "TEST3"]
 #HIREX_N_PIXELS = 1280
 #DOOCS_CTRL_N_BUNCH = "XFEL.UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_2"
 DIR_NAME = "hirex"
@@ -52,7 +52,7 @@ PY_SPECTROMETER_DIR = "pySpectrometer"
 
 def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
     """calculates the full width at half maximum (fwhm) of the array.
-    the function will return the fwhm with sub-pixel interpolation. 
+    the function will return the fwhm with sub-pixel interpolation.
     It will start at the maximum position and 'walk' left and right until it approaches the half values.
     if total==1, it will start at the edges and 'walk' towards peak until it approaches the half values.
     INPUT:
@@ -60,7 +60,7 @@ def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
     OPTIONAL INPUT:
     -peakpos: position of the peak to examine (list index)
     the global maximum will be used if omitted.
-    if total = 1 - 
+    if total = 1 -
     OUTPUT:
     - peakpos(index), interpolated_width(npoints), [index_l, index_r]
     """
@@ -111,7 +111,7 @@ def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
             # calculate the width
             width = p2interp - p1interp
         # print(p1interp, p2interp)
-        
+
     return (p1interp, p2interp)
 
 
@@ -316,7 +316,7 @@ class SpectrometerWindow(QMainWindow):
         self.ave_integ = 0 # pulse energy from spectrometer integral
         self.pulse_energy = 0 # pulse energy from XGM
         self.counter_spect = 0
-        
+
         self.background = self.back_taker.load()
 
         self.ui.sb_ev_px.valueChanged.connect(self.calibrate_axis)
@@ -400,6 +400,12 @@ class SpectrometerWindow(QMainWindow):
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
 
+        elif current_source in ["VIKING"]:
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
+            self.spectrometer = SpectrometerViking(self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
+            self.spectrometer.num_px = 2048
+            self.spectrometer.devmode = self.dev_mode
+            self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
 
         elif current_source in ["DUMMY"]:
             self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
@@ -632,9 +638,9 @@ class SpectrometerWindow(QMainWindow):
         self.peak_ev = self.x_axis_disp[np.argmax(self.ave_spectrum)]
 
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
-        
+
         self.data_2d[:, 0] = self.spectrum_event_disp# single_sig_wo_noise
-        
+
         try:
             p1interp, p2interp = fwhm3(np.array(self.ave_spectrum))
             fwhm_px = p2interp - p1interp
@@ -657,7 +663,7 @@ class SpectrometerWindow(QMainWindow):
             self.reset_spectrum()
             return
         self.pulse_energy = self.xgm.get_value()
-        
+
         #print('self.spectrum_event_disp.shape',self.spectrum_event_disp.shape)
         #print('self.x_axis_disp.shape',self.x_axis_disp.shape)
         if self.spectrum_event_disp.shape != self.x_axis_disp.shape:
@@ -686,7 +692,7 @@ class SpectrometerWindow(QMainWindow):
             self.pulse_energy, self.ave_integ, self.peak_ev))
             # try:
             # print('self.x_axis_disp = {}'.format(self.x_axis_disp))
-            
+
             self.ui.label_sigma.setText(str(np.round(self.fwhm_ev, 3)))
             self.ui.label_peak_ev.setText(str(np.round(self.peak_ev, 3)))
             # print('self.counter_spect {}'.format(self.counter_spect))
@@ -709,8 +715,8 @@ class SpectrometerWindow(QMainWindow):
             return 0
         sigma = gauss_coeff_fit[2]
         return sigma
-        
-        
+
+
 
     def show_hide_background(self):
         if self.ui.pb_hide_show_backplot.text() == "Hide Background":
@@ -1035,6 +1041,16 @@ class SpectrometerWindow(QMainWindow):
             self.fast_xgm_signal = table["le_fast_xgm_sa3"]
             self.slow_xgm_signal = table["le_slow_xgm_sa3"]
 
+        elif current_source == "VIKING":
+            self.hirex_doocs_ch = 'XFEL.EXP/MDL.EXP_SPECTROMETER/SCS_EXP_VIKING/INTENSITYDISTRIBUTION'
+            self.ph_energy_ch = 'XFEL.EXP/MDL.EXP_SPECTROMETER/SCS_EXP_VIKING/PHOTONENERGY'
+            self.transmission__doocs_ch = table["le_trans_ch_sa3"]
+            print("self.transmission__doocs_ch", self.transmission__doocs_ch)
+            self.hrx_n_px = table["sb_hrx_npx_sa3"]
+
+            self.doocs_ctrl_num_bunch = table["le_ctrl_num_bunch_sa3"]
+            self.fast_xgm_signal = table["le_fast_xgm_sa3"]
+            self.slow_xgm_signal = table["le_slow_xgm_sa3"]
 
         elif current_source == "SASE3_SCS":
             self.hirex_doocs_ch = table["le_hirex_ch_sa3_scs"]
