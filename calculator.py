@@ -61,10 +61,10 @@ class UICalculator(QWidget):
         self.n, self.d_kernel, self.e_kernel = 0, 2, 2
         self.mode = 0
         self.mono_no = None
-        self.max_E = 500
+        self.max_E = 2000
         self.max_P = 2
-        self.slope_allowance = 4
-        self.intercept_allowance = 400
+        self.slope_allowance = 25
+        self.intercept_allowance = 2000
         self.max_distance = 1000
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.img_corr2d = None
@@ -108,8 +108,8 @@ class UICalculator(QWidget):
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list, self.actual_E = [], [], [], [], [], [], [], [], [], [], []
-        self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen = [
-            ], [], [], [], [], []
+        self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen, self.gid_list = [
+            ], [], [], [], [], [], []
         if self.mode == 1:
             self.img_corr2d.clear()
             self.plot1.clear()
@@ -267,21 +267,21 @@ class UICalculator(QWidget):
 
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
-        self.corr2d[self.corr2d < -10] = 0
-        self.image = self.corr2d.T
-        thresh = threshold_yen(self.image, nbins=256)
-        binary = self.image > thresh
-        self.processed_image = binary
+        self.corr2d[self.corr2d < 0] = 0
+        #self.image = self.corr2d.T
+        #thresh = threshold_yen(self.image, nbins=256)
+        #binary = self.image > thresh
+        #self.processed_image = binary
         #### ALTERNATE MANUAL THRESHOLDING
-        #range_scale = np.ptp(self.corr2d)
-        #threshold = 0.15 * range_scale
-        #max_value = np.amax(self.corr2d)
-        #min_value = np.amin(self.corr2d)
+        range_scale = np.ptp(self.corr2d)
+        threshold = 0.12 * range_scale
+        max_value = np.amax(self.corr2d)
+        min_value = np.amin(self.corr2d)
         # all values above threshold are set to max_value
-        #self.corr2d[self.corr2d > threshold] = max_value
+        self.corr2d[self.corr2d > threshold] = max_value
         # all values above threshold are set to min_value
-        #self.corr2d[self.corr2d < threshold] = min_value
-        #self.processed_image = self.corr2d.T
+        self.corr2d[self.corr2d < threshold] = min_value
+        self.processed_image = self.corr2d.T
 
     def get_binarized_line(self):
         df = pd.DataFrame(data=self.processed_image.T)
@@ -308,7 +308,7 @@ class UICalculator(QWidget):
         tested_angles = np.linspace(-np.pi/2, np.pi/2, 360, endpoint=False)
         h, theta, d = hough_line(self.processed_image, theta=tested_angles)
         _, pitch_angle_list, rho_list = hough_line_peaks(
-            h, theta, d, num_peaks=5, min_distance=30, min_angle=30)
+            h, theta, d, num_peaks=5, min_distance=20, min_angle=20)
         if len(pitch_angle_list) == 0:
             self.ui.output.setText(
                 self.ui.output.text() + 'No lines detected\n')
@@ -343,6 +343,8 @@ class UICalculator(QWidget):
 
             # ignore lines which are horizontal
             if slope <= 5 and slope >= -5:
+                self.ui.output.setText(
+                                self.ui.output.text() + 'Horizontal line ignored\n')
                 continue
             line_range = np.linspace(min_line_pangle, max_line_pangle, 10)
             pen = pg.mkPen('r', width=4,
@@ -369,7 +371,7 @@ class UICalculator(QWidget):
             self.DTHR = 0.1675
             self.alpha = 0.00238
         else:
-            self.DTHP = -0.38565
+            self.DTHP = -0.392
             self.dthy = 1.17
             self.DTHR = 0.1675
             self.alpha = 0.00238
@@ -386,7 +388,7 @@ class UICalculator(QWidget):
             y = np.asarray(self.phen_list[r])
             # Interpolating range
             x0 = np.linspace(min(self.p_angle_list[r]), max(
-                self.p_angle_list[r]), 300, endpoint=False)
+                self.p_angle_list[r]), 150, endpoint=False)
 
             gid = str(gid_raw)
             f = interpolate.UnivariateSpline(
@@ -415,7 +417,7 @@ class UICalculator(QWidget):
             n = 0
             distance_list = []
             for tngnt_slope, tngnt_intercept, curve_id, interp_fn_Bragg, centroid, centroid_y in zip(self.df_tangents['slope'], self.df_tangents['intercept'], self.df_tangents['gid'], self.df_tangents['interp'], self.df_tangents['centroid_pa'], self.df_tangents['centroid_phen']):
-                if (tngnt_slope-self.slope_allowance <= slope <= tngnt_slope+self.slope_allowance) and (tngnt_intercept-self.intercept_allowance <= intercept <= tngnt_intercept+self.intercept_allowance):
+                if ((tngnt_slope-self.slope_allowance) <= slope <= (tngnt_slope+self.slope_allowance)) and ((tngnt_intercept-self.intercept_allowance) <= intercept <= (tngnt_intercept+self.intercept_allowance)):
                     a = (centroid, centroid_y)
                     b = (centroid_pa, centroid_phen)
                     dist = distance.euclidean(a, b)
@@ -451,13 +453,13 @@ class UICalculator(QWidget):
                             self.detected_centroid_y_list.append(centroid_phen)
                             self.actual_E.append(interp_fn_Bragg(centroid_pa))
                             n = n+1
-                            #logger.info('Its a match ', n, ' Curve id:', curve_id, 'Distance', np.round(
-                            #dist, 2), np.round(ans, 2), np.round(interp_fn_Bragg(ans), 2))
+                            logger.info('Its a match ', n, ' Curve id:', curve_id, 'Distance', np.round(
+                                dist, 2))
                     elif n >= 1 and distance_list[n] >= distance_list[n-1]:
                         pass
                     elif dist < self.max_distance:
                         def func(x): return interp_fn_Bragg(
-                            x)-centroid_phen
+                                x)-centroid_phen
                         ans, = fsolve(func, centroid_pa)
                         dE = (interp_fn_Bragg(centroid_pa)-centroid_phen)
                         dP = (ans-centroid_pa)
@@ -472,16 +474,19 @@ class UICalculator(QWidget):
                             self.detected_line_roll_angle_list.append(
                                     roll_angle)
                             self.dE_list.append(dE)
-                            self.detected_centroid_x_list.append(centroid_pa)
-                            self.detected_centroid_y_list.append(centroid_phen)
-                            self.actual_E.append(interp_fn_Bragg(centroid_pa))
+                            self.detected_centroid_x_list.append(
+                                centroid_pa)
+                            self.detected_centroid_y_list.append(
+                                centroid_phen)
+                            self.actual_E.append(
+                                interp_fn_Bragg(centroid_pa))
                             n = n+1
                             msg = 'Line with id:' + curve_id + ' matched \n'
                             msg_dispersion = 'Calibration: ' + \
                                 str(np.round(tngnt_slope/slope, 3)) + ' Current ev/px: ' + str(
                                     np.round(self.scale_yaxis, 3)) + '; Proposed ev/px:' + str(np.round(self.scale_yaxis*tngnt_slope/slope, 3))+'\n'
                             self.ui.output.setText(self.ui.output.text(
-                            ) + msg + msg_dispersion)
+                                ) + msg + msg_dispersion)
         self.df_detected = pd.DataFrame(dict(slope=self.detected_slope_list, intercept=self.detected_intercept_list, min_angle=self.detected_line_min_angle_list,
                                              max_angle=self.detected_line_max_angle_list, dE=self.dE_list, gid=self.detected_id_list, roll_angle=self.detected_line_roll_angle_list, centroid_x=self.detected_centroid_x_list, centroid_y=self.detected_centroid_y_list, actual_E=self.actual_E))
 
@@ -514,6 +519,8 @@ class UICalculator(QWidget):
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
         self.add_plot()
+        self.plot1.setYRange(min(self.np_phen),
+                             max(self.np_phen), padding=None, update=True)
         self.ui.output.setText(self.ui.output.text(
         ) + 'No calibration offset value calculated but possible lines plotted on the right.\n')
 
@@ -575,8 +582,8 @@ class UICalculator(QWidget):
         #    self.data_dir + "*_cor2d.npz")
         list_of_files = glob.glob(
             '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
-        #self.pathname = max(list_of_files, key=os.path.getmtime)
-        self.pathname = max(list_of_files, key=os.path.getctime)
+        self.pathname = max(list_of_files, key=os.path.getmtime)
+        #self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
         print(self.pathname)
         self.load_corr2d()
