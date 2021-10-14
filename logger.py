@@ -8,6 +8,7 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget, QMessageBox, QApplication
 from PyQt5 import QtWidgets
 from gui.UILogger import Ui_Form
+from gui.spectr_gui import send_to_desy_elog
 
 import pyqtgraph as pg
 from gui.UILogger import Ui_Form
@@ -24,11 +25,11 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 global first_maxspec_vals
-global first_maxspec_av 
-global first_spec_fwhm_ev 
-global first_spec_peak_ev 
+global first_maxspec_av
+global first_spec_fwhm_ev
+global first_spec_peak_ev
 global first_XGM_vals
-global first_spec_integ_vals 
+global first_spec_integ_vals
 
 
 def firstNonNan(listfloats):
@@ -111,13 +112,13 @@ class UILogger(QWidget):
             self.spec_peak_ev_vals = []
             self.XGM_vals = []
             self.spec_integ_vals = []
-            
+
             self.timer_live.start(100)
             self.ui.pb_start_log.setText("Stop")
 
             self.ui.pb_start_log.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
-    
+
     def plot_data(self):
         av_spec = self.parent.ave_spectrum
         if len(self.maxspec_vals) >= self.ui.sb_nponts.value():
@@ -132,14 +133,14 @@ class UILogger(QWidget):
         # if self.ui.combo_log_ch_a.currentIndex() == 0:
             # self.single.setData(x=x, y=self.line1)
         # if self.ui.combo_log_ch_b.currentIndex() == 0:
-        
+
         #######
         global first_maxspec_vals
-        global first_maxspec_av 
-        global first_spec_fwhm_ev 
-        global first_spec_peak_ev 
+        global first_maxspec_av
+        global first_spec_fwhm_ev
+        global first_spec_peak_ev
         global first_XGM_vals
-        global first_spec_integ_vals 
+        global first_spec_integ_vals
 
         #spec peak single checkbox
         if self.ui.chkbx_spec_pk_single.isChecked():
@@ -147,62 +148,62 @@ class UILogger(QWidget):
                 maxspec_val = np.amax(self.parent.spectrum_event_disp)
             except ValueError:
                 maxspec_val = 0
-                
+
             self.maxspec_vals = np.append(self.maxspec_vals, maxspec_val)
-            
+
             ### if chkbx_rel_changes is checked (the same blocks of code are in the next checkboxes)
             #check the first value non a Nan value in the array is chkbx_rel_changes was or at the start of the Logger
             if self.ui.chkbx_rel_changes.isDown() or np.size(self.maxspec_vals)==1:
                 first_maxspec_vals = firstNonNan(self.maxspec_vals)
-            
+
             if self.ui.chkbx_rel_changes.isChecked():
                 #then try to apply first_maxspec_av to normalize on relative changes
-                try:                   
+                try:
                     self.maxspec_plot.setData(x=np.flip(np.arange(np.size(self.maxspec_vals))), y=self.maxspec_vals/first_maxspec_vals)
-                    
+
                 #rise exception and agafind the first non a Nan value in the array
                 except NameError:
                     first_maxspec_vals = firstNonNan(self.maxspec_vals)
                     self.maxspec_plot.setData(x=np.flip(np.arange(np.size(self.maxspec_vals))), y=self.maxspec_vals/first_maxspec_vals)
-            else: 
+            else:
                 self.maxspec_plot.setData(x=np.flip(np.arange(np.size(self.maxspec_vals))), y=self.maxspec_vals)
             ###
         else:
             self.maxspec_vals = np.append(self.maxspec_vals, np.nan)
             self.maxspec_plot.setData(x=np.flip(np.arange(np.size(self.maxspec_vals))), y=self.maxspec_vals)
 
-        
+
         #######
-        #spec peak average checkbox 
+        #spec peak average checkbox
         if self.ui.chkbx_spec_pk_average.isChecked():
             try:
                 maxspec_av = np.amax(av_spec)
             except ValueError:
                 maxspec_av = 0
-                
+
             self.maxspec_av_vals = np.append(self.maxspec_av_vals, maxspec_av)
-            
+
             if self.ui.chkbx_rel_changes.isDown() or np.size(self.maxspec_av_vals)==1:
                 first_maxspec_av = firstNonNan(self.maxspec_av_vals)
 
             if self.ui.chkbx_rel_changes.isChecked():
-                try:                   
+                try:
                     self.average.setData(x=np.flip(np.arange(np.size(self.maxspec_av_vals))), y=self.maxspec_av_vals/first_maxspec_av)
-               
+
                 except NameError:
                     first_maxspec_av = firstNonNan(self.maxspec_av_vals)
                     self.average.setData(x=np.flip(np.arange(np.size(self.maxspec_av_vals))), y=self.maxspec_av_vals/first_maxspec_av)
-            else: 
+            else:
                 self.average.setData(x=np.flip(np.arange(np.size(self.maxspec_av_vals))), y=self.maxspec_av_vals)
-                
+
         else:
             self.maxspec_av_vals = np.append(self.maxspec_av_vals, np.nan)
             self.average.setData(x=np.flip(np.arange(np.size(self.maxspec_av_vals))), y=self.maxspec_av_vals)
 
- 
+
         #######
-        #BW checkbox  
-        if self.ui.chkbx_spec_BW.isChecked():    
+        #BW checkbox
+        if self.ui.chkbx_spec_BW.isChecked():
             spec_fwhm_ev = self.parent.fwhm_ev
             self.spec_fwhm_ev_vals = np.append(self.spec_fwhm_ev_vals, spec_fwhm_ev)
 
@@ -210,92 +211,92 @@ class UILogger(QWidget):
                 first_spec_fwhm_ev = firstNonNan(self.spec_fwhm_ev_vals)
 
             if self.ui.chkbx_rel_changes.isChecked():
-                try:                   
+                try:
                     self.fwhm_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_fwhm_ev_vals))), y=self.spec_fwhm_ev_vals/first_spec_fwhm_ev)
                 except NameError:
                     first_spec_fwhm_ev = firstNonNan(self.spec_fwhm_ev_vals)
                     self.fwhm_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_fwhm_ev_vals))), y=self.spec_fwhm_ev_vals/first_spec_fwhm_ev)
-            else: 
+            else:
                 self.fwhm_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_fwhm_ev_vals))), y=self.spec_fwhm_ev_vals)
 
         else:
             self.spec_fwhm_ev_vals = np.append(self.spec_fwhm_ev_vals, np.nan)
             self.fwhm_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_fwhm_ev_vals))), y=self.spec_fwhm_ev_vals)
 
-        
-        #######    
+
+        #######
         #spec pos checkbox
         if self.ui.chkbx_spec_pos.isChecked():
             spec_peak_ev = self.parent.peak_ev
             self.spec_peak_ev_vals = np.append(self.spec_peak_ev_vals, spec_peak_ev)
-            
+
             if self.ui.chkbx_rel_changes.isDown() or np.size(self.spec_peak_ev_vals)==1:
                 first_spec_peak_ev = firstNonNan(self.spec_peak_ev_vals)
-                    
+
             if self.ui.chkbx_rel_changes.isChecked():
-                try:                   
+                try:
                     self.peak_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_peak_ev_vals))), y=self.spec_peak_ev_vals/first_spec_peak_ev)
                 except NameError:
                     first_spec_peak_ev = firstNonNan(self.spec_peak_ev_vals)
                     self.peak_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_peak_ev_vals))), y=self.spec_peak_ev_vals/first_spec_peak_ev)
 
-            else: 
+            else:
                 self.peak_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_peak_ev_vals))), y=self.spec_peak_ev_vals)
 
         else:
             self.spec_peak_ev_vals = np.append(self.spec_peak_ev_vals, np.nan)
             self.peak_ev_pos.setData(x=np.flip(np.arange(np.size(self.spec_peak_ev_vals))), y=self.spec_peak_ev_vals)
 
-        
-        ####### 
+
+        #######
         #XGM signal checkbox
         if self.ui.chkbx_XGM_integral.isChecked():
             self.XGM_vals = np.append(self.XGM_vals, self.parent.xgm.get_value())
-            
+
             if self.ui.chkbx_rel_changes.isDown() or np.size(self.XGM_vals)==1:
                 first_XGM_vals = firstNonNan(self.XGM_vals)
-                    
+
             if self.ui.chkbx_rel_changes.isChecked():
-                try:                   
+                try:
                     self.XGM.setData(x=np.flip(np.arange(np.size(self.XGM_vals))), y=self.XGM_vals/first_XGM_vals)
                 except NameError:
                     first_XGM_vals = firstNonNan(self.XGM_vals)
                     self.XGM.setData(x=np.flip(np.arange(np.size(self.XGM_vals))), y=self.XGM_vals/first_XGM_vals)
 
-            else: 
+            else:
                 self.XGM.setData(x=np.flip(np.arange(np.size(self.XGM_vals))), y=self.XGM_vals)
 
         else:
-            self.XGM_vals = np.append(self.XGM_vals, np.nan)       
+            self.XGM_vals = np.append(self.XGM_vals, np.nan)
             self.XGM.setData(x=np.flip(np.arange(np.size(self.XGM_vals))), y=self.XGM_vals)
 
-        ####### 
-        #spectrometer signal integral checkbox        
+        #######
+        #spectrometer signal integral checkbox
         if self.ui.chkbx_spec_integral.isChecked():
             self.spec_integ_vals = np.append(self.spec_integ_vals, self.parent.ave_integ)
-            
+
             if self.ui.chkbx_rel_changes.isDown() or np.size(self.spec_integ_vals)==1:
                 first_spec_integ_vals = firstNonNan(self.spec_integ_vals)
                 print('aaaa')
-    
+
             if self.ui.chkbx_rel_changes.isChecked():
-                try:                   
+                try:
                     self.spec_integral.setData(x=np.flip(np.arange(np.size(self.spec_integ_vals))), y=self.spec_integ_vals/first_spec_integ_vals)
                 except NameError:
                     first_spec_integ_vals = firstNonNan(self.spec_integ_vals)
                     self.spec_integral.setData(x=np.flip(np.arange(np.size(self.spec_integ_vals))), y=self.spec_integ_vals/first_spec_integ_vals)
 
-            else: 
+            else:
                 self.spec_integral.setData(x=np.flip(np.arange(np.size(self.spec_integ_vals))), y=self.spec_integ_vals)
 
         else:
-            self.spec_integ_vals = np.append(self.spec_integ_vals, np.nan)       
+            self.spec_integ_vals = np.append(self.spec_integ_vals, np.nan)
             self.spec_integral.setData(x=np.flip(np.arange(np.size(self.spec_integ_vals))), y=self.spec_integ_vals)
 
     def add_plot(self):
-        
+
         gui_index = self.parent.ui.get_style_name_index()
-        
+
         if "standard" in self.parent.gui_styles[gui_index]:
             pg.setConfigOption('background', 'w')
             pg.setConfigOption('foreground', 'k')
@@ -313,7 +314,7 @@ class UILogger(QWidget):
 
         l = pg.GraphicsLayout()
         win.setCentralWidget(l)
-        
+
         # add axis to layout
         ## at least one plotitem is used whioch holds its own viewbox and left axis
         pI = pg.PlotItem()
@@ -321,26 +322,26 @@ class UILogger(QWidget):
         l.addItem(pI, row = 2, col = 3,  rowspan=1, colspan=1) # add plotitem to layout
         pI.getAxis('left').enableAutoSIPrefix(enable=True)  # stop the auto unit scaling on y axes
         pI.hideAxis('left')
-        pI.showAxis('right')     
+        pI.showAxis('right')
         pI.getAxis("right").setLabel('Signal, arb.un', color='#ff0000')
         # pI.setLabel("left", 'Signal, arb.un', color='#ff0000')
         pI.setLabel('bottom', 'N of shots', color='#000000')
-        
+
         # pI.showGrid(1, 1, 1)
         # self.vLine = pg.InfiniteLine(angle=90, movable=False)
         # self.hLine = pg.InfiniteLine(angle=0, movable=False)
         # pg.PlotItem().addItem(self.vLine, ignoreBounds=False)
         # pg.PlotItem().addItem(self.hLine, ignoreBounds=True)
         # a2 = pg.AxisItem("left")
-                
+
         # a3.enableAutoSIPrefix(enable=True)  # stop the auto unit scaling on y axes
         # a4.enableAutoSIPrefix(enable=True)  # stop the auto unit scaling on y axes
-      
+
         #invert axis
         v3 = pg.ViewBox(invertX=True)
         v4 = pg.ViewBox(invertX=True)
         v5 = pg.ViewBox(invertX=True)
-        
+
         a3 = pg.AxisItem("right")
         pI.layout.addItem(a3, 2, 3)
         pI.scene().addItem(v3)
@@ -348,13 +349,13 @@ class UILogger(QWidget):
         a4 = pg.AxisItem("right")
         pI.layout.addItem(a4, 2, 4)
         pI.scene().addItem(v4)
-        
+
         a5 = pg.AxisItem("left")
         pI.layout.addItem(a5, 2, 0)
         pI.scene().addItem(v5)
-        
+
         v1.invertX(True)
-        
+
         v1.setLimits(xMin=0, yMin=0)
         v3.setLimits(xMin=0)
         v4.setLimits(xMin=0)
@@ -364,9 +365,9 @@ class UILogger(QWidget):
         layout = QtGui.QGridLayout()
         self.ui.widget_log.setLayout(layout)
         layout.addWidget(win, 0, 0)
-        ###### 
-        
-        # add viewboxes to layout 
+        ######
+
+        # add viewboxes to layout
         l.scene().addItem(v3)
         l.scene().addItem(v4)
         l.scene().addItem(v5)
@@ -388,35 +389,36 @@ class UILogger(QWidget):
         # slot: update view when resized
         def updateViews():
             v3.setGeometry(v1.sceneBoundingRect())
-            v4.setGeometry(v1.sceneBoundingRect())                
+            v4.setGeometry(v1.sceneBoundingRect())
             v5.setGeometry(v1.sceneBoundingRect())
         # plot
         self.maxspec_plot = pg.PlotCurveItem(pen=single_pen, name='maxspec_single_plot')
-        
+
         pen1 = pg.mkPen('#ff0000', width=3)
         self.average =      pg.PlotCurveItem(pen=pen1, name='average')
-        
+
         pen2 = pg.mkPen('#008000', width=2)
         self.fwhm_ev_pos =  pg.PlotCurveItem(pen=pen2, name='fwhm')
-        
+
         pen3 = pg.mkPen('#0000ff', width=2)
         self.peak_ev_pos =  pg.PlotCurveItem(pen=pen3, name='peak_pos')
+
         
         pen4 = pg.mkPen('#800080', width=2)
         self.XGM =  pg.PlotCurveItem(pen=pen4, name='XGM')
         
         pen5 = pg.mkPen('#ffa500', width=2)
         self.spec_integral =  pg.PlotCurveItem(pen=pen5, name='spec_integral')
-        
+
         v1.addItem(self.maxspec_plot)
         v1.addItem(self.average)
         v3.addItem(self.fwhm_ev_pos)
-        v4.addItem(self.peak_ev_pos)      
-        v5.addItem(self.XGM)      
-        v5.addItem(self.spec_integral)      
-      
+        v4.addItem(self.peak_ev_pos)
+        v5.addItem(self.XGM)
+        v5.addItem(self.spec_integral)
+
         # updates when resized
-        v1.sigResized.connect(updateViews)        
+        v1.sigResized.connect(updateViews)
         # autorange once to fit views at start
         # v2.enableAutoRange(axis= pg.ViewBox.XYAxes, enable=True)
         # if self.ui.chkbx_rel_changes.isCheckable():
@@ -425,7 +427,7 @@ class UILogger(QWidget):
         v5.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
 
         updateViews()
-               
+
     def stop_logger(self):
         self.timer_live.stop()
         logger.info("Stop Logger")
@@ -467,8 +469,27 @@ class UILogger(QWidget):
 
         return False
 
+    def get_screenshot(self, window_widget):
+        screenshot_tmp = QtCore.QByteArray()
+        screeshot_buffer = QtCore.QBuffer(screenshot_tmp)
+        screeshot_buffer.open(QtCore.QIODevice.WriteOnly)
+        widget = QtWidgets.QWidget.grab(window_widget)
+        widget.save(screeshot_buffer, "png")
+        return screenshot_tmp.toBase64().data().decode()
 
-    
+    def logbook(self, widget, text=""):
+        """
+        Method to send data + screenshot to eLogbook
+        :return:
+        """
+        screenshot = self.get_screenshot(widget)
+        device = self.parent.ui.combo_hirex.currentText()
+        res = send_to_desy_elog(author="", title="pySpectrometer logger "+ device, severity="INFO", text=text, elog=self.Form.mi.logbook_name,
+                          image=screenshot)
+        if not res:
+            self.Form.error_box("error during eLogBook sending")
+
+
 def main():
 
     #make pyqt threadsafe
