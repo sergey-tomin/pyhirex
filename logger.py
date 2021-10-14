@@ -384,7 +384,7 @@ class UILogger(QWidget):
 
         a3.setLabel('FWHM, eV', color='#008000')
         a4.setLabel('Peak position, eV', color='#0000ff')
-        a5.setLabel('XGM, mJ', color='#ffa500')
+        a5.setLabel('XGM, mJ', color='#800080')
 
         # slot: update view when resized
         def updateViews():
@@ -403,10 +403,11 @@ class UILogger(QWidget):
         pen3 = pg.mkPen('#0000ff', width=2)
         self.peak_ev_pos =  pg.PlotCurveItem(pen=pen3, name='peak_pos')
 
-        pen4 = pg.mkPen('#ffa500', width=2)
+        
+        pen4 = pg.mkPen('#800080', width=2)
         self.XGM =  pg.PlotCurveItem(pen=pen4, name='XGM')
-
-        pen5 = pg.mkPen('#800080', width=2)
+        
+        pen5 = pg.mkPen('#ffa500', width=2)
         self.spec_integral =  pg.PlotCurveItem(pen=pen5, name='spec_integral')
 
         v1.addItem(self.maxspec_plot)
