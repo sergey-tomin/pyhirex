@@ -25,8 +25,6 @@ from scipy import interpolate
 import re
 from skimage.transform import hough_line, hough_line_peaks
 from model_functions.HXRSS_Bragg_max_generator import HXRSS_Bragg_max_generator
-from model_functions.HXRSS_Bragg_single import HXRSSsingle
-
 #from model_functions.HXRSS_Bragg_generator import HXRSS_Bragg_generator
 from itertools import cycle
 path = os.path.realpath(__file__)
@@ -150,7 +148,6 @@ class UICalculator(QWidget):
             self.load_corr2d()
             self.corr2d = self.tt['corr2d']
             if len(self.np_doocs) > 2:
-                self.nomatch = 0
                 #self.angle_res = self.np_doocs[2] - self.np_doocs[1]
                 self.scale_xaxis = (max(self.np_doocs)
                                     - min(self.np_doocs)) / len(self.np_doocs)
@@ -187,7 +184,7 @@ class UICalculator(QWidget):
             else:
                 self.ui.output.setText(
                         self.ui.output.text() + 'No lines were detected in image\n')
-                self.nomatch_plot()
+                #self.nomatch_plot()
             self.ui.pb_start_calc.setText("Reset")
             self.ui.pb_start_calc.setStyleSheet(
                 "color: rgb(255, 0, 0); font-size: 14pt")
@@ -421,7 +418,7 @@ class UICalculator(QWidget):
             y = np.asarray(self.phen_list[r])
             # Interpolating range
             x0 = np.linspace(min(self.p_angle_list[r]), max(
-                self.p_angle_list[r]), 150, endpoint=False)
+                self.p_angle_list[r]), 250, endpoint=False)
 
             gid = str(gid_raw)
             f = interpolate.UnivariateSpline(
@@ -431,7 +428,7 @@ class UICalculator(QWidget):
                 x1 = x[i0:i0+2]
                 y1 = y[i0:i0+2]
                 dydx, = np.diff(y1)/np.diff(x1)
-                if y1[0] < max(self.np_phen)+150 and y1[0] > min(self.np_phen)-150:
+                if y1[0] < max(self.np_phen)+300 and y1[0] > min(self.np_phen)-300:
                     def tngnt(x): return dydx*x + (y1[0]-dydx*x1[0])
                     tngnt_slope = (tngnt(x[1])-tngnt(x[0]))/(x[1]-x[0])
                     self.tngnt_slope_list.append(tngnt_slope)
@@ -445,20 +442,107 @@ class UICalculator(QWidget):
         self.df_tangents = pd.DataFrame(dict(slope=self.tngnt_slope_list, intercept=self.tngnt_intercept_list, gid=self.tngnt_gid_list, interp=self.interp_Bragg_list,
                                              centroid_pa=self.tngnt_centroid_list, centroid_phen=self.tngnt_centroid_y_list, roll_angle=self.tngnt_roll_angle_list))
 
+    def line_comparator(self):
+        for slope, intercept, min_angle, max_angle, centroid_pa, centroid_phen, roll_angle in zip(self.df_spec_lines['slope'], self.df_spec_lines['intercept'], self.df_spec_lines['min_angle'], self.df_spec_lines['max_angle'], self.df_spec_lines['centroid_pa'], self.df_spec_lines['centroid_phen'], self.df_spec_lines['roll_angle']):
+            n = 0
+            distance_list = []
+            i = 0
+            for tngnt_slope, tngnt_intercept, curve_id, interp_fn_Bragg, centroid, centroid_y in zip(self.df_tangents['slope'], self.df_tangents['intercept'], self.df_tangents['gid'], self.df_tangents['interp'], self.df_tangents['centroid_pa'], self.df_tangents['centroid_phen']):
+                if ((tngnt_slope-self.slope_allowance) <= slope <= (tngnt_slope+self.slope_allowance)) and ((tngnt_intercept-self.intercept_allowance) <= intercept <= (tngnt_intercept+self.intercept_allowance)):
+                    a = (centroid, centroid_y)
+                    b = (centroid_pa, centroid_phen)
+                    dist = distance.euclidean(a, b)
+                    distance_list.append(dist)
+                    if n >= 1 and distance_list[i] < min(distance_list):
+                        def func(x): return interp_fn_Bragg(
+                                x)-centroid_phen
+                        ans, = fsolve(func, centroid_pa)
+                        dE = (interp_fn_Bragg(centroid_pa)-centroid_phen)
+                        dP = (ans-centroid_pa)
+                        if abs(dE) < self.max_E and abs(dP) < self.max_P:
+                            self.detected_slope_list.pop()
+                            self.detected_intercept_list.pop()
+                            self.detected_id_list.pop()
+                            self.detected_line_min_angle_list.pop()
+                            self.detected_line_max_angle_list.pop()
+                            self.detected_line_roll_angle_list.pop()
+                            self.detected_centroid_x_list.pop()
+                            self.detected_centroid_y_list.pop()
+                            self.dE_list.pop()
+                            self.actual_E.pop()
+                            self.detected_slope_list.append(slope)
+                            self.detected_intercept_list.append(intercept)
+                            self.detected_id_list.append(curve_id)
+                            self.detected_line_min_angle_list.append(
+                                    min_angle)
+                            self.detected_line_max_angle_list.append(
+                                    max_angle)
+                            self.detected_line_roll_angle_list.append(
+                                    roll_angle)
+                            self.dE_list.append(dE)
+                            self.detected_centroid_x_list.append(centroid_pa)
+                            self.detected_centroid_y_list.append(centroid_phen)
+                            self.actual_E.append(interp_fn_Bragg(centroid_pa))
+                            n = n+1
+                            print('Its a match ' + str(n) + ' Curve id:' + str(curve_id) + 'Distance' + str(np.round(
+                                dist, 2)))
+                    elif n >= 1 and distance_list[i] >= min(distance_list):
+                        i = i+1
+                        continue
+                    elif distance_list[i] < self.max_distance:
+                        def func(x): return interp_fn_Bragg(
+                                x)-centroid_phen
+                        ans, = fsolve(func, centroid_pa)
+                        dE = (interp_fn_Bragg(centroid_pa)-centroid_phen)
+                        dP = (ans-centroid_pa)
+                        if abs(dE) < self.max_E and abs(dP) < self.max_P:
+                            self.detected_slope_list.append(slope)
+                            self.detected_intercept_list.append(intercept)
+                            self.detected_id_list.append(curve_id)
+                            self.detected_line_min_angle_list.append(
+                                    min_angle)
+                            self.detected_line_max_angle_list.append(
+                                    max_angle)
+                            self.detected_line_roll_angle_list.append(
+                                    roll_angle)
+                            self.dE_list.append(dE)
+                            self.detected_centroid_x_list.append(
+                                centroid_pa)
+                            self.detected_centroid_y_list.append(
+                                centroid_phen)
+                            self.actual_E.append(
+                                interp_fn_Bragg(centroid_pa))
+                            n = n+1
+                            msg = 'Line with id:' + curve_id + ' matched \n'
+                            #msg_dispersion = 'Calibration: ' + \
+                            #    str(np.round(tngnt_slope/slope, 3)) + ' Current ev/px: ' + str(
+                            #        np.round(self.scale_yaxis, 3)) + '; Proposed ev/px:' + str(np.round(self.scale_yaxis*tngnt_slope/slope, 3))+'\n'
+                            self.ui.output.setText(self.ui.output.text(
+                                ) + msg)
+                            if abs(tngnt_slope/slope) > 1.25 or abs(tngnt_slope/slope) < 0.75:
+                                self.ind = 'error'
+                            self.add_table_row(curve_id + 'ev/px', str(np.round(self.scale_yaxis, 3)), str(
+                                np.round(self.scale_yaxis*tngnt_slope/slope, 3)))
+                    else:
+                        distance_list.append(1000000)
+                        i = i+1
+        self.df_detected = pd.DataFrame(dict(slope=self.detected_slope_list, intercept=self.detected_intercept_list, min_angle=self.detected_line_min_angle_list,
+                                             max_angle=self.detected_line_max_angle_list, dE=self.dE_list, gid=self.detected_id_list, roll_angle=self.detected_line_roll_angle_list, centroid_x=self.detected_centroid_x_list, centroid_y=self.detected_centroid_y_list, actual_E=self.actual_E))
+
     def nearest_neighbor(self):
         scaler = preprocessing.MinMaxScaler()
 
         self.df_tangents_scaled = self.df_tangents.reset_index()
-        self.df_tangents_scaled[['slope', 'centroid_pa', 'centroid_phen']] = scaler.fit_transform(
-            self.df_tangents_scaled[['slope', 'centroid_pa', 'centroid_phen']])
+        self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']] = scaler.fit_transform(
+            self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']])
 
         self.df_test = self.df_spec_lines[[
             'slope', 'intercept', 'centroid_pa', 'centroid_phen', 'min_angle', 'max_angle', 'roll_angle']]
-        self.df_test_scaled = pd.DataFrame(scaler.transform(self.df_test[['slope', 'centroid_pa', 'centroid_phen']]), columns=self.df_test[[
-                                           'slope', 'centroid_pa', 'centroid_phen']].columns)
+        self.df_test_scaled = pd.DataFrame(scaler.transform(self.df_test[['slope', 'intercept', 'centroid_pa', 'centroid_phen']]), columns=self.df_test[[
+                                           'slope', 'intercept', 'centroid_pa', 'centroid_phen']].columns)
 
         nbrs = NearestNeighbors(1).fit(
-            self.df_tangents_scaled[['slope', 'centroid_pa', 'centroid_phen']])
+            self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']])
         dist, ind = nbrs.kneighbors(self.df_test_scaled)
         self.df_test['gid'] = self.df_tangents_scaled['gid'].values[ind.ravel()]
         self.df_test['dE'] = self.df_tangents['centroid_phen'].values[ind.ravel(
@@ -467,22 +551,9 @@ class UICalculator(QWidget):
         )]
         self.df_test['centroid_y'] = self.df_tangents['centroid_phen'].values[ind.ravel(
         )]
-        self.df_test['tngnt_slope'] = self.df_tangents['slope'].values[ind.ravel(
-        )]
 
         self.df_detected = pd.DataFrame(dict(slope=self.df_test['slope'], intercept=self.df_test['intercept'], min_angle=self.df_test['min_angle'], max_angle=self.df_test['max_angle'], dE=self.df_test['dE'],
-                                             gid=self.df_test['gid'], roll_angle=self.df_test['roll_angle'], centroid_x=self.df_test['centroid_x'], centroid_y=self.df_test['centroid_y'], tngnt_slope=self.df_test['tngnt_slope'], centroid_pa=self.df_test['centroid_pa']))
-        self.dispersion_cal()
-
-    def dispersion_cal(self):
-        for slope, tngnt_slope, curve_id, centroid_pa in zip(self.df_detected['slope'], self.df_detected['tngnt_slope'], self.df_detected['gid'], self.df_detected['centroid_pa']):
-            msg = 'Id:' + curve_id + ' matched to line with centroid: ' + \
-                str(np.round(centroid_pa, 1)) + ' deg\n'
-            self.ui.output.setText(self.ui.output.text() + msg)
-            if abs(tngnt_slope/slope) > 1.25 or abs(tngnt_slope/slope) < 0.75:
-                self.ind = 'error'
-            self.add_table_row(curve_id + 'ev/px', str(np.round(self.scale_yaxis, 3)), str(
-                np.round(self.scale_yaxis*tngnt_slope/slope, 3)))
+                                             gid=self.df_test['gid'], roll_angle=self.df_test['roll_angle'], centroid_x=self.df_test['centroid_x'], centroid_y=self.df_test['centroid_y']))
 
     def hkl_roll_separator(self):
         for gid_item, roll in zip(self.df_detected['gid'], self.df_detected['roll_angle']):
@@ -521,19 +592,13 @@ class UICalculator(QWidget):
 
     def nomatch_plot(self):
         self.roll_list = [self.set_roll_angle]
-        self.phen, self.pa, self.gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
+        self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
-        if len(self.pa) > 0:
-            self.add_plot()
-            self.plot1.setYRange(min(self.np_phen),
-                                 max(self.np_phen), padding=None, update=True)
-            self.ui.output.setText(self.ui.output.text(
-                ) + 'No calibration offset value calculated but possible lines plotted on the right.\n')
-        else:
-            # In case no lines are plotted, this flag makes sure Legend is not reset (causing an error as there is no legend)
-            self.nomatch = 1
-            self.ui.output.setText(self.ui.output.text(
-                            ) + 'No calibration offset value calculated and no model lines in the area.\n')
+        self.add_plot()
+        self.plot1.setYRange(min(self.np_phen),
+                             max(self.np_phen), padding=None, update=True)
+        self.ui.output.setText(self.ui.output.text(
+        ) + 'No calibration offset value calculated but possible lines plotted on the right.\n')
 
     def img_processing(self):
         self.processed_image = ndimage.grey_dilation(
