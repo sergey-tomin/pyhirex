@@ -457,16 +457,14 @@ class UICalculator(QWidget):
 
     def nearest_neighbor(self):
         scaler = preprocessing.MinMaxScaler()
-        #self.df_tangents_scaled = self.df_tangents.reset_index()
-        self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']] = scaler.fit_transform(
-            self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']])
+        self.df_tangents_scaled = pd.DataFrame(scaler.fit_transform(self.df_tangents[['slope', 'intercept', 'centroid_pa', 'centroid_phen']]), columns=self.df_tangents[[
+                                               'slope', 'intercept', 'centroid_pa', 'centroid_phen']].columns)
         self.df_test = self.df_spec_lines[[
             'slope', 'intercept', 'centroid_pa', 'centroid_phen', 'min_angle', 'max_angle', 'roll_angle']]
         self.df_test_scaled = pd.DataFrame(scaler.transform(self.df_test[['slope', 'intercept', 'centroid_pa', 'centroid_phen']]), columns=self.df_test[[
                                            'slope', 'intercept', 'centroid_pa', 'centroid_phen']].columns)
-        X = self.df_tangents_scaled[[
-            'slope', 'intercept', 'centroid_pa', 'centroid_phen']]
-        y = self.df_tangents_scaled['gid']
+        X = self.df_tangents_scaled
+        y = self.df_tangents['gid']
         clf = RandomForestClassifier(n_estimators=20, random_state=1)
         clf.fit(X, y)
         self.df_test['gid'] = clf.predict(self.df_test_scaled)
@@ -498,16 +496,18 @@ class UICalculator(QWidget):
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
 
-        pa_dE, phen_Actual, linestyle_list, gid_list = HXRSSsingle(
+        pa_dE, phen_Actual, linestyle_list, gid_list_s = HXRSSsingle(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
         df_offset = pd.DataFrame(
-            dict(E_model=phen_Actual, gid=gid_list, centroid_pa=pa_dE))
+            dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE))
         self.df_detected = self.df_detected.merge(
             df_offset, on=['gid', 'centroid_pa'], how='left')
         self.df_detected['dE'] = self.df_detected['E_model'] - \
             self.df_detected['centroid_phen']
 
         self.dE_mean = np.mean(self.df_detected['dE'])
+        if np.isnan(self.dE_mean) is True:
+            self.dE_mean = 0
         #self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
