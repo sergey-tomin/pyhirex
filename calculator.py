@@ -19,8 +19,13 @@ from scipy import ndimage
 from scipy.spatial import distance
 from scipy.optimize import fsolve
 from skimage.filters import threshold_yen
+from sklearn.model_selection import cross_val_score
+from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
+from sklearn.ensemble import GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier, VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn import preprocessing
-from sklearn.neighbors import NearestNeighbors
 from scipy import interpolate
 import re
 from skimage.transform import hough_line, hough_line_peaks
@@ -66,11 +71,11 @@ class UICalculator(QWidget):
         self.n, self.d_kernel, self.e_kernel = 0, 2, 2
         self.mode = 0
         self.mono_no = None
-        self.max_E = 2000
-        self.max_P = 2
-        self.slope_allowance = 25
-        self.intercept_allowance = 2000
-        self.max_distance = 1000
+        #self.max_E = 2000
+        #self.max_P = 2
+        #self.slope_allowance = 25
+        #self.intercept_allowance = 2000
+        #self.max_distance = 1000
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.img_corr2d = None
         self.min_phen, self.max_phen = 0, 0
@@ -81,7 +86,7 @@ class UICalculator(QWidget):
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.actual_E, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], [], []
-        self.h_list, self.k_list, self.l_list, self.roll_list = [], [], [], []
+        self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list = [], [], [], [], []
         self.ind = ''
         DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
         self.path = path[:path.find(DIR_NAME)]
@@ -234,7 +239,8 @@ class UICalculator(QWidget):
         self.win2 = pg.GraphicsLayoutWidget()
         self.label = pg.LabelItem(justify='left', row=0, col=0)
         self.win2.addItem(self.label)
-
+        self.vb = self.win2.addViewBox(row=1, col=1)
+        self.vb.setMaximumWidth(100)
         self.plot1 = self.win2.addPlot(row=1, col=0)
         self.plot1.setLabel('left', "E_ph", units='eV')
         self.plot1.setLabel('bottom', "Pitch angle", units='°')
@@ -259,6 +265,11 @@ class UICalculator(QWidget):
         self.plot1.enableAutoRange()
         #pen_shifted = pg.mkPen('k', width=3, style=QtCore.Qt.DashLine)
         self.legend = self.plot1.addLegend()
+        self.legend.setParentItem(self.vb)
+
+    # Anchor the upper-left corner of the legend to the upper-left corner of its parent
+
+        self.legend.anchor((0, 0), (0, 0))
         #self.legend_boolean = 1
         for r in range(len(self.pa)):
             if self.linestyle_list[r] == 'dashed':
@@ -347,7 +358,6 @@ class UICalculator(QWidget):
         else:
             self.ui.output.setText(self.ui.output.text(
             ) + '%d line(s) found\n' % len(pitch_angle_list))
-            print('No lines found')
         for pitch_angle, rho in zip(pitch_angle_list, rho_list):
 
             # Calculate slope and intercept
@@ -447,32 +457,22 @@ class UICalculator(QWidget):
 
     def nearest_neighbor(self):
         scaler = preprocessing.MinMaxScaler()
-
-        self.df_tangents_scaled = self.df_tangents.reset_index()
-        self.df_tangents_scaled[['slope', 'centroid_pa', 'centroid_phen']] = scaler.fit_transform(
-            self.df_tangents_scaled[['slope', 'centroid_pa', 'centroid_phen']])
-
+        #self.df_tangents_scaled = self.df_tangents.reset_index()
+        self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']] = scaler.fit_transform(
+            self.df_tangents_scaled[['slope', 'intercept', 'centroid_pa', 'centroid_phen']])
         self.df_test = self.df_spec_lines[[
             'slope', 'intercept', 'centroid_pa', 'centroid_phen', 'min_angle', 'max_angle', 'roll_angle']]
-        self.df_test_scaled = pd.DataFrame(scaler.transform(self.df_test[['slope', 'centroid_pa', 'centroid_phen']]), columns=self.df_test[[
-                                           'slope', 'centroid_pa', 'centroid_phen']].columns)
-
-        nbrs = NearestNeighbors(1).fit(
-            self.df_tangents_scaled[['slope', 'centroid_pa', 'centroid_phen']])
-        dist, ind = nbrs.kneighbors(self.df_test_scaled)
-        self.df_test['gid'] = self.df_tangents_scaled['gid'].values[ind.ravel()]
-        self.df_test['dE'] = self.df_tangents['centroid_phen'].values[ind.ravel(
-        )] - self.df_test['centroid_phen']
-        self.df_test['centroid_x'] = self.df_tangents['centroid_pa'].values[ind.ravel(
-        )]
-        self.df_test['centroid_y'] = self.df_tangents['centroid_phen'].values[ind.ravel(
-        )]
-        self.df_test['tngnt_slope'] = self.df_tangents['slope'].values[ind.ravel(
-        )]
-
-        self.df_detected = pd.DataFrame(dict(slope=self.df_test['slope'], intercept=self.df_test['intercept'], min_angle=self.df_test['min_angle'], max_angle=self.df_test['max_angle'], dE=self.df_test['dE'],
-                                             gid=self.df_test['gid'], roll_angle=self.df_test['roll_angle'], centroid_x=self.df_test['centroid_x'], centroid_y=self.df_test['centroid_y'], tngnt_slope=self.df_test['tngnt_slope'], centroid_pa=self.df_test['centroid_pa']))
-        self.dispersion_cal()
+        self.df_test_scaled = pd.DataFrame(scaler.transform(self.df_test[['slope', 'intercept', 'centroid_pa', 'centroid_phen']]), columns=self.df_test[[
+                                           'slope', 'intercept', 'centroid_pa', 'centroid_phen']].columns)
+        X = self.df_tangents_scaled[[
+            'slope', 'intercept', 'centroid_pa', 'centroid_phen']]
+        y = self.df_tangents_scaled['gid']
+        clf = RandomForestClassifier(n_estimators=20, random_state=1)
+        clf.fit(X, y)
+        self.df_test['gid'] = clf.predict(self.df_test_scaled)
+        self.df_detected = pd.DataFrame(dict(slope=self.df_test['slope'], intercept=self.df_test['intercept'], min_angle=self.df_test['min_angle'], max_angle=self.df_test['max_angle'],
+                                             gid=self.df_test['gid'], roll_angle=self.df_test['roll_angle'], centroid_pa=self.df_test['centroid_pa'], centroid_phen=self.df_test['centroid_phen']))
+        #self.dispersion_cal()
 
     def dispersion_cal(self):
         for slope, tngnt_slope, curve_id, centroid_pa in zip(self.df_detected['slope'], self.df_detected['tngnt_slope'], self.df_detected['gid'], self.df_detected['centroid_pa']):
@@ -485,23 +485,34 @@ class UICalculator(QWidget):
                 np.round(self.scale_yaxis*tngnt_slope/slope, 3)))
 
     def hkl_roll_separator(self):
-        for gid_item, roll in zip(self.df_detected['gid'], self.df_detected['roll_angle']):
+        for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
             num = [int(s) for s in re.findall(r'-?\d+', str(gid_item))]
             self.h_list.append(num[0])
             self.k_list.append(num[1])
             self.l_list.append(num[2])
             self.roll_list.append(roll)
+            self.centroid_list.append(cent_x-self.DTHP)
 
     def offset_calc_and_plot(self):
         self.roll_list = [self.set_roll_angle]
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
+
+        pa_dE, phen_Actual, linestyle_list, gid_list = HXRSSsingle(
+            (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
+        df_offset = pd.DataFrame(
+            dict(E_model=phen_Actual, gid=gid_list, centroid_pa=pa_dE))
+        self.df_detected = self.df_detected.merge(
+            df_offset, on=['gid', 'centroid_pa'], how='left')
+        self.df_detected['dE'] = self.df_detected['E_model'] - \
+            self.df_detected['centroid_phen']
+
         self.dE_mean = np.mean(self.df_detected['dE'])
         #self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
                              max(self.np_phen)+self.dE_mean, padding=None, update=True)
-        for E, x, y, id in zip(self.df_detected['dE'], self.df_detected['centroid_x'], self.df_detected['centroid_y'], self.df_detected['gid']):
+        for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
             #self.add_text_to_plot(x, max(self.np_phen)-10, E)
             if abs(E) > 200:
                 self.ind = 'error'
