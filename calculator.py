@@ -259,7 +259,7 @@ class UICalculator(QWidget):
         self.plot1.addItem(self.vLine, ignoreBounds=True)
         self.plot1.addItem(self.hLine, ignoreBounds=True)
         self.plot1.setXLink(self.img_corr2d)
-        self.plot1.setYLink(self.img_corr2d)
+        #self.plot1.setYLink(self.img_corr2d)
 
     def add_plot(self):
         #self.plot1.clear()
@@ -466,7 +466,9 @@ class UICalculator(QWidget):
                                            'slope', 'intercept', 'centroid_pa', 'centroid_phen']].columns)
         X = self.df_tangents_scaled
         y = self.df_tangents['gid']
-        clf = RandomForestClassifier(n_estimators=20, random_state=1)
+        #clf = RandomForestClassifier(n_estimators=5, random_state=1)
+        clf = KNeighborsClassifier(
+            n_neighbors=13, weights='distance', algorithm='auto')
         clf.fit(X, y)
         self.df_test['gid'] = clf.predict(self.df_test_scaled)
         self.df_detected = pd.DataFrame(dict(slope=self.df_test['slope'], intercept=self.df_test['intercept'], min_angle=self.df_test['min_angle'], max_angle=self.df_test['max_angle'],
@@ -493,21 +495,27 @@ class UICalculator(QWidget):
             self.centroid_list.append(cent_x-self.DTHP)
 
     def offset_calc_and_plot(self):
-        self.roll_list = [self.set_roll_angle]
+        self.roll_list_fun = [self.set_roll_angle]
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
-            self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
+            self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list_fun, self.DTHR, self.alpha)
 
         pa_dE, phen_Actual, gid_list_s, model_slope_list = HXRSSsingle(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
 
         df_offset = pd.DataFrame(
             dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE, mdl_slope=model_slope_list))
+
         self.df_detected = self.df_detected.merge(
             df_offset, on=['gid', 'centroid_pa'], how='left')
         self.df_detected['dE'] = self.df_detected['E_model'] - \
             self.df_detected['centroid_phen']
+        btwn = self.df_detected['dE'].between(-190, 190, inclusive=False)
+        self.df_detected = self.df_detected[btwn]
+        print(gid_list_s)
         self.dispersion_cal()
+
         self.dE_mean = np.mean(self.df_detected['dE'])
+
         if np.isnan(self.dE_mean) is True:
             self.dE_mean = 0
         print('E_offset is'+str(self.dE_mean))
