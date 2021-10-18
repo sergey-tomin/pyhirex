@@ -42,6 +42,7 @@ sys.path.insert(0, path[:indx])
 # filename="logs/afb.log",
 #logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+pd.options.mode.chained_assignment = None  # default='warn'
 
 PY_SPECTROMETER_DIR = "pySpectrometer"
 DIR_NAME = "hirex"
@@ -470,17 +471,17 @@ class UICalculator(QWidget):
         self.df_test['gid'] = clf.predict(self.df_test_scaled)
         self.df_detected = pd.DataFrame(dict(slope=self.df_test['slope'], intercept=self.df_test['intercept'], min_angle=self.df_test['min_angle'], max_angle=self.df_test['max_angle'],
                                              gid=self.df_test['gid'], roll_angle=self.df_test['roll_angle'], centroid_pa=self.df_test['centroid_pa'], centroid_phen=self.df_test['centroid_phen']))
-        #self.dispersion_cal()
+        #
 
     def dispersion_cal(self):
-        for slope, tngnt_slope, curve_id, centroid_pa in zip(self.df_detected['slope'], self.df_detected['tngnt_slope'], self.df_detected['gid'], self.df_detected['centroid_pa']):
+        for slope, mdl_slope, curve_id, centroid_pa in zip(self.df_detected['slope'], self.df_detected['mdl_slope'], self.df_detected['gid'], self.df_detected['centroid_pa']):
             msg = 'Id:' + curve_id + ' matched to line with centroid: ' + \
                 str(np.round(centroid_pa, 1)) + ' deg\n'
             self.ui.output.setText(self.ui.output.text() + msg)
-            if abs(tngnt_slope/slope) > 1.25 or abs(tngnt_slope/slope) < 0.75:
+            if abs(mdl_slope/slope) > 1.25 or abs(mdl_slope/slope) < 0.75:
                 self.ind = 'error'
             self.add_table_row(curve_id + 'ev/px', str(np.round(self.scale_yaxis, 3)), str(
-                np.round(self.scale_yaxis*tngnt_slope/slope, 3)))
+                np.round(self.scale_yaxis*mdl_slope/slope, 3)))
 
     def hkl_roll_separator(self):
         for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
@@ -496,18 +497,20 @@ class UICalculator(QWidget):
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list, self.DTHR, self.alpha)
 
-        pa_dE, phen_Actual, linestyle_list, gid_list_s = HXRSSsingle(
+        pa_dE, phen_Actual, gid_list_s, model_slope_list = HXRSSsingle(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
+
         df_offset = pd.DataFrame(
-            dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE))
+            dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE, mdl_slope=model_slope_list))
         self.df_detected = self.df_detected.merge(
             df_offset, on=['gid', 'centroid_pa'], how='left')
         self.df_detected['dE'] = self.df_detected['E_model'] - \
             self.df_detected['centroid_phen']
-
+        self.dispersion_cal()
         self.dE_mean = np.mean(self.df_detected['dE'])
         if np.isnan(self.dE_mean) is True:
             self.dE_mean = 0
+        print('E_offset is'+str(self.dE_mean))
         #self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
