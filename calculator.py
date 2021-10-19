@@ -64,19 +64,9 @@ class UICalculator(QWidget):
         style_name = self.parent.gui_styles[gui_index]
         self.loadStyleSheet(filename=self.parent.gui_dir + style_name)
         self.mi = self.parent.mi
-        #self.decimals_rounding = 4
-        #self.colors = ['r', 'b', 'g', 'c', 'y', 'k']
-        #self.colors2 = ['b', 'g', 'c', 'y', 'k']
-        #self.linecolors = cycle(self.colors)
-        #self.linecolors1 = cycle(self.colors2)
         self.n, self.d_kernel, self.e_kernel = 0, 2, 2
         self.mode = 0
         self.mono_no = None
-        #self.max_E = 2000
-        #self.max_P = 2
-        #self.slope_allowance = 25
-        #self.intercept_allowance = 2000
-        #self.max_distance = 1000
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.img_corr2d = None
         self.min_phen, self.max_phen = 0, 0
@@ -98,7 +88,7 @@ class UICalculator(QWidget):
         self.ui.pb_start_calc.clicked.connect(self.start_stop_calc_from_npz)
         self.ui.browse_button.clicked.connect(self.open_file)
         self.ui.pb_logbook.clicked.connect(
-            lambda: self.logbook(self.ui.tab, text="Screenshot Test"))
+            lambda: self.logbook(self.ui.tab, text="Suggested energy shift by "+str(np.round(self.dE_mean, 1))+" eV"))
         self.ui.file_name.setText('')
         self.ui.roll_angle.setDecimals(4)
         self.ui.roll_angle.setSuffix(" °")
@@ -616,7 +606,6 @@ class UICalculator(QWidget):
         device = self.parent.ui.combo_hirex.currentText()
         res = send_to_desy_elog(author="", title="pySpectrometer absolute energy calibration " + device, severity="INFO", text=text, elog=self.mi.logbook_name,
                                 image=screenshot)
-        print(res)
         if not res:
             self.Form.error_box("error during eLogBook sending")
 
