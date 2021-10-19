@@ -5,7 +5,7 @@ based on logger.py by Sergey Tomin
 import sys
 import numpy as np
 import pathlib
-from PyQt5 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QApplication
 import pyqtgraph as pg
@@ -16,15 +16,15 @@ import logging
 from matplotlib import cm
 import pandas as pd
 from scipy import ndimage
-from scipy.spatial import distance
-from scipy.optimize import fsolve
-from skimage.filters import threshold_yen
-from sklearn.model_selection import cross_val_score
+#from scipy.spatial import distance
+#from scipy.optimize import fsolve
+#from skimage.filters import threshold_yen
+#from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
-from sklearn.ensemble import GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier, VotingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
+#from sklearn.ensemble import GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier, VotingClassifier
+#from sklearn.linear_model import LogisticRegression
+#from sklearn.tree import DecisionTreeClassifier
+from gui.spectr_gui import send_to_desy_elog
 from sklearn import preprocessing
 from scipy import interpolate
 import re
@@ -64,11 +64,11 @@ class UICalculator(QWidget):
         style_name = self.parent.gui_styles[gui_index]
         self.loadStyleSheet(filename=self.parent.gui_dir + style_name)
         self.mi = self.parent.mi
-        self.decimals_rounding = 4
-        self.colors = ['r', 'b', 'g', 'c', 'y', 'k']
-        self.colors2 = ['b', 'g', 'c', 'y', 'k']
-        self.linecolors = cycle(self.colors)
-        self.linecolors1 = cycle(self.colors2)
+        #self.decimals_rounding = 4
+        #self.colors = ['r', 'b', 'g', 'c', 'y', 'k']
+        #self.colors2 = ['b', 'g', 'c', 'y', 'k']
+        #self.linecolors = cycle(self.colors)
+        #self.linecolors1 = cycle(self.colors2)
         self.n, self.d_kernel, self.e_kernel = 0, 2, 2
         self.mode = 0
         self.mono_no = None
@@ -97,6 +97,8 @@ class UICalculator(QWidget):
 
         self.ui.pb_start_calc.clicked.connect(self.start_stop_calc_from_npz)
         self.ui.browse_button.clicked.connect(self.open_file)
+        self.ui.pb_logbook.clicked.connect(
+            lambda: self.logbook(self.ui.tab, text="Screenshot Test"))
         self.ui.file_name.setText('')
         self.ui.roll_angle.setDecimals(4)
         self.ui.roll_angle.setSuffix(" °")
@@ -122,8 +124,8 @@ class UICalculator(QWidget):
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list, self.actual_E = [], [], [], [], [], [], [], [], [], [], []
-        self.h_list, self.k_list, self.l_list, self.roll_list, self.pa, self.phen, self.gid_list = [
-            ], [], [], [], [], [], []
+        self.h_list, self.k_list, self.l_list, self.roll_list, self.roll_list_fun, self.pa, self.phen, self.gid_list, self.centroid_list = [
+            ], [], [], [], [], [], [], [], []
         self.ui.tableWidget.setRowCount(0)
         if self.mode == 1:
             self.img_corr2d.clear()
@@ -518,7 +520,8 @@ class UICalculator(QWidget):
 
         if np.isnan(self.dE_mean) is True:
             self.dE_mean = 0
-        print('E_offset is'+str(self.dE_mean))
+        print('E_offset is: '+str(self.dE_mean)
+              + ' ' + str(np.isnan(self.dE_mean)))
         #self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
@@ -595,6 +598,27 @@ class UICalculator(QWidget):
             return True
 
         return False
+
+    def get_screenshot(self, window_widget):
+        screenshot_tmp = QtCore.QByteArray()
+        screeshot_buffer = QtCore.QBuffer(screenshot_tmp)
+        screeshot_buffer.open(QtCore.QIODevice.WriteOnly)
+        widget = QtWidgets.QWidget.grab(window_widget)
+        widget.save(screeshot_buffer, "png")
+        return screenshot_tmp.toBase64().data().decode()
+
+    def logbook(self, widget, text=""):
+        """
+        Method to send data + screenshot to eLogbook
+        :return:
+        """
+        screenshot = self.get_screenshot(widget)
+        device = self.parent.ui.combo_hirex.currentText()
+        res = send_to_desy_elog(author="", title="pySpectrometer absolute energy calibration " + device, severity="INFO", text=text, elog=self.mi.logbook_name,
+                                image=screenshot)
+        print(res)
+        if not res:
+            self.Form.error_box("error during eLogBook sending")
 
     def open_file(self):  # self.parent.data_dir
         #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
