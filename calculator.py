@@ -64,27 +64,30 @@ class UICalculator(QWidget):
         style_name = self.parent.gui_styles[gui_index]
         self.loadStyleSheet(filename=self.parent.gui_dir + style_name)
         self.mi = self.parent.mi
-        self.n, self.d_kernel, self.e_kernel = 0, 2, 2
+        # Initialize flags
+        self.nomatch = 0
+        self.allow_data_storage = 0
+        # Initialize parameters
         self.mode = 0
         self.mono_no = None
-        self.hmax, self.kmax, self.lmax = 5, 5, 5
-        self.img_corr2d = None
         self.min_phen, self.max_phen = 0, 0
         self.min_pangle, self.max_pangle = 0, 0
+        self.img_corr2d = None
         self.dE_mean = 0
-        self.nomatch = 0
         self.yvalue = []
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
         self.detected_slope_list, self.detected_intercept_list, self.detected_id_list, self.detected_line_min_angle_list, self.detected_line_max_angle_list,  self.detected_line_roll_angle_list, self.actual_E, self.dE_list, self.ans_list, self.detected_centroid_x_list, self.detected_centroid_y_list = [], [], [], [], [], [], [], [], [], [], []
         self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list = [], [], [], [], []
         self.ind = ''
+
+        # Set folder directory path to save and obtain files from SASE2 folder
         DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
         self.path = path[:path.find(DIR_NAME)]
         self.data_dir = path[:path.find(
             "user")] + "user" + os.sep + PY_SPECTROMETER_DIR + os.sep + "SASE2" + os.sep
-        print(self.data_dir)
 
+        # Connect UI buttons and text displays
         self.ui.pb_start_calc.clicked.connect(self.start_stop_calc_from_npz)
         self.ui.browse_button.clicked.connect(self.open_file)
         self.ui.pb_logbook.clicked.connect(
@@ -97,16 +100,15 @@ class UICalculator(QWidget):
         self.ui.roll_angle.setSingleStep(0.001)
         self.ui.tableWidget.setRowCount(0)
 
-        # Set up and show the two graph axes
+        # Set constants
+        self.hmax, self.kmax, self.lmax = 5, 5, 5
+        self.d_kernel, self.e_kernel = 2, 2
+        # Set up and show the two graph axes and display latest npz file
         self.add_image_widget()
         self.add_plot_widget()
         self.get_latest_npz()
 
-        #self.ui = self.parent.ui
-
     def reset(self):
-
-        #self.text.setText('')
         self.dE_mean, self.min_phen, self.max_phen = 0, 0, 0
         self.min_pangle, self.max_pangle = 0, 0
         self.dE_mean = 0
@@ -517,22 +519,18 @@ class UICalculator(QWidget):
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
                              max(self.np_phen)+self.dE_mean, padding=None, update=True)
         for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
-            #self.add_text_to_plot(x, max(self.np_phen)-10, E)
             if abs(E) > 200:
                 self.ind = 'error'
             self.add_table_row(id + ' Eoff', '-',
                                str(np.round(E, 1))+' eV')
-        #self.ui.output.setText(self.ui.output.text() + 'Average Energy Offset: '
-            #+ str(np.round(self.dE_mean, 1))+' eV\n')
         if abs(self.dE_mean) > 200:
             self.ind = 'error'
         self.add_table_row(
             'Avg. Eoff', '-', str(np.round(self.dE_mean, 1))+' eV')
-        #self.ui.output.setText(self.ui.output.text() + 'Currently set Central Energy: ' + str(np.round(self.parent.ui.sb_E0.value(), 0)) + 'eV, Proposed calibrated Central Energy: '
-        #+ str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV\n')
         self.add_table_row('Eo', str(np.round(self.parent.ui.sb_E0.value(
         ), 0)) + ' eV', str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
         self.add_table_row(' ', ' ', ' ')
+        self.allow_data_storage = 1
 
     def nomatch_plot(self):
         self.roll_list = [self.set_roll_angle]
@@ -608,6 +606,14 @@ class UICalculator(QWidget):
                                 image=screenshot)
         if not res:
             self.Form.error_box("error during eLogBook sending")
+        if self.allow_data_storage == 1:
+            self.save_calc_data_as()
+
+    def save_calc_data_as(self):
+        file_timestamp = os.path.splitext(self.ui.file_name.text())[0]
+        filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
+        np.savez(filename, dE_mean=self.dE_mean, details=self.df_detected)
+        self.allow_data_storage = 0
 
     def open_file(self):  # self.parent.data_dir
         #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
