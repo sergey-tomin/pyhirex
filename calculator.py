@@ -384,6 +384,10 @@ class UICalculator(QWidget):
                 self.ui.output.setText(
                                 self.ui.output.text() + 'Horizontal line ignored\n')
                 continue
+            if np.isneginf(slope) or np.isposinf(slope):
+                self.ui.output.setText(
+                            self.ui.output.text() + 'Vertical line ignored\n')
+                continue
             line_range = np.linspace(min_line_pangle, max_line_pangle, 10)
             pen = pg.mkPen('r', width=4,
                            style=QtCore.Qt.DashLine)
@@ -611,7 +615,9 @@ class UICalculator(QWidget):
 
     def save_calc_data_as(self):
         file_timestamp = os.path.splitext(self.ui.file_name.text())[0]
-        filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
+        #filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
+        filename = '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Consistency/' + \
+            file_timestamp + "_en_calib_calc.npz"
         np.savez(filename, dE_mean=self.dE_mean, details=self.df_detected)
         self.allow_data_storage = 0
 
