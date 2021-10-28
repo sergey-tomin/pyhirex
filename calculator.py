@@ -13,11 +13,11 @@ from gui.UICalculator import Ui_Form
 import os
 import glob
 import logging
+import pydoocs
 from matplotlib import cm
 import pandas as pd
 from scipy import ndimage
-#from scipy.spatial import distance
-#from scipy.optimize import fsolve
+from datetime import datetime, timedelta
 #from skimage.filters import threshold_yen
 #from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
@@ -32,8 +32,7 @@ from skimage.transform import hough_line, hough_line_peaks
 from model_functions.HXRSS_Bragg_max_generator import HXRSS_Bragg_max_generator
 from model_functions.HXRSS_Bragg_single import HXRSSsingle
 
-#from model_functions.HXRSS_Bragg_generator import HXRSS_Bragg_generator
-from itertools import cycle
+
 path = os.path.realpath(__file__)
 indx = path.find("hirex.py")
 print("PATH to main file: " + os.path.realpath(__file__)
@@ -48,14 +47,8 @@ PY_SPECTROMETER_DIR = "pySpectrometer"
 DIR_NAME = "hirex"
 
 
-def find_nearest_idx(array, value):
-    idx = np.abs(array - value).argmin()
-    return idx
-
-
 class UICalculator(QWidget):
     def __init__(self, parent=None):
-        #QWidget.__init__(self, parent)
         super().__init__()
         self.parent = parent
         self.ui = Ui_Form()
@@ -99,6 +92,7 @@ class UICalculator(QWidget):
         self.ui.roll_angle.setValue(1.5013)
         self.ui.roll_angle.setSingleStep(0.001)
         self.ui.tableWidget.setRowCount(0)
+        self.ui.pb_doocs.clicked.connect(self.write_doocs)
 
         # Set constants
         self.hmax, self.kmax, self.lmax = 5, 5, 5
@@ -119,6 +113,8 @@ class UICalculator(QWidget):
         self.h_list, self.k_list, self.l_list, self.roll_list, self.roll_list_fun, self.pa, self.phen, self.gid_list, self.centroid_list = [
             ], [], [], [], [], [], [], [], []
         self.ui.tableWidget.setRowCount(0)
+        self.ui.pb_doocs.setEnabled(False)
+        self.ui.pb_logbook.setEnabled(False)
         if self.mode == 1:
             self.img_corr2d.clear()
             self.plot1.clear()
@@ -263,7 +259,6 @@ class UICalculator(QWidget):
         self.legend.setParentItem(self.vb)
 
     # Anchor the upper-left corner of the legend to the upper-left corner of its parent
-
         self.legend.anchor((0, 0), (0, 0))
         #self.legend_boolean = 1
         for r in range(len(self.pa)):
@@ -302,7 +297,6 @@ class UICalculator(QWidget):
     def binarization(self):
         # all values below 0 threshold are set to 0
         self.phen_res = self.np_phen[2] - self.np_phen[1]
-
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
         self.corr2d[self.corr2d < 0] = 0
@@ -518,7 +512,6 @@ class UICalculator(QWidget):
             self.dE_mean = 0
         print('E_offset is: '+str(self.dE_mean)
               + ' ' + str(np.isnan(self.dE_mean)))
-        #self.E_actual_mean = np.mean(self.df_detected['actual_E'])
         self.add_plot()
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
                              max(self.np_phen)+self.dE_mean, padding=None, update=True)
@@ -535,7 +528,10 @@ class UICalculator(QWidget):
         ), 0)) + ' eV', str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
         self.add_table_row(' ', ' ', ' ')
         self.allow_data_storage = 1
+        self.ui.pb_logbook.setEnabled(True)
+        self.check_if_scan_is_recent()
 
+    # In case no match is found, plot the model in this area.
     def nomatch_plot(self):
         self.roll_list = [self.set_roll_angle]
         self.phen, self.pa, self.gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
@@ -552,19 +548,12 @@ class UICalculator(QWidget):
             self.ui.output.setText(self.ui.output.text(
                             ) + 'No calibration offset value calculated and no model lines in the area.\n')
 
+    # Dilate and erode pixels in binarized image
     def img_processing(self):
         self.processed_image = ndimage.grey_dilation(
             self.processed_image, size=(self.d_kernel, self.d_kernel))
         self.processed_image = ndimage.grey_erosion(
             self.processed_image, size=(self.e_kernel, self.e_kernel))
-
-    def add_text_to_plot(self, x, y, E):
-        self.text = pg.TextItem(color='w')
-        self.img_corr2d.addItem(self.text)
-        self.text.setText(str(np.round(E, 1)) + ' eV')
-        self.text.setPos(x, y)
-        self.text.setZValue(5)
-        self.text.show()
 
     def loadStyleSheet(self, filename):
         """
@@ -615,11 +604,43 @@ class UICalculator(QWidget):
 
     def save_calc_data_as(self):
         file_timestamp = os.path.splitext(self.ui.file_name.text())[0]
-        #filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
-        filename = '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Consistency/' + \
-            file_timestamp + "_en_calib_calc.npz"
+        filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
+        #filename = '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Consistency/' + \
+        #file_timestamp + "_en_calib_calc.npz"
         np.savez(filename, dE_mean=self.dE_mean, details=self.df_detected)
         self.allow_data_storage = 0
+
+    def check_if_scan_is_recent(self):
+        file_timestamp = os.path.splitext(self.ui.file_name.text())[0]
+        file_timestamp_filt = file_timestamp[0: 17]
+        date_time_obj = datetime.strptime(
+            file_timestamp_filt, '%Y%m%d-%H_%M_%S')
+        present = datetime.now()
+        deltat = present - date_time_obj
+        if deltat < timedelta(days=30):
+            self.ui.output.setText(self.ui.output.text(
+                            ) + 'Ok to write to DOOCS')
+            self.ui.pb_doocs.setEnabled(True)
+        else:
+            self.ui.output.setText(self.ui.output.text(
+                            ) + 'This scan is not recent enough to update DOOCS parameters')
+            self.ui.pb_doocs.setEnabled(False)
+
+    def write_doocs(self):
+        self.doocs_permit = True
+        try:
+            #self.read = pydoocs.read(
+            #    "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
+            pydoocs.write("TEST.DOOCS/TEST.D_FCT/LOCATION/D_INT", 5)
+            self.read = pydoocs.read(
+                "TEST.DOOCS/TEST.D_FCT/LOCATION/D_INT")
+            self.ui.output.setText(self.ui.output.text(
+                            ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.read['data']))
+        except:
+            self.doocs_permit = False
+        if not self.doocs_permit:
+            self.ui.output.setText(self.ui.output.text(
+                            ) + "Control: no permission to write to DOOCS")
 
     def open_file(self):  # self.parent.data_dir
         #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
@@ -713,17 +734,11 @@ def main():
 
     window = UICalculator()
 
-    #show app
-    #window.setWindowIcon(QtGui.QIcon('gui/angry_manul.png'))
-    # setting the path variable for icon
     path = os.path.join(os.path.dirname(
         sys.modules[__name__].__file__), 'gui/hirex.png')
     app.setWindowIcon(QtGui.QIcon(path))
     window.show()
     window.raise_()
-    #Build documentaiton if source files have changed
-    #os.system("cd ./docs && xterm -T 'Ocelot Doc Builder' -e 'bash checkDocBuild.sh' &")
-    #exit script
     sys.exit(app.exec_())
 
 
