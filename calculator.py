@@ -631,9 +631,8 @@ class UICalculator(QWidget):
         try:
             #self.read = pydoocs.read(
             #    "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
-            pydoocs.write("TEST.DOOCS/TEST.D_FCT/LOCATION/D_INT", 5)
-            self.read = pydoocs.read(
-                "TEST.DOOCS/TEST.D_FCT/LOCATION/D_INT")
+            self.read = self.mi.get_value(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
             self.ui.output.setText(self.ui.output.text(
                             ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.read['data']))
         except:
