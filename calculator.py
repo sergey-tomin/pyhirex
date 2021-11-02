@@ -67,6 +67,7 @@ class UICalculator(QWidget):
         self.min_pangle, self.max_pangle = 0, 0
         self.img_corr2d = None
         self.dE_mean = 0
+        self.pixel_calibration_mean = 0
         self.yvalue = []
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
@@ -84,7 +85,7 @@ class UICalculator(QWidget):
         self.ui.pb_start_calc.clicked.connect(self.start_stop_calc_from_npz)
         self.ui.browse_button.clicked.connect(self.open_file)
         self.ui.pb_logbook.clicked.connect(
-            lambda: self.logbook(self.ui.tab, text="Suggested energy shift by "+str(np.round(self.dE_mean, 1))+" eV"))
+            lambda: self.logbook(self.ui.tab, text="Suggested energy shift by "+str(np.round(self.dE_mean, 1))+" eV and a pixel calibration of " + str(self.pixel_calibration_mean)))
         self.ui.file_name.setText('')
         self.ui.roll_angle.setDecimals(4)
         self.ui.roll_angle.setSuffix(" °")
@@ -106,6 +107,7 @@ class UICalculator(QWidget):
         self.dE_mean, self.min_phen, self.max_phen = 0, 0, 0
         self.min_pangle, self.max_pangle = 0, 0
         self.dE_mean = 0
+        self.pixel_calibration_mean = 0
         self.ind = ''
         self.pitch_angle_range, self.min_angle_list, self.spec_data_list, self.slope_list, self.y_intercept_list, self.centroid_pa_list, self.centroid_phen_list, self.max_angle_list = [], [], [], [], [], [], [], []
         self.tngnt_slope_list, self.tngnt_intercept_list, self.tngnt_gid_list, self.tngnt_centroid_list, self.tngnt_centroid_y_list, self.tngnt_roll_angle_list, self.interp_Bragg_list = [], [], [], [], [], [], []
@@ -292,6 +294,10 @@ class UICalculator(QWidget):
             item1.setForeground(QBrush(QColor(255, 0, 0)))
             item2.setForeground(QBrush(QColor(255, 0, 0)))
             item3.setForeground(QBrush(QColor(255, 0, 0)))
+        if self.ind == 'record':
+            item1.setForeground(QBrush(QColor(0, 0, 255)))
+            item2.setForeground(QBrush(QColor(0, 0, 255)))
+            item3.setForeground(QBrush(QColor(0, 0, 255)))
         self.ind = ''
 
     def binarization(self):
@@ -306,7 +312,7 @@ class UICalculator(QWidget):
         #self.processed_image = binary
         #### ALTERNATE MANUAL THRESHOLDING
         range_scale = np.ptp(self.corr2d)
-        threshold = 0.12 * range_scale
+        threshold = 0.16 * range_scale
         max_value = np.amax(self.corr2d)
         min_value = np.amin(self.corr2d)
         # all values above threshold are set to max_value
@@ -468,14 +474,19 @@ class UICalculator(QWidget):
         #
 
     def dispersion_cal(self):
+        pixel_calib_list = []
         for slope, mdl_slope, curve_id, centroid_pa in zip(self.df_detected['slope'], self.df_detected['mdl_slope'], self.df_detected['gid'], self.df_detected['centroid_pa']):
+            pixel_cal = mdl_slope/slope
             msg = 'Id:' + curve_id + ' matched to line with centroid: ' + \
                 str(np.round(centroid_pa, 1)) + ' deg\n'
             self.ui.output.setText(self.ui.output.text() + msg)
-            if abs(mdl_slope/slope) > 1.25 or abs(mdl_slope/slope) < 0.75:
+            if abs(pixel_cal) > 1.25 or abs(pixel_cal) < 0.75:
                 self.ind = 'error'
-            self.add_table_row(curve_id + 'ev/px', str(np.round(self.scale_yaxis, 3)), str(
-                np.round(self.scale_yaxis*mdl_slope/slope, 3)))
+            else:
+                self.add_table_row(curve_id + 'ev/px', str(np.round(self.scale_yaxis, 3)), str(
+                    np.round(self.scale_yaxis*pixel_cal, 3)))
+                pixel_calib_list.append(self.scale_yaxis*pixel_cal)
+        self.pixel_calibration_mean = np.mean(pixel_calib_list)
 
     def hkl_roll_separator(self):
         for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
@@ -491,44 +502,59 @@ class UICalculator(QWidget):
         self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list_fun, self.DTHR, self.alpha)
 
+        # Get energy value at one particular pitch angle value, in order to calculate offset
         pa_dE, phen_Actual, gid_list_s, model_slope_list = HXRSSsingle(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
 
-        df_offset = pd.DataFrame(
+        df_model = pd.DataFrame(
             dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE, mdl_slope=model_slope_list))
-
+        # Merge model phen values with detected lines phen
         self.df_detected = self.df_detected.merge(
-            df_offset, on=['gid', 'centroid_pa'], how='left')
+            df_model, on=['gid', 'centroid_pa'], how='left')
+        # Subtract model energy and measured energy to get offset dE
         self.df_detected['dE'] = self.df_detected['E_model'] - \
             self.df_detected['centroid_phen']
+        # Remove any dE values outside the following range
         btwn = self.df_detected['dE'].between(-190, 190, inclusive=False)
         self.df_detected = self.df_detected[btwn]
-        print(gid_list_s)
-        self.dispersion_cal()
-
-        self.dE_mean = np.mean(self.df_detected['dE'])
-
-        if np.isnan(self.dE_mean) is True:
-            self.dE_mean = 0
-        print('E_offset is: '+str(self.dE_mean)
-              + ' ' + str(np.isnan(self.dE_mean)))
-        self.add_plot()
-        self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
-                             max(self.np_phen)+self.dE_mean, padding=None, update=True)
+        # Print separate row for each detected line and calcuated offset in eV
         for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
             if abs(E) > 200:
                 self.ind = 'error'
-            self.add_table_row(id + ' Eoff', '-',
-                               str(np.round(E, 1))+' eV')
+            self.add_table_row(id + ' Eoff', '-', str(np.round(E, 1))+' eV')
+        print(gid_list_s)
+        self.dE_mean = np.mean(self.df_detected['dE'])
+        # Calculate pixel calibration
+        self.dispersion_cal()
+        # Calculate mean energy offset and pixel calibration
+
+        # Remove NaN values
+        if np.isnan(self.dE_mean) is True:
+            self.dE_mean = 0
+        if np.isnan(self.pixel_calibration_mean) is True:
+            self.pixel_calibration_mean = 0
+        # Print in red if value is outside range otherwise print in blue
+        if abs(self.pixel_calibration_mean) > 1:
+            self.ind = 'error'
+        else:
+            self.ind = 'record'
+        self.add_table_row(
+            'Avg. ev/px', '-', str(np.round(self.pixel_calibration_mean, 3)))
+        self.add_plot()
+        self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
+                             max(self.np_phen)+self.dE_mean, padding=None, update=True)
         if abs(self.dE_mean) > 200:
             self.ind = 'error'
         self.add_table_row(
             'Avg. Eoff', '-', str(np.round(self.dE_mean, 1))+' eV')
+        self.ind = 'record'  # Make sure to list Eo in blue as it will be recorded
         self.add_table_row('Eo', str(np.round(self.parent.ui.sb_E0.value(
         ), 0)) + ' eV', str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
         self.add_table_row(' ', ' ', ' ')
-        self.allow_data_storage = 1
+        self.allow_data_storage = 1  # File will be created with all parameters calculated
+        # Enable logbook button
         self.ui.pb_logbook.setEnabled(True)
+        # Check if scan is recent and if yes allow DOOCS push
         self.check_if_scan_is_recent()
 
     # In case no match is found, plot the model in this area.
@@ -607,7 +633,8 @@ class UICalculator(QWidget):
         filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
         #filename = '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Consistency/' + \
         #file_timestamp + "_en_calib_calc.npz"
-        np.savez(filename, dE_mean=self.dE_mean, details=self.df_detected)
+        np.savez(filename, dE_mean=self.dE_mean,
+                 pix_calib=self.pixel_calibration_mean, details=self.df_detected)
         self.allow_data_storage = 0
 
     def check_if_scan_is_recent(self):
@@ -619,7 +646,7 @@ class UICalculator(QWidget):
         deltat = present - date_time_obj
         if deltat < timedelta(days=30):
             self.ui.output.setText(self.ui.output.text(
-                            ) + 'Ok to write to DOOCS')
+                            ) + 'Results are recent enough to push to DOOCS. Parameters in blue can be pushed.')
             self.ui.pb_doocs.setEnabled(True)
         else:
             self.ui.output.setText(self.ui.output.text(
@@ -629,12 +656,18 @@ class UICalculator(QWidget):
     def write_doocs(self):
         self.doocs_permit = True
         try:
-            #self.read = pydoocs.read(
-            #    "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
-            self.read = self.mi.get_value(
+            pydoocs.write(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION", 0.0)
+            self.pixel_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
+            pydoocs.write(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY", 0.0)
+            self.central_doocs = pydoocs.read(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY")
             self.ui.output.setText(self.ui.output.text(
-                            ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.read['data']))
+                            ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.pixel_doocs['data']))
+            self.ui.output.setText(self.ui.output.text(
+                            ) + "DOOCS CENTRAL_ENERGY value: " + str(self.central_doocs['data']))
         except:
             self.doocs_permit = False
         if not self.doocs_permit:
