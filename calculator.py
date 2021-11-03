@@ -93,7 +93,8 @@ class UICalculator(QWidget):
         self.ui.roll_angle.setValue(1.5013)
         self.ui.roll_angle.setSingleStep(0.001)
         self.ui.tableWidget.setRowCount(0)
-        self.ui.pb_doocs.clicked.connect(self.write_doocs)
+        # Check if scan is recent and if yes allow DOOCS push
+        self.ui.pb_doocs.clicked.connect(self.check_if_scan_is_recent)
 
         # Set constants
         self.hmax, self.kmax, self.lmax = 5, 5, 5
@@ -440,7 +441,7 @@ class UICalculator(QWidget):
                 x1 = x[i0:i0+2]
                 y1 = y[i0:i0+2]
                 dydx, = np.diff(y1)/np.diff(x1)
-                if y1[0] < max(self.np_phen)+150 and y1[0] > min(self.np_phen)-150:
+                if y1[0] < max(self.np_phen)+250 and y1[0] > min(self.np_phen)-250:
                     def tngnt(x): return dydx*x + (y1[0]-dydx*x1[0])
                     tngnt_slope = (tngnt(x[1])-tngnt(x[0]))/(x[1]-x[0])
                     self.tngnt_slope_list.append(tngnt_slope)
@@ -515,11 +516,11 @@ class UICalculator(QWidget):
         self.df_detected['dE'] = self.df_detected['E_model'] - \
             self.df_detected['centroid_phen']
         # Remove any dE values outside the following range
-        btwn = self.df_detected['dE'].between(-190, 190, inclusive=False)
+        btwn = self.df_detected['dE'].between(-290, 290, inclusive=False)
         self.df_detected = self.df_detected[btwn]
         # Print separate row for each detected line and calcuated offset in eV
         for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
-            if abs(E) > 200:
+            if abs(E) > 300:
                 self.ind = 'error'
             self.add_table_row(id + ' Eoff', '-', str(np.round(E, 1))+' eV')
         print(gid_list_s)
@@ -543,7 +544,7 @@ class UICalculator(QWidget):
         self.add_plot()
         self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
                              max(self.np_phen)+self.dE_mean, padding=None, update=True)
-        if abs(self.dE_mean) > 200:
+        if abs(self.dE_mean) > 300:
             self.ind = 'error'
         self.add_table_row(
             'Avg. Eoff', '-', str(np.round(self.dE_mean, 1))+' eV')
@@ -554,10 +555,10 @@ class UICalculator(QWidget):
         self.allow_data_storage = 1  # File will be created with all parameters calculated
         # Enable logbook button
         self.ui.pb_logbook.setEnabled(True)
-        # Check if scan is recent and if yes allow DOOCS push
-        self.check_if_scan_is_recent()
+        self.ui.pb_doocs.setEnabled(True)
 
     # In case no match is found, plot the model in this area.
+
     def nomatch_plot(self):
         self.roll_list = [self.set_roll_angle]
         self.phen, self.pa, self.gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
@@ -602,6 +603,7 @@ class UICalculator(QWidget):
                                            message,
                                            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
+            self.write_doocs()
             return True
 
         return False
@@ -638,20 +640,19 @@ class UICalculator(QWidget):
         self.allow_data_storage = 0
 
     def check_if_scan_is_recent(self):
-        file_timestamp = os.path.splitext(self.ui.file_name.text())[0]
-        file_timestamp_filt = file_timestamp[0: 17]
-        date_time_obj = datetime.strptime(
+        self.file_name = os.path.splitext(self.ui.file_name.text())[0]
+        file_timestamp_filt = self.file_name[0: 17]
+        self.date_time_obj = datetime.strptime(
             file_timestamp_filt, '%Y%m%d-%H_%M_%S')
         present = datetime.now()
-        deltat = present - date_time_obj
+        deltat = present - self.date_time_obj
         if deltat < timedelta(days=30):
             self.ui.output.setText(self.ui.output.text(
                             ) + 'Results are recent enough to push to DOOCS. Parameters in blue can be pushed.')
-            self.ui.pb_doocs.setEnabled(True)
+            self.write_doocs()
         else:
-            self.ui.output.setText(self.ui.output.text(
-                            ) + 'This scan is not recent enough to update DOOCS parameters')
-            self.ui.pb_doocs.setEnabled(False)
+            self.question_box(
+                "This scan may not be recent enough to update DOOCS parameters. Do you still want to proceed with writing to DOOCS?")
 
     def write_doocs(self):
         self.doocs_permit = True
@@ -664,10 +665,22 @@ class UICalculator(QWidget):
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY", 0.0)
             self.central_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY")
+            pydoocs.write(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/FILENAME", self.file_name)
+            self.filename_doocs = pydoocs.read(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/FILENAME")
+            pydoocs.write(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/TIMESTAMP", self.date_time_obj)
+            self.timestamp_doocs = pydoocs.read(
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/TIMESTAMP")
             self.ui.output.setText(self.ui.output.text(
                             ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.pixel_doocs['data']))
             self.ui.output.setText(self.ui.output.text(
                             ) + "DOOCS CENTRAL_ENERGY value: " + str(self.central_doocs['data']))
+            self.ui.output.setText(self.ui.output.text(
+                            ) + "DOOCS FILENAME value: " + str(self.filename_doocs['data']))
+            self.ui.output.setText(self.ui.output.text(
+                            ) + "DOOCS TIMESTAMP value: " + str(self.timestamp_doocs['data']))
         except:
             self.doocs_permit = False
         if not self.doocs_permit:
