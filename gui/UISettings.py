@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'UISettings.ui'
+# Form implementation generated from reading ui file 'D:\DESYcloud\_code\pyhirex\gui\UISettings.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(847, 881)
+        Form.resize(847, 1002)
         Form.setMinimumSize(QtCore.QSize(0, 0))
         Form.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         Form.setStyleSheet("background-color: white")
@@ -110,6 +110,7 @@ class Ui_Form(object):
         self.le_hirex_ch_sa1.setObjectName("le_hirex_ch_sa1")
         self.gridLayout_3.addWidget(self.le_hirex_ch_sa1, 0, 1, 1, 2)
         self.le_trans_ch_sa1 = QtWidgets.QLineEdit(self.groupBox_2)
+        self.le_trans_ch_sa1.setEnabled(True)
         self.le_trans_ch_sa1.setObjectName("le_trans_ch_sa1")
         self.gridLayout_3.addWidget(self.le_trans_ch_sa1, 1, 1, 1, 2)
         self.le_slow_xgm_sa1 = QtWidgets.QLineEdit(self.groupBox_2)
@@ -287,7 +288,7 @@ class Ui_Form(object):
         self.label_22.setObjectName("label_22")
         self.gridLayout_9.addWidget(self.label_22, 4, 0, 1, 1)
         self.le_trans_ch_sa3 = QtWidgets.QLineEdit(self.groupBox_5)
-        self.le_trans_ch_sa3.setEnabled(False)
+        self.le_trans_ch_sa3.setEnabled(True)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.le_trans_ch_sa3.setFont(font)
@@ -358,7 +359,7 @@ class Ui_Form(object):
         self.label_28.setObjectName("label_28")
         self.gridLayout_12.addWidget(self.label_28, 4, 0, 1, 1)
         self.le_trans_ch_sa3_scs = QtWidgets.QLineEdit(self.groupBox_6)
-        self.le_trans_ch_sa3_scs.setEnabled(False)
+        self.le_trans_ch_sa3_scs.setEnabled(True)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.le_trans_ch_sa3_scs.setFont(font)
