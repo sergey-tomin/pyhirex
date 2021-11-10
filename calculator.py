@@ -95,7 +95,7 @@ class UICalculator(QWidget):
         self.ui.tableWidget.setRowCount(0)
         # Check if scan is recent and if yes allow DOOCS push
         self.ui.pb_doocs.clicked.connect(self.check_if_scan_is_recent)
-
+        self.ui.pb_load_doocs.clicked.connect(self.load_from_doocs)
         # Set constants
         self.hmax, self.kmax, self.lmax = 5, 5, 5
         self.d_kernel, self.e_kernel = 2, 2
@@ -674,18 +674,30 @@ class UICalculator(QWidget):
             self.timestamp_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/TIMESTAMP")
             self.ui.output.setText(self.ui.output.text(
-                            ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.pixel_doocs['data']))
+                            ) + "DOOCS PIXEL_CALIBRATION value: " + str(self.pixel_doocs['data']) + '\n')
             self.ui.output.setText(self.ui.output.text(
-                            ) + "DOOCS CENTRAL_ENERGY value: " + str(self.central_doocs['data']))
+                            ) + "DOOCS CENTRAL_ENERGY value: " + str(self.central_doocs['data']) + '\n')
             self.ui.output.setText(self.ui.output.text(
-                            ) + "DOOCS FILENAME value: " + str(self.filename_doocs['data']))
+                            ) + "DOOCS FILENAME value: " + str(self.filename_doocs['data']) + '\n')
             self.ui.output.setText(self.ui.output.text(
-                            ) + "DOOCS TIMESTAMP value: " + str(self.timestamp_doocs['data']))
+                            ) + "DOOCS TIMESTAMP value: " + str(self.timestamp_doocs['data']) + '\n')
         except:
             self.doocs_permit = False
         if not self.doocs_permit:
             self.ui.output.setText(self.ui.output.text(
-                            ) + "Control: no permission to write to DOOCS")
+                            ) + "Control: no permission to write to DOOCS" + '\n')
+
+    def load_from_doocs(self):
+        try:
+            self.pixel_doocs = pydoocs.read(
+                            "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
+            self.central_doocs = pydoocs.read(
+                            "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY")
+            self.parent.ui.sb_E0.setText(self.central_doocs)
+            self.parent.ui.sb_ev_px.setText(self.pixel_doocs)
+        except:
+            self.ui.output.setText(self.ui.output.text(
+                                ) + "No permission to read from DOOCS" + '\n')
 
     def open_file(self):  # self.parent.data_dir
         #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
