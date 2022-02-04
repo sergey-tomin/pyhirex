@@ -633,8 +633,6 @@ class UICalculator(QWidget):
     def save_calc_data_as(self):
         file_timestamp = os.path.splitext(self.ui.file_name.text())[0]
         filename = self.data_dir + file_timestamp + "_en_calib_calc.npz"
-        #filename = '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Consistency/' + \
-        #file_timestamp + "_en_calib_calc.npz"
         np.savez(filename, dE_mean=self.dE_mean,
                  pix_calib=self.pixel_calibration_mean, details=self.df_detected)
         self.allow_data_storage = 0
@@ -708,10 +706,10 @@ class UICalculator(QWidget):
                                 ) + "No permission to read from DOOCS" + '\n')
 
     def open_file(self):  # self.parent.data_dir
-        #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
-        #    self, "Open Correlation Data", self.data_dir, 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
         self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
-            self, "Open Correlation Data", "/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz", 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
+            self, "Open Correlation Data", self.data_dir, 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
+        #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
+        #    self, "Open Correlation Data", "/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz", 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
         if self.pathname != "":
             filename = os.path.basename(self.pathname)
             self.ui.file_name.setText(filename)
@@ -722,10 +720,10 @@ class UICalculator(QWidget):
 
     def get_latest_npz(self):
         # * means all if need specific format then *.csv
-        #list_of_files = glob.glob(
-        #    self.data_dir + "*_cor2d.npz")
         list_of_files = glob.glob(
-            '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
+            self.data_dir + "*_cor2d.npz")
+        #list_of_files = glob.glob(
+        #    '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
         self.pathname = max(list_of_files, key=os.path.getmtime)
         #self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
