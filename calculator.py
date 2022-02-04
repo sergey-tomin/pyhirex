@@ -693,8 +693,16 @@ class UICalculator(QWidget):
                             "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
             self.central_doocs = pydoocs.read(
                             "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY")
-            self.parent.ui.sb_E0.setText(self.central_doocs)
-            self.parent.ui.sb_ev_px.setText(self.pixel_doocs)
+            if self.central_doocs['data'] > 1999 and self.central_doocs['data'] <= 20000:
+                self.parent.ui.sb_E0.setValue(self.central_doocs['data'])
+            else:
+                self.ui.output.setText(self.ui.output.text(
+                                    ) + "Cannot set the Eo parameter outside the predefined range [2k eV, 20 keV]" + '\n')
+            if self.pixel_doocs['data'] > 0 and self.pixel_doocs['data'] <= 1:
+                self.parent.ui.sb_ev_px.setValue(self.pixel_doocs['data'])
+            else:
+                self.ui.output.setText(self.ui.output.text(
+                                    ) + "Cannot set the ev/px parameter outside the range [0, 1]" + '\n')
         except:
             self.ui.output.setText(self.ui.output.text(
                                 ) + "No permission to read from DOOCS" + '\n')
