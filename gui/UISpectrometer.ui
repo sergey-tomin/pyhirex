@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1979</width>
-    <height>1076</height>
+    <width>1792</width>
+    <height>1001</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -414,6 +414,16 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_13">
+             <item row="1" column="1">
+              <widget class="QPushButton" name="pb_logbook">
+               <property name="text">
+                <string>Logbook with data</string>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+P</string>
+               </property>
+              </widget>
+             </item>
              <item row="2" column="0">
               <widget class="QPushButton" name="pb_logger">
                <property name="sizePolicy">
@@ -434,50 +444,10 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0" colspan="2">
-              <widget class="QPushButton" name="pb_logbook">
-               <property name="palette">
-                <palette>
-                 <active>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>0</red>
-                     <green>0</green>
-                     <blue>255</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </active>
-                 <inactive>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>0</red>
-                     <green>0</green>
-                     <blue>255</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </inactive>
-                 <disabled>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>120</red>
-                     <green>120</green>
-                     <blue>120</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </disabled>
-                </palette>
-               </property>
+             <item row="1" column="0">
+              <widget class="QPushButton" name="pb_logbook_only">
                <property name="text">
-                <string>Logbook with data</string>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+P</string>
+                <string>Logbook</string>
                </property>
               </widget>
              </item>
@@ -508,7 +478,7 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLabel" name="label_peak_ev">
+              <widget class="QLabel" name="label_fwhm">
                <property name="text">
                 <string>0</string>
                </property>
@@ -517,14 +487,14 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>FWHM avr [eV]</string>
+                <string>Sigma Av [eV]</string>
                </property>
               </widget>
              </item>
              <item row="2" column="0">
               <widget class="QLabel" name="label_49">
                <property name="text">
-                <string>PEAK avr [eV]</string>
+                <string>FWHM Av [eV]</string>
                </property>
               </widget>
              </item>
@@ -872,7 +842,7 @@
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="2,2,2">
+           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="2,2,1">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -1056,7 +1026,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Acquire</string>
+                <string>Calculate</string>
                </property>
                <property name="shortcut">
                 <string>Space</string>
@@ -1065,70 +1035,6 @@
              </item>
              <item>
               <widget class="QPushButton" name="sb_corr_2d_reset">
-               <property name="palette">
-                <palette>
-                 <active>
-                  <colorrole role="WindowText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>0</red>
-                     <green>0</green>
-                     <blue>0</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>255</red>
-                     <green>0</green>
-                     <blue>0</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </active>
-                 <inactive>
-                  <colorrole role="WindowText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>0</red>
-                     <green>0</green>
-                     <blue>0</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>255</red>
-                     <green>0</green>
-                     <blue>0</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </inactive>
-                 <disabled>
-                  <colorrole role="WindowText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>120</red>
-                     <green>120</green>
-                     <blue>120</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>120</red>
-                     <green>120</green>
-                     <blue>120</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </disabled>
-                </palette>
-               </property>
                <property name="font">
                 <font>
                  <pointsize>13</pointsize>
@@ -1527,43 +1433,6 @@
            </item>
            <item>
             <widget class="QPushButton" name="pb_logbook_cor2d">
-             <property name="palette">
-              <palette>
-               <active>
-                <colorrole role="ButtonText">
-                 <brush brushstyle="SolidPattern">
-                  <color alpha="255">
-                   <red>0</red>
-                   <green>0</green>
-                   <blue>255</blue>
-                  </color>
-                 </brush>
-                </colorrole>
-               </active>
-               <inactive>
-                <colorrole role="ButtonText">
-                 <brush brushstyle="SolidPattern">
-                  <color alpha="255">
-                   <red>0</red>
-                   <green>0</green>
-                   <blue>255</blue>
-                  </color>
-                 </brush>
-                </colorrole>
-               </inactive>
-               <disabled>
-                <colorrole role="ButtonText">
-                 <brush brushstyle="SolidPattern">
-                  <color alpha="255">
-                   <red>120</red>
-                   <green>120</green>
-                   <blue>120</blue>
-                  </color>
-                 </brush>
-                </colorrole>
-               </disabled>
-              </palette>
-             </property>
              <property name="text">
               <string>Logbook with data</string>
              </property>
@@ -2083,43 +1952,6 @@
           </property>
           <item>
            <widget class="QPushButton" name="pb_logbook_specanalysis">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="ButtonText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="ButtonText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>255</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="ButtonText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
             <property name="text">
              <string>Logbook with data</string>
             </property>
@@ -2218,43 +2050,6 @@
           </item>
           <item>
            <widget class="QPushButton" name="analysis_resetbutton">
-            <property name="palette">
-             <palette>
-              <active>
-               <colorrole role="ButtonText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </active>
-              <inactive>
-               <colorrole role="ButtonText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>255</red>
-                  <green>0</green>
-                  <blue>0</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </inactive>
-              <disabled>
-               <colorrole role="ButtonText">
-                <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>120</red>
-                  <green>120</green>
-                  <blue>120</blue>
-                 </color>
-                </brush>
-               </colorrole>
-              </disabled>
-             </palette>
-            </property>
             <property name="font">
              <font>
               <weight>75</weight>
@@ -2934,8 +2729,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1979</width>
-     <height>31</height>
+     <width>1792</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">
