@@ -708,8 +708,6 @@ class UICalculator(QWidget):
     def open_file(self):  # self.parent.data_dir
         self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
             self, "Open Correlation Data", self.data_dir, 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
-        #self.pathname, _ = QtGui.QFileDialog.getOpenFileName(
-        #    self, "Open Correlation Data", "/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz", 'txt (*.npz)', None, QtGui.QFileDialog.DontUseNativeDialog)
         if self.pathname != "":
             filename = os.path.basename(self.pathname)
             self.ui.file_name.setText(filename)
@@ -722,8 +720,6 @@ class UICalculator(QWidget):
         # * means all if need specific format then *.csv
         list_of_files = glob.glob(
             self.data_dir + "*_cor2d.npz")
-        #list_of_files = glob.glob(
-        #    '/Users/christiangrech/Nextcloud/Notebooks/HXRSS/Data/npz/' + "*_cor2d.npz")
         self.pathname = max(list_of_files, key=os.path.getmtime)
         #self.pathname = max(list_of_files, key=os.path.getctime)
         self.ui.file_name.setText(os.path.basename(self.pathname))
