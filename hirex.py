@@ -4,21 +4,6 @@ Created on Sun Aug  9 17:33:30 2020
 
 @author: Sergey Tomin
 """
-import logging
-import json
-import pathlib
-from scipy import ndimage
-from logger import UILogger
-from calculator import UICalculator
-from analysis_spec import AnalysisInterface
-from correlation_2d import Correl2DInterface
-from correlation import CorrelInterface
-from scan import ScanInterface
-from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3, CrazySpectrometer
-from gui.settings_gui import *
-from mint.xfel_interface import *
-from gui.spectr_gui import *
-from matplotlib import cm
 from PyQt5.QtWidgets import QFrame, QMainWindow
 import sys
 import os
@@ -38,13 +23,27 @@ path = os.path.realpath(__file__)
 indx = path.find("hirex.py")
 #print("PATH to main file: " + os.path.realpath(__file__) + " path to folder: "+ path[:indx])
 sys.path.insert(0, path[:indx])
+from matplotlib import cm
+from gui.spectr_gui import *
+from mint.xfel_interface import *
+from gui.settings_gui import *
+from mint.devices import Spectrometer, BunchNumberCTRL, DummyHirex, XGM, DummyXGM, DummySASE, SpectrometerSA3, CrazySpectrometer
+from scan import ScanInterface
+from correlation import CorrelInterface
+from correlation_2d import Correl2DInterface
+from analysis_spec import AnalysisInterface
+from logger import UILogger
+from calculator import UICalculator
+from scipy import ndimage
+import pathlib
+import json
+import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 AVAILABLE_MACHINE_INTERFACES = [XFELMachineInterface, TestMachineInterface]
-AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3",
-                           "SASE3_SCS", "DUMMY", "DUMMYSASE", "TEST1", "TEST2", "TEST3"]
+AVAILABLE_SPECTROMETERS = ["SASE1", "SASE2", "SASE3", "SASE3_SCS", "DUMMY", "DUMMYSASE", "TEST1", "TEST2", "TEST3"]
 
 DIR_NAME = "hirex"
 
@@ -67,8 +66,7 @@ class Background(Thread):
         try:
             self.background = np.loadtxt(self.dev_name + "_background.txt")
         except Exception as ex:
-            print("Problem with background: {}. Exception was: {}".format(
-                self.dev_name + "_background.txt", ex))
+            print("Problem with background: {}. Exception was: {}".format(self.dev_name + "_background.txt", ex))
 
         return self.background
 
@@ -77,9 +75,9 @@ class Background(Thread):
         for i in range(self.nshots + 1):
             x = self.device.get_value()
             # if self.devmode:
-            # x = np.zeros_like(x) + 3 * np.exp(-np.linspace(-10, 10, num=len(x)) ** 2 / ((1 * 2)))
+                # x = np.zeros_like(x) + 3 * np.exp(-np.linspace(-10, 10, num=len(x)) ** 2 / ((1 * 2)))
             # if i == 0:
-            # continue
+                # continue
             Y.append(x)
             time.sleep(0.1)
         self.background = np.mean(Y, axis=0)
@@ -137,6 +135,7 @@ class EnergyAxisWatcher(Thread):
             status = False
         return status
 
+
     def run(self):
         while not self.kill:
             if self.dev_ch is not None and self.dev_ch != "":
@@ -147,14 +146,12 @@ class EnergyAxisWatcher(Thread):
                 break
             time.sleep(1)
 
-            # TODO remove this multiplier
-            d_ev = (self.energy_axis[1] - self.energy_axis[0]) * 10
+            d_ev = (self.energy_axis[1] - self.energy_axis[0]) * 10 #TODO remove this multiplier
             if self.energy_axis[0] - d_ev/2. <= self.energy_axis_old[0] <= self.energy_axis[0] + d_ev/2:
                 self.trigger = False
             else:
                 self.trigger = True
-                print("Photon energy changed from",
-                      self.energy_axis[0], 'by', self.energy_axis_old[1]-self.energy_axis[0])
+                print("Photon energy changed from", self.energy_axis[0], 'by', self.energy_axis_old[1]-self.energy_axis[0])
             self.energy_axis_old = self.energy_axis
 
     def stop(self):
@@ -162,9 +159,9 @@ class EnergyAxisWatcher(Thread):
         self._stop_event.set()
 
 
+
 class SpectrometerWindow(QMainWindow):
     """ Main class for the GUI application """
-
     def __init__(self):
         """
         Initialize the GUI and QT UI aspects of the application.
@@ -186,13 +183,12 @@ class SpectrometerWindow(QMainWindow):
             class_name = self.tool_args.mi
             #print(class_name)
             if class_name not in globals():
-                print("Could not find Machine Interface with name: {}. Loading XFELMachineInterface instead.".format(
-                    class_name))
+                print("Could not find Machine Interface with name: {}. Loading XFELMachineInterface instead.".format(class_name))
                 self.mi = XFELMachineInterface(args)
             else:
                 self.mi = globals()[class_name](args)
         DIR_NAME = os.path.basename(pathlib.Path(__file__).parent.absolute())
-        print("PATH", DIR_NAME)
+        print("PATH" , DIR_NAME)
         self.path = path[:path.find(DIR_NAME)]
         self.config_dir = self.path + DIR_NAME + os.sep + "configs" + os.sep
         self.settings_file = self.config_dir + "settings.json"
@@ -218,12 +214,10 @@ class SpectrometerWindow(QMainWindow):
         current_source = self.ui.combo_hirex.currentText()
         self.config_file = self.config_dir + current_source + "_config.json"
 
-        self.data_dir = path[:path.find(
-            "user")] + "user" + os.sep + PY_SPECTROMETER_DIR + os.sep + current_source + os.sep
+        self.data_dir = path[:path.find("user")]  + "user" + os.sep + PY_SPECTROMETER_DIR + os.sep + current_source + os.sep
         self.px_first = 0
         self.px_last = None
-        self.ui.combo_hirex.currentIndexChanged.connect(
-            self.reload_objects_settings)
+        self.ui.combo_hirex.currentIndexChanged.connect(self.reload_objects_settings)
         self.reload_objects_settings()
 
         self.scantool = ScanInterface(parent=self)
@@ -231,16 +225,17 @@ class SpectrometerWindow(QMainWindow):
         self.corre2dtool = Correl2DInterface(parent=self)
         self.analysistool = AnalysisInterface(parent=self)
 
+
         self.add_plot()
         self.add_image_widget()
         self.ui.restore_state(self.config_file)
 
-        self.data_2d = np.zeros(
-            (self.spectrometer.num_px, int(self.sb_2d_hist_size)))
+        self.data_2d = np.zeros((self.spectrometer.num_px, int(self.sb_2d_hist_size)))
 
         self.timer_live = pg.QtCore.QTimer()
         self.timer_live.timeout.connect(self.get_transmission)
         self.timer_live.timeout.connect(self.live_spec)
+
 
         self.ui.pb_start.clicked.connect(self.start_stop_live_spectrum)
         self.ui.pb_background.clicked.connect(self.take_background)
@@ -271,22 +266,21 @@ class SpectrometerWindow(QMainWindow):
 
         self.ui.actionSettings.triggered.connect(self.run_settings_window)
         self.calculator_window = None
-        self.ui.actionSelf_Seeding_tools.triggered.connect(
-            self.run_calculator_window)
+        self.ui.actionSelf_Seeding_tools.triggered.connect(self.run_calculator_window)
         self.ui.pb_cross_calib.clicked.connect(self.cross_calibrate)
         self.calib_energy_coef = 1
         self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
         #proxy = pg.SignalProxy(self.plot1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
 
         self.ui.actionSave_Data.triggered.connect(self.save_data_as)
-        self.ui.pb_hide_show_backplot.clicked.connect(
-            self.show_hide_background)
+        self.ui.pb_hide_show_backplot.clicked.connect(self.show_hide_background)
         self.ui.pb_hide_average.clicked.connect(self.show_hide_average)
         self.check_doocs_permission()
         self.ui.sb_px_first.valueChanged.connect(self.reset_waterfall)
         self.ui.sb_px_last.valueChanged.connect(self.reset_waterfall)
         self.logger_window = None
         self.ui.pb_logger.clicked.connect(self.run_logger_window)
+
 
     def check_doocs_permission(self):
         self.doocs_permit = True
@@ -295,9 +289,9 @@ class SpectrometerWindow(QMainWindow):
         except:
             self.doocs_permit = False
         if not self.doocs_permit:
-            self.ui.groupBox_5.setTitle(
-                "Control: no permission to write to DOOCS")
+            self.ui.groupBox_5.setTitle("Control: no permission to write to DOOCS")
             self.ui.groupBox_5.setStyleSheet('QGroupBox  {color: red;}')
+
 
     def run_logger_window(self):
         if self.logger_window is None:
@@ -312,58 +306,54 @@ class SpectrometerWindow(QMainWindow):
             self.settings.apply_settings()
         self.load_objects()
 
+
+
     def load_objects(self):
 
         current_source = self.ui.combo_hirex.currentText()
         print(current_source)
         if current_source in ["SASE2", "SASE1"]:
 
-            self.bunch_num_ctrl = BunchNumberCTRL(
-                self.mi, self.doocs_ctrl_num_bunch)
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
             self.spectrometer = Spectrometer(self.mi, eid=self.hirex_doocs_ch)
             self.spectrometer.num_px = self.hrx_n_px
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
 
-        elif current_source in ["SASE3", "SASE3_SCS"]:
+        elif current_source in ["SASE3","SASE3_SCS"]:
 
-            self.bunch_num_ctrl = BunchNumberCTRL(
-                self.mi, self.doocs_ctrl_num_bunch)
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
-            self.spectrometer = SpectrometerSA3(
-                self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
+            self.spectrometer = SpectrometerSA3(self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
             self.spectrometer.num_px = self.hrx_n_px
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
 
+
         elif current_source in ["DUMMY"]:
-            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None)  # delete
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
 
             self.spectrometer = DummyHirex(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
 
         elif current_source in ["DUMMYSASE"]:
-            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None)  # delete
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, None) # delete
             self.spectrometer = DummySASE(self.mi, eid=self.hirex_doocs_ch)
             self.xgm = DummyXGM(mi=self.mi, eid=self.slow_xgm_signal)
         elif current_source in ["TEST1", "TEST2", "TEST3"]:
-            self.bunch_num_ctrl = BunchNumberCTRL(
-                self.mi, self.doocs_ctrl_num_bunch)
+            self.bunch_num_ctrl = BunchNumberCTRL(self.mi, self.doocs_ctrl_num_bunch)
 
-            self.spectrometer = CrazySpectrometer(
-                self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
+            self.spectrometer = CrazySpectrometer(self.mi, energy_ch=self.ph_energy_ch, eid=self.hirex_doocs_ch)
             self.spectrometer.devmode = self.dev_mode
             self.xgm = XGM(mi=self.mi, eid=self.slow_xgm_signal)
 
-        self.back_taker = Background(
-            mi=self.mi, device=self.spectrometer,  dev_name=current_source)
+        self.back_taker = Background(mi=self.mi, device=self.spectrometer,  dev_name=current_source)
         self.background = self.back_taker.load()
 
         self.config_file = self.config_dir + current_source + "_config.json"
         self.ui.restore_state(self.config_file)
-        self.transmission_thread = Transmission(
-            self.mi, self.transmission__doocs_ch)
+        self.transmission_thread = Transmission(self.mi, self.transmission__doocs_ch)
         self.transmission_thread.start()
 
         self.energy_axis_thread = EnergyAxisWatcher(self.mi, self.ph_energy_ch)
@@ -382,6 +372,7 @@ class SpectrometerWindow(QMainWindow):
             self.ui.sb_transmission.setEnabled(False)
         self.transmission_value = value
 
+
     def cross_calibrate(self):
         """
         Cross calibrate with spectrum with pulse energy
@@ -399,13 +390,12 @@ class SpectrometerWindow(QMainWindow):
             return
 
         if self.ui.combo_hirex.currentText() in ["DUMMY", "DUMMYSASE"]:
-            pulse_energy = DummyXGM('', '').get_value()
+            pulse_energy = DummyXGM('','').get_value()
         else:
             pulse_energy = self.mi.get_value(self.slow_xgm_signal)
 
         self.get_transmission()
-        self.calib_energy_coef = self.spectrometer.cross_calibrate(
-            self.ave_spectrum, self.x_axis_disp, self.transmission_value, pulse_energy)
+        self.calib_energy_coef = self.spectrometer.cross_calibrate(self.ave_spectrum, self.x_axis_disp, self.transmission_value, pulse_energy)
 
     def run_settings_window(self):
         if self.settings is None:
@@ -444,11 +434,9 @@ class SpectrometerWindow(QMainWindow):
             # self.plot1.setLabel('left', "A", units='au')
             # self.plot1.setLabel('bottom', "", units='px')
             self.x_axis = np.arange(len(self.spectrum_event))
-            gauss_coeff_fit = self.spectrometer.gauss_coeff_fit + \
-                np.array([0, self.px_first, 0])
+            gauss_coeff_fit = self.spectrometer.gauss_coeff_fit + np.array([0, self.px_first, 0])
             gauss_fit = gauss(self.x_axis, *gauss_coeff_fit)
-            self.fit_func.setData(
-                self.x_axis[self.px_first: self.px_last], gauss_fit[self.px_first: self.px_last])
+            self.fit_func.setData(self.x_axis[self.px_first: self.px_last], gauss_fit[self.px_first: self.px_last])
             #self.plot1.enableAutoScale()
             self.plot1.enableAutoRange()
         else:
@@ -456,9 +444,9 @@ class SpectrometerWindow(QMainWindow):
             self.plot1.removeItem(self.fit_func)
             self.plot1.legend.removeItem(self.fit_func.name())
             # if self.ui.chb_uj_ev.isChecked():
-            # self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
+                # self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
             # else:
-            # self.plot1.setLabel('left', "A", units='au')
+                # self.plot1.setLabel('left', "A", units='au')
             self.plot1.setLabel('bottom', "", units='eV')
             #self.plot1.enableAutoScale()
             self.plot1.enableAutoRange()
@@ -471,7 +459,7 @@ class SpectrometerWindow(QMainWindow):
         else:
             self.plot1.setLabel('bottom', "", units='eV')
         if self.ui.chb_uj_ev.isChecked():
-            self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
+                self.plot1.setLabel('left', "Spec. density", units='uJ/eV')
         else:
             self.plot1.setLabel('left', "A", units='au')
 
@@ -520,13 +508,12 @@ class SpectrometerWindow(QMainWindow):
                 try:
                     self.bunch_num_ctrl.set_value(0)
                 except:
-                    self.error_box(
-                        "No permission. Set to Zero bunches before taking background")
+                    self.error_box("No permission. Set to Zero bunches before taking background")
                     return
 
-            self.back_taker = Background(
-                mi=self.mi, device=self.spectrometer, dev_name=current_source)
+            self.back_taker = Background(mi=self.mi, device=self.spectrometer, dev_name=current_source)
             self.back_taker.devmode = self.dev_mode
+
 
             time.sleep(0.5)
             self.back_taker.nshots = self.sb_nbunch_back
@@ -563,69 +550,60 @@ class SpectrometerWindow(QMainWindow):
         self.ave_spectrum = np.mean(self.spectrum_list, axis=0)
 
         if not old_scipy:
-            filtr_av_spectrum = ndimage.gaussian_filter(
-                self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
+            filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
 
             peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
-                                  height=np.max(filtr_av_spectrum)
-                                  * self.ui.sb_low_thresh.value()/100.,
-                                  #prominence=0.5
-                                  )
+                               height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.,
+                              #prominence=0.5
+                              )
 
             self.peak_ev_list = self.x_axis_disp[peaks]
         else:
-            self.peak_ev_list = [
-                self.x_axis_disp[np.argmax(self.ave_spectrum)]]
+            self.peak_ev_list = [self.x_axis_disp[np.argmax(self.ave_spectrum)]]
         #print(self.peak_ev_list)
 
         # single_integr = np.trapz(spectrum, self.x_axis_disp)/self.get_transmission() * self.calib_energy_coef
-        ave_integ = np.trapz(self.ave_spectrum, self.x_axis_disp) / \
-            self.transmission_value * self.calib_energy_coef
+        ave_integ = np.trapz(self.ave_spectrum, self.x_axis_disp) / self.transmission_value * self.calib_energy_coef
         if self.doocs_permit and self.ui.cb_doocs_send_data.isChecked():
             self.mi.set_value(self.dynprop_integ, ave_integ)
-            self.mi.set_value(self.dynprop_max, np.max(
-                self.ave_spectrum[self.max_spec_min_inx: self.max_spec_max_inx]))
+            self.mi.set_value(self.dynprop_max, np.max(self.ave_spectrum[self.max_spec_min_inx: self.max_spec_max_inx]))
         #self.mi.set_value("XFEL_SIM.UTIL/BIG_BROTHER/MAIN/Z_POS", np.max(self.ave_spectrum[570:580]))
         self.peak_ev = self.x_axis_disp[np.argmax(self.ave_spectrum)]
 
         self.data_2d = np.roll(self.data_2d, 1, axis=1)
 
-        self.data_2d[:, 0] = self.spectrum_event_disp  # single_sig_wo_noise
+        self.data_2d[:, 0] = self.spectrum_event_disp# single_sig_wo_noise
 
         # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
             if self.ui.chb_uj_ev.isChecked():
                 transm = self.transmission_value
-                self.single.setData(
-                    x=self.x_axis_disp, y=self.spectrum_event_disp * self.calib_energy_coef / transm)
-                self.average.setData(
-                    x=self.x_axis_disp, y=self.ave_spectrum * self.calib_energy_coef / transm)
+                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp * self.calib_energy_coef / transm)
+                self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum * self.calib_energy_coef / transm)
             else:
-                self.single.setData(x=self.x_axis_disp,
-                                    y=self.spectrum_event_disp)
+                self.single.setData(x=self.x_axis_disp, y=self.spectrum_event_disp)
                 self.average.setData(x=self.x_axis_disp, y=self.ave_spectrum)
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
             n_ppoints = len(self.x_axis_disp)
             if len(self.background_disp) != n_ppoints:
                 self.background_disp = np.zeros(n_ppoints)
             self.back_plot.setData(self.x_axis_disp, self.background_disp)
-            self.img.setImage(self.data_2d)  # SS: do not cut, limits window
+            self.img.setImage(self.data_2d) #SS: do not cut, limits window
 
         if self.energy_axis_thread.trigger:
             self.calibrate_axis()
         pulse_energy = self.xgm.get_value()
         if self.counter_spect % 10 == 1:
             self.label2.setText(
-                "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>" % (
-                    pulse_energy, ave_integ, self.peak_ev))
+            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
+            pulse_energy, ave_integ, self.peak_ev))
             try:
                 sigma_px = self.sigma_gauss_fit(self.ave_spectrum)
             except:
                 sigma_px = 0
             px_ev = self.x_axis_disp[1] - self.x_axis_disp[0]
             self.ui.label_sigma.setText(str(np.round(sigma_px * px_ev, 2)))
-            self.ui.label_fwhm.setText(
-                str(np.round(sigma_px * px_ev * 2.355, 2)))
+            self.ui.label_fwhm.setText(str(np.round(sigma_px * px_ev * 2.355, 2)))
 
         self.counter_spect += 1
 
@@ -665,6 +643,7 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_hide_average.setText("Hide Average")
             self.plot1.addItem(self.average)
 
+
     def reset_waterfall(self):
 
         px_first = self.ui.sb_px_first.value()
@@ -677,16 +656,15 @@ class SpectrometerWindow(QMainWindow):
         else:
             self.px_first = px_first
             self.px_last = px_last
-        self.data_2d = np.zeros(
-            (self.spectrometer.num_px - self.px_first + self.px_last, int(self.sb_2d_hist_size)))
+        self.data_2d = np.zeros((self.spectrometer.num_px - self.px_first + self.px_last, int(self.sb_2d_hist_size)))
         self.spectrum_list = []
         self.ave_spectrum = []
         self.px_last = self.px_last if self.px_last != 0 else None
 
+
         #self.data_2d = np.zeros((self.spectrometer.num_px, self.sb_2d_hist_size))
         self.x_axis_disp = self.x_axis[self.px_first: self.px_last]
-        scale_coef_xaxis = (
-            self.x_axis_disp[-1] - self.x_axis_disp[0]) / len(self.x_axis_disp)
+        scale_coef_xaxis = (self.x_axis_disp[-1] - self.x_axis_disp[0]) / len(self.x_axis_disp)
         translate_coef_xaxis = self.x_axis_disp[0] / scale_coef_xaxis
         self.add_image_item()
 
@@ -696,8 +674,7 @@ class SpectrometerWindow(QMainWindow):
     def start_stop_live_spectrum(self):
         if self.ui.pb_start.text() == "Stop":
             self.timer_live.stop()
-            self.ui.pb_start.setStyleSheet(
-                "color: rgb(255, 0, 0); font-size: 18pt")
+            self.ui.pb_start.setStyleSheet("color: rgb(255, 0, 0); font-size: 18pt")
             self.ui.pb_start.setText("Start")
         else:
             if self.bunch_num_ctrl.get_value() <= 0:
@@ -715,11 +692,11 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_start.setText("Stop")
 
             #self.ui.pb_start.setStyleSheet("color: rgb(85, 255, 127); font-size: 18pt")
-            self.ui.pb_start.setStyleSheet(
-                "color: rgb(63, 191, 95); font-size: 18pt")
+            self.ui.pb_start.setStyleSheet("color: rgb(63, 191, 95); font-size: 18pt")
 
             #px1 = int(self.ui.sb_px1.value())
             self.reset_waterfall()
+
 
     def update_text(self, text=None):
         x_left = self.plot1.viewRange()[0][0]
@@ -773,22 +750,18 @@ class SpectrometerWindow(QMainWindow):
 
         parser_mi = argparse.ArgumentParser()
 
-        subparser = parser_mi.add_subparsers(
-            title='Machine Interface Options', dest="mi")
+        subparser = parser_mi.add_subparsers(title='Machine Interface Options', dest="mi")
         for mi in AVAILABLE_MACHINE_INTERFACES:
-            mi_parser = subparser.add_parser(
-                mi.__name__, help='{} arguments'.format(mi.__name__))
+            mi_parser = subparser.add_parser(mi.__name__, help='{} arguments'.format(mi.__name__))
             mi.add_args(mi_parser)
 
         for hirex in AVAILABLE_SPECTROMETERS:
             hirex_agr = "--" + hirex
-            parser.add_argument(hirex_agr, hirex_agr.upper(
-            ), help=hirex.upper() + " HIREX", action="store_true")
+            parser.add_argument(hirex_agr, hirex_agr.upper(), help=hirex.upper() + " HIREX", action="store_true")
 
         self.tool_args, others = parser.parse_known_args()
         if len(others) != 0:
-            self.tool_args = parser_mi.parse_args(
-                others, namespace=self.tool_args)
+            self.tool_args = parser_mi.parse_args(others, namespace=self.tool_args)
 
     def add_plot(self):
         gui_index = self.ui.get_style_name_index()
@@ -804,10 +777,11 @@ class SpectrometerWindow(QMainWindow):
         self.label = pg.LabelItem(justify='left', row=0, col=0)
         win.addItem(self.label)
 
+
         #self.plot1 = win.addPlot(row=0, col=0)
         self.plot1 = win.addPlot(row=1, col=0)
 
-        self.label2 = pg.LabelItem(justify='right')
+        self.label2 = pg.LabelItem( justify='right')
         win.addItem(self.label2, row=0, col=0)
 
         self.plot1.setLabel('left', "A", units='au')
@@ -815,8 +789,7 @@ class SpectrometerWindow(QMainWindow):
 
         self.plot1.showGrid(1, 1, 1)
 
-        self.plot1.getAxis('left').enableAutoSIPrefix(
-            enable=False)  # stop the auto unit scaling on y axes
+        self.plot1.getAxis('left').enableAutoSIPrefix(enable=False)  # stop the auto unit scaling on y axes
         layout = QtGui.QGridLayout()
         self.ui.widget.setLayout(layout)
         layout.addWidget(win, 0, 0)
@@ -832,7 +805,7 @@ class SpectrometerWindow(QMainWindow):
         pen = pg.mkPen((51, 255, 51), width=2)
         pen = pg.mkPen((255, 0, 0), width=3)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
-        self.average = pg.PlotCurveItem(pen=pen, name='average')
+        self.average = pg.PlotCurveItem( pen=pen, name='average')
 
         self.plot1.addItem(self.average)
 
@@ -847,7 +820,7 @@ class SpectrometerWindow(QMainWindow):
 
         pen = pg.mkPen((0, 100, 0), width=1)
         #self.average = pg.PlotCurveItem(x=[], y=[], pen=pen, name='average')
-        self.back_plot = pg.PlotCurveItem(pen=pen, name='background')
+        self.back_plot = pg.PlotCurveItem( pen=pen, name='background')
 
         #self.plot1.addItem(self.back_plot) ##################################### SS removed, as typically we don;t need it once start pySpectrometer
 
@@ -872,7 +845,7 @@ class SpectrometerWindow(QMainWindow):
             if index > 0 and index < len(self.x_axis):
                 self.label.setText(
                     "<span style='font-size: 16pt', style='color: green'>x=%0.1f,   <span style='color: red'>y=%0.1f</span>" % (
-                        mousePoint.x(), mousePoint.y()))
+                    mousePoint.x(), mousePoint.y()))
             self.vLine.setPos(mousePoint.x())
             self.hLine.setPos(mousePoint.y())
 
@@ -895,14 +868,13 @@ class SpectrometerWindow(QMainWindow):
 
         self.img_plot.addItem(self.img)
 
-        # "nipy_spectral")  # cm.get_cmap("CMRmap")
-        colormap = cm.get_cmap('viridis')
+        colormap = cm.get_cmap('viridis') #"nipy_spectral")  # cm.get_cmap("CMRmap")
         colormap._init()
-        # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
-        lut = (colormap._lut * 255).view(np.ndarray)
+        lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
 
         # Apply the colormap
         self.img.setLookupTable(lut)
+
 
     def error_box(self, message):
         QtGui.QMessageBox.about(self, "Error box", message)
@@ -910,8 +882,8 @@ class SpectrometerWindow(QMainWindow):
     def question_box(self, message):
         #QtGui.QMessageBox.question(self, "Question box", message)
         reply = QtGui.QMessageBox.question(self, "Recalculate ORM?",
-                                           "Recalculate Orbit Response Matrix?",
-                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                "Recalculate Orbit Response Matrix?",
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
             return True
 
@@ -970,6 +942,7 @@ class SpectrometerWindow(QMainWindow):
             self.fast_xgm_signal = table["le_fast_xgm_sa3"]
             self.slow_xgm_signal = table["le_slow_xgm_sa3"]
 
+
         elif current_source == "SASE3_SCS":
             self.hirex_doocs_ch = table["le_hirex_ch_sa3_scs"]
             self.ph_energy_ch = table["le_ph_energy_sa3_scs"]
@@ -981,6 +954,7 @@ class SpectrometerWindow(QMainWindow):
             self.fast_xgm_signal = table["le_fast_xgm_sa3_scs"]
             self.slow_xgm_signal = table["le_slow_xgm_sa3_scs"]
 
+
         elif current_source in ["DUMMY", "DUMMYSASE"]:
             self.hirex_doocs_ch = table["le_hirex_ch_sa1"]
             self.transmission__doocs_ch = None
@@ -989,6 +963,7 @@ class SpectrometerWindow(QMainWindow):
             self.doocs_ctrl_num_bunch = None
             self.fast_xgm_signal = None
             self.slow_xgm_signal = None
+
 
         elif current_source in ["TEST1"]:
             self.hirex_doocs_ch = table["le_hirex_ch_test1"]
@@ -1030,26 +1005,28 @@ class SpectrometerWindow(QMainWindow):
         except IOError:
             logger.error('No style sheet found!')
 
+
     def save_data_as(self, type):
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Data',
                                                      self.data_dir, "txt (*.npz)", None,
                                                      QtGui.QFileDialog.DontUseNativeDialog)[0]
 
-        np.savez(filename, e_axis=self.x_axis,
-                 average=self.ave_spectrum, map=self.data_2d)
+        np.savez(filename, e_axis=self.x_axis, average=self.ave_spectrum, map=self.data_2d)
+
 
 
 def main():
+
 
     #make pyqt threadsafe
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     #create the application
     app = QApplication(sys.argv)
-    path = os.path.join(os.path.dirname(
-        sys.modules[__name__].__file__), 'gui/hirex.png')
+    path = os.path.join(os.path.dirname(sys.modules[__name__].__file__), 'gui/hirex.png')
     app.setWindowIcon(QtGui.QIcon(path))
 
     window = SpectrometerWindow()
+
 
     #show app
     #window.setWindowIcon(QtGui.QIcon('gui/angry_manul.png'))
@@ -1063,7 +1040,6 @@ def main():
     #os.system("cd ./docs && xterm -T 'Ocelot Doc Builder' -e 'bash checkDocBuild.sh' &")
     #exit script
     sys.exit(app.exec_())
-
 
 if __name__ == "__main__":
     main()
