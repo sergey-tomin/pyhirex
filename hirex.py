@@ -33,6 +33,7 @@ from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
 from analysis_spec import AnalysisInterface
 from logger import UILogger
+from calculator import UICalculator
 from scipy import ndimage
 import pathlib
 import json
@@ -264,6 +265,8 @@ class SpectrometerWindow(QMainWindow):
         self.back_taker_status.timeout.connect(self.is_back_taker_alive)
 
         self.ui.actionSettings.triggered.connect(self.run_settings_window)
+        self.calculator_window = None
+        self.ui.actionSelf_Seeding_tools.triggered.connect(self.run_calculator_window)
         self.ui.pb_cross_calib.clicked.connect(self.cross_calibrate)
         self.calib_energy_coef = 1
         self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
@@ -398,6 +401,11 @@ class SpectrometerWindow(QMainWindow):
         if self.settings is None:
             self.settings = HirexSettings(parent=self)
         self.settings.show()
+
+    def run_calculator_window(self):
+        if self.calculator_window is None:
+            self.calculator_window = UICalculator(parent=self)
+        self.calculator_window.show()
 
     def fit_guass(self):
         if len(self.ave_spectrum) == 0:

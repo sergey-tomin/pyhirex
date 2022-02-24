@@ -262,8 +262,8 @@ class Correl2DInterface:
             self.doocs_vals_hist = self.doocs_vals_hist[-n_shots:]
         
         if len(self.spec_hist) >0:
-        	if len(self.spec_hist[0]) != len(self.parent.spectrum_event_disp):
-        		self.reset()
+            if len(self.spec_hist[0]) != len(self.parent.spectrum_event_disp):
+                self.reset()
         self.spec_hist.append(self.parent.spectrum_event_disp)
         
         

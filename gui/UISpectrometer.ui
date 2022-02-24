@@ -2738,6 +2738,7 @@
      <string>Expert</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionSelf_Seeding_tools"/>
    </widget>
    <widget class="QMenu" name="menuLogbook">
     <property name="title">
@@ -2798,6 +2799,11 @@
   <action name="actionSend_spec_analysis_to_logbook">
    <property name="text">
     <string>Send spec analysis to logbook</string>
+   </property>
+  </action>
+  <action name="actionSelf_Seeding_tools">
+   <property name="text">
+    <string>Self Seeding tools</string>
    </property>
   </action>
  </widget>
