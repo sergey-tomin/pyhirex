@@ -236,7 +236,7 @@
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Update DOOCS</string>
+             <string>Write calibration param. to DOOCS</string>
             </property>
            </widget>
           </item>
@@ -274,7 +274,7 @@
           <item row="2" column="1">
            <widget class="QPushButton" name="pb_load_doocs">
             <property name="text">
-             <string>Load from DOOCS</string>
+             <string>Load from DOOCS into pySpectrometer</string>
             </property>
            </widget>
           </item>

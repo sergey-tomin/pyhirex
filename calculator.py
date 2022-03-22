@@ -656,11 +656,11 @@ class UICalculator(QWidget):
         self.doocs_permit = True
         try:
             pydoocs.write(
-                "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION", 0.0)
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION", self.pixel_calibration_mean)
             self.pixel_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
             pydoocs.write(
-                "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY", 0.0)
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY", self.dE_mean)
             self.central_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY")
             pydoocs.write(
