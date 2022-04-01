@@ -197,7 +197,7 @@ class UICalculator(QWidget):
         self.ui.widget_calc.setLayout(self.layout)
         self.layout.addWidget(self.win1)
         self.img_corr2d = self.win1.addPlot()
-        self.img_corr2d.setLabel('left', "E_ph", units='eV')
+        self.img_corr2d.setLabel('left', "E_HIREX", units='eV')
         self.img_corr2d.setLabel('bottom', "Pitch angle", units='°')
         self.img_corr2d.getAxis('left').enableAutoSIPrefix(
                     enable=False)  # stop the auto unit scaling on y axes
@@ -489,32 +489,12 @@ class UICalculator(QWidget):
                 pixel_calib_list.append(self.scale_yaxis*pixel_cal)
         self.pixel_calibration_mean = np.mean(pixel_calib_list)
 
-    def hkl_roll_separator(self):
-        for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
-            num = [int(s) for s in re.findall(r'-?\d+', str(gid_item))]
-            self.h_list.append(num[0])
-            self.k_list.append(num[1])
-            self.l_list.append(num[2])
-            self.roll_list.append(roll)
-            self.centroid_list.append(cent_x-self.DTHP)
-
-    def offset_calc_and_plot(self):
-        self.roll_list_fun = [self.set_roll_angle]
-        self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
-            self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list_fun, self.DTHR, self.alpha)
-
-        # Get energy value at one particular pitch angle value, in order to calculate offset
-        pa_dE, phen_Actual, gid_list_s, model_slope_list = HXRSSsingle(
-            (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
-
-        df_model = pd.DataFrame(
-            dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE, mdl_slope=model_slope_list))
-        # Merge model phen values with detected lines phen
-        self.df_detected = self.df_detected.merge(
-            df_model, on=['gid', 'centroid_pa'], how='left')
+    def energy_off_cal(self):
         # Subtract model energy and measured energy to get offset dE
         self.df_detected['dE'] = self.df_detected['E_model'] - \
             self.df_detected['centroid_phen']
+        print(self.df_detected['E_model'], self.df_detected['centroid_phen'])
+        self.actual_E_mean = np.mean(self.df_detected['E_model'])
         # Remove any dE values outside the following range
         btwn = self.df_detected['dE'].between(-290, 290, inclusive=False)
         self.df_detected = self.df_detected[btwn]
@@ -522,14 +502,11 @@ class UICalculator(QWidget):
         for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
             if abs(E) > 300:
                 self.ind = 'error'
-            self.add_table_row(id + ' Eoff', '-', str(np.round(E, 1))+' eV')
-        print(gid_list_s)
+            self.add_table_row(
+                id + ' Eoff', '-', str(np.round(E, 1))+' eV')
         self.dE_mean = np.mean(self.df_detected['dE'])
-        # Calculate pixel calibration
-        self.dispersion_cal()
-        # Calculate mean energy offset and pixel calibration
 
-        # Remove NaN values
+    def calculate_means(self):
         if np.isnan(self.dE_mean) is True:
             self.dE_mean = 0
         if np.isnan(self.pixel_calibration_mean) is True:
@@ -549,15 +526,48 @@ class UICalculator(QWidget):
         self.add_table_row(
             'Avg. Eoff', '-', str(np.round(self.dE_mean, 1))+' eV')
         self.ind = 'record'  # Make sure to list Eo in blue as it will be recorded
-        self.add_table_row('Eo', str(np.round(self.parent.ui.sb_E0.value(
-        ), 0)) + ' eV', str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
+        self.add_table_row('HIREX Eo', str(np.round(self.parent.ui.sb_E0.value(), 0)) + ' eV', str(
+            np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
+        #self.add_table_row('Actual E_ph', str(
+        #    np.round(self.actual_E_mean, 0))+' eV', '')
+        for oldE, E, pa, id in zip(self.df_detected['centroid_phen'], self.df_detected['E_model'], self.df_detected['centroid_pa'], self.df_detected['gid']):
+            self.add_table_row(
+                ' Eph at ' + str(round(pa, 2)), str(np.round(oldE, 0))+' eV', str(np.round(E, 0))+' eV')
         self.add_table_row(' ', ' ', ' ')
+
+    def hkl_roll_separator(self):
+        for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
+            num = [int(s) for s in re.findall(r'-?\d+', str(gid_item))]
+            self.h_list.append(num[0])
+            self.k_list.append(num[1])
+            self.l_list.append(num[2])
+            self.roll_list.append(roll)
+            self.centroid_list.append(cent_x-self.DTHP)
+
+    def offset_calc_and_plot(self):
+        self.roll_list_fun = [self.set_roll_angle]
+        self.phen, self.pa, gid_list, _roll_list, self.color_list, self.linestyle_list = HXRSS_Bragg_max_generator(
+            self.pa_range_plot, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll_list_fun, self.DTHR, self.alpha)
+
+        # Get energy value at one particular pitch angle value, in order to calculate offset
+        pa_dE, phen_Actual, gid_list_s, model_slope_list = HXRSSsingle(
+            (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
+
+        self.df_model = pd.DataFrame(
+            dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE, mdl_slope=model_slope_list))
+        # Merge model phen values with detected lines phen
+        self.df_detected = self.df_detected.merge(
+            self.df_model, on=['gid', 'centroid_pa'], how='left')
+        self.energy_off_cal()
+        # Calculate pixel calibration
+        self.dispersion_cal()
+        # Calculate mean energy offset and pixel calibration
+        self.calculate_means()
+        # Remove NaN values
         self.allow_data_storage = 1  # File will be created with all parameters calculated
         # Enable logbook button
         self.ui.pb_logbook.setEnabled(True)
         self.ui.pb_doocs.setEnabled(True)
-
-    # In case no match is found, plot the model in this area.
 
     def nomatch_plot(self):
         self.roll_list = [self.set_roll_angle]
