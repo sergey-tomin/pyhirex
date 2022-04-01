@@ -18,7 +18,7 @@ from matplotlib import cm
 import pandas as pd
 from scipy import ndimage
 from datetime import datetime, timedelta
-#from skimage.filters import threshold_yen
+from skimage.filters import threshold_yen
 #from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 #from sklearn.ensemble import GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier, VotingClassifier
@@ -307,20 +307,20 @@ class UICalculator(QWidget):
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
         self.corr2d[self.corr2d < 0] = 0
-        #self.image = self.corr2d.T
-        #thresh = threshold_yen(self.image, nbins=256)
-        #binary = self.image > thresh
-        #self.processed_image = binary
+        self.image = self.corr2d.T
+        thresh = threshold_yen(self.image, nbins=256)
+        binary = self.image > thresh
+        self.processed_image = binary
         #### ALTERNATE MANUAL THRESHOLDING
-        range_scale = np.ptp(self.corr2d)
-        threshold = 0.16 * range_scale
-        max_value = np.amax(self.corr2d)
-        min_value = np.amin(self.corr2d)
+        #range_scale = np.ptp(self.corr2d)
+        #threshold = 0.16 * range_scale
+        #max_value = np.amax(self.corr2d)
+        #min_value = np.amin(self.corr2d)
         # all values above threshold are set to max_value
-        self.corr2d[self.corr2d > threshold] = max_value
+        #self.corr2d[self.corr2d > threshold] = max_value
         # all values above threshold are set to min_value
-        self.corr2d[self.corr2d < threshold] = min_value
-        self.processed_image = self.corr2d.T
+        #self.corr2d[self.corr2d < threshold] = min_value
+        #self.processed_image = self.corr2d.T
 
     def get_binarized_line(self):
         df = pd.DataFrame(data=self.processed_image.T)
