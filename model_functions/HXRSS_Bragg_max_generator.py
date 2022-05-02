@@ -138,7 +138,9 @@ def HXRSS_Bragg_max_generator(thplist, h_max, k_max, l_max, dthp, dthy, roll_ang
 #User defined quantities
 ################ AMERICAN NAME CONVENTION --- OUR ROLL IS YAW HERE AND VICEVERSA!!!######################
 
-    pitchax = np.array((-1, 1, 0))/np.linalg.norm(np.array((-1, 1, 0)))
+    #pitchax = np.array((-1, 1, 0))/np.linalg.norm(np.array((-1, 1, 0))) Changed convention
+    pitchax = np.array((1, -1, 0))/np.linalg.norm(np.array((1, -1, 0)))
+
     rollax = np.array((0, 0, 1))/np.linalg.norm(np.array((0, 0, 1)))
     yawax = np.array((1, 1, 0))/np.linalg.norm(np.array((1, 1, 0)))
     n0 = -rollax  # direction of incident radiation

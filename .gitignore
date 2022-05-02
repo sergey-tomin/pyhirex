@@ -12,3 +12,4 @@ model_functions/archive.txt
 hirexold.py
 calculator_local.py
 hirex_local.py
+*.ipynb
