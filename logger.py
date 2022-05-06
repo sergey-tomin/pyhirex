@@ -402,19 +402,11 @@ class UILogger(QWidget):
 
         pen3 = pg.mkPen('#0000ff', width=2)
         self.peak_ev_pos =  pg.PlotCurveItem(pen=pen3, name='peak_pos')
-<<<<<<<<< Temporary merge branch 1
         
         pen4 = pg.mkPen('#800080', width=2)
         self.XGM =  pg.PlotCurveItem(pen=pen4, name='XGM')
         
         pen5 = pg.mkPen('#ffa500', width=2)
-=========
-
-        pen4 = pg.mkPen('#ffa500', width=2)
-        self.XGM =  pg.PlotCurveItem(pen=pen4, name='XGM')
-
-        pen5 = pg.mkPen('#800080', width=2)
->>>>>>>>> Temporary merge branch 2
         self.spec_integral =  pg.PlotCurveItem(pen=pen5, name='spec_integral')
 
         v1.addItem(self.maxspec_plot)
