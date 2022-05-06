@@ -695,6 +695,7 @@ class SpectrometerWindow(QMainWindow):
 
             self.ui.label_sigma.setText(str(np.round(self.fwhm_ev, 3)))
             self.ui.label_peak_ev.setText(str(np.round(self.peak_ev, 3)))
+            self.ui.rel_width.setText(str(np.round((self.fwhm_ev/self.peak_ev)*1e2, 3)))
             # print('self.counter_spect {}'.format(self.counter_spect))
             # print('peak_ave {}'.format(np.nanmax(self.ave_spectrum)))
             # print('peak at {} with fwhm of {}'.format(peak_ev, fwhm_ev))
