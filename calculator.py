@@ -97,7 +97,7 @@ class UICalculator(QWidget):
         self.ui.pb_doocs.clicked.connect(self.check_if_scan_is_recent)
         self.ui.pb_load_doocs.clicked.connect(self.load_from_doocs)
         # Set constants
-        self.hmax, self.kmax, self.lmax = 5, 5, 5
+        self.hmax, self.kmax, self.lmax = 6, 6, 7
         self.d_kernel, self.e_kernel = 2, 2
         # Set up and show the two graph axes and display latest npz file
         self.add_image_widget()
@@ -274,7 +274,7 @@ class UICalculator(QWidget):
             pen = pg.mkPen(str(self.color_list[r]), width=3, style=style_type)
             self.model = pg.PlotCurveItem(
                 x=self.pa[r], y=self.phen[r], pen=pen, name=self.gid_list[r])
-            if self.phen[r][100] <= max(self.np_phen)+700 and self.phen[r][100] >= min(self.np_phen)-700:
+            if self.phen[r][50] <= max(self.np_phen)+1500 and self.phen[r][50] >= min(self.np_phen)-1500:
                 self.plot1.addItem(self.model)
         self.plot1.setXRange(min(self.np_doocs),
                              max(self.np_doocs), padding=None, update=True)
@@ -412,15 +412,15 @@ class UICalculator(QWidget):
             self.DTHP = -0.392
             self.dthy = 1.17
             self.DTHR = 0.1675
-            self.alpha = 0.00238
+            self.alpha = 0.00338
         else:
             self.DTHP = -0.392
             self.dthy = 1.17
             self.DTHR = 0.1675
-            self.alpha = 0.00238
-        self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
+            self.alpha = 0.00338
+        self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 100)
         self.pa_range_plot = np.linspace(
-            self.min_pangle-1, self.max_pangle+1, 200)
+            self.min_pangle-1, self.max_pangle+1, 100)
         # pass pitch and roll errors and create Bragg curves
         self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list, color_list, linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
