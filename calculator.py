@@ -18,7 +18,7 @@ from matplotlib import cm
 import pandas as pd
 from scipy import ndimage
 from datetime import datetime, timedelta
-#from skimage.filters import threshold_yen
+from skimage.filters import threshold_yen
 #from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 #from sklearn.ensemble import GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier, VotingClassifier
@@ -97,7 +97,7 @@ class UICalculator(QWidget):
         self.ui.pb_doocs.clicked.connect(self.check_if_scan_is_recent)
         self.ui.pb_load_doocs.clicked.connect(self.load_from_doocs)
         # Set constants
-        self.hmax, self.kmax, self.lmax = 5, 5, 5
+        self.hmax, self.kmax, self.lmax = 6, 6, 7
         self.d_kernel, self.e_kernel = 2, 2
         # Set up and show the two graph axes and display latest npz file
         self.add_image_widget()
@@ -197,7 +197,7 @@ class UICalculator(QWidget):
         self.ui.widget_calc.setLayout(self.layout)
         self.layout.addWidget(self.win1)
         self.img_corr2d = self.win1.addPlot()
-        self.img_corr2d.setLabel('left', "E_ph", units='eV')
+        self.img_corr2d.setLabel('left', "E_HIREX", units='eV')
         self.img_corr2d.setLabel('bottom', "Pitch angle", units='°')
         self.img_corr2d.getAxis('left').enableAutoSIPrefix(
                     enable=False)  # stop the auto unit scaling on y axes
@@ -274,7 +274,7 @@ class UICalculator(QWidget):
             pen = pg.mkPen(str(self.color_list[r]), width=3, style=style_type)
             self.model = pg.PlotCurveItem(
                 x=self.pa[r], y=self.phen[r], pen=pen, name=self.gid_list[r])
-            if self.phen[r][100] <= max(self.np_phen)+700 and self.phen[r][100] >= min(self.np_phen)-700:
+            if self.phen[r][50] <= max(self.np_phen)+1500 and self.phen[r][50] >= min(self.np_phen)-1500:
                 self.plot1.addItem(self.model)
         self.plot1.setXRange(min(self.np_doocs),
                              max(self.np_doocs), padding=None, update=True)
@@ -307,20 +307,20 @@ class UICalculator(QWidget):
         self.min_pangle = min(self.np_doocs)
         self.max_pangle = max(self.np_doocs)
         self.corr2d[self.corr2d < 0] = 0
-        #self.image = self.corr2d.T
-        #thresh = threshold_yen(self.image, nbins=256)
-        #binary = self.image > thresh
-        #self.processed_image = binary
+        self.image = self.corr2d.T
+        thresh = threshold_yen(self.image, nbins=256)
+        binary = self.image > thresh
+        self.processed_image = binary
         #### ALTERNATE MANUAL THRESHOLDING
-        range_scale = np.ptp(self.corr2d)
-        threshold = 0.16 * range_scale
-        max_value = np.amax(self.corr2d)
-        min_value = np.amin(self.corr2d)
+        #range_scale = np.ptp(self.corr2d)
+        #threshold = 0.16 * range_scale
+        #max_value = np.amax(self.corr2d)
+        #min_value = np.amin(self.corr2d)
         # all values above threshold are set to max_value
-        self.corr2d[self.corr2d > threshold] = max_value
+        #self.corr2d[self.corr2d > threshold] = max_value
         # all values above threshold are set to min_value
-        self.corr2d[self.corr2d < threshold] = min_value
-        self.processed_image = self.corr2d.T
+        #self.corr2d[self.corr2d < threshold] = min_value
+        #self.processed_image = self.corr2d.T
 
     def get_binarized_line(self):
         df = pd.DataFrame(data=self.processed_image.T)
@@ -412,15 +412,15 @@ class UICalculator(QWidget):
             self.DTHP = -0.392
             self.dthy = 1.17
             self.DTHR = 0.1675
-            self.alpha = 0.00238
+            self.alpha = 0.00338
         else:
             self.DTHP = -0.392
             self.dthy = 1.17
             self.DTHR = 0.1675
-            self.alpha = 0.00238
-        self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 200)
+            self.alpha = 0.00338
+        self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 100)
         self.pa_range_plot = np.linspace(
-            self.min_pangle-1, self.max_pangle+1, 200)
+            self.min_pangle-1, self.max_pangle+1, 100)
         # pass pitch and roll errors and create Bragg curves
         self.phen_list, self.p_angle_list, self.gid_list, self.roll_angle_list, color_list, linestyle_list = HXRSS_Bragg_max_generator(
             self.pa_range, self.hmax, self.kmax, self.lmax, self.DTHP, self.dthy, self.roll, self.DTHR, self.alpha)
@@ -489,6 +489,52 @@ class UICalculator(QWidget):
                 pixel_calib_list.append(self.scale_yaxis*pixel_cal)
         self.pixel_calibration_mean = np.mean(pixel_calib_list)
 
+    def energy_off_cal(self):
+        # Subtract model energy and measured energy to get offset dE
+        self.df_detected['dE'] = self.df_detected['E_model'] - \
+            self.df_detected['centroid_phen']
+        print(self.df_detected['E_model'], self.df_detected['centroid_phen'])
+        self.actual_E_mean = np.mean(self.df_detected['E_model'])
+        # Remove any dE values outside the following range
+        btwn = self.df_detected['dE'].between(-290, 290, inclusive=False)
+        self.df_detected = self.df_detected[btwn]
+        # Print separate row for each detected line and calcuated offset in eV
+        for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
+            if abs(E) > 300:
+                self.ind = 'error'
+            self.add_table_row(
+                id + ' Eoff', '-', str(np.round(E, 1))+' eV')
+        self.dE_mean = np.mean(self.df_detected['dE'])
+
+    def calculate_means(self):
+        if np.isnan(self.dE_mean) is True:
+            self.dE_mean = 0
+        if np.isnan(self.pixel_calibration_mean) is True:
+            self.pixel_calibration_mean = 0
+        # Print in red if value is outside range otherwise print in blue
+        if abs(self.pixel_calibration_mean) > 1:
+            self.ind = 'error'
+        else:
+            self.ind = 'record'
+        self.add_table_row(
+            'Avg. ev/px', '-', str(np.round(self.pixel_calibration_mean, 3)))
+        self.add_plot()
+        self.plot1.setYRange(min(self.np_phen)-100,
+                             max(self.np_phen)+100, padding=None, update=True)
+        if abs(self.dE_mean) > 300:
+            self.ind = 'error'
+        self.add_table_row(
+            'Avg. Eoff', '-', str(np.round(self.dE_mean, 1))+' eV')
+        self.ind = 'record'  # Make sure to list Eo in blue as it will be recorded
+        self.add_table_row('HIREX Eo', str(np.round(self.parent.ui.sb_E0.value(), 0)) + ' eV', str(
+            np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
+        #self.add_table_row('Actual E_ph', str(
+        #    np.round(self.actual_E_mean, 0))+' eV', '')
+        for oldE, E, pa, id in zip(self.df_detected['centroid_phen'], self.df_detected['E_model'], self.df_detected['centroid_pa'], self.df_detected['gid']):
+            self.add_table_row(
+                ' Eph at ' + str(round(pa, 2)), str(np.round(oldE, 0))+' eV', str(np.round(E, 0))+' eV')
+        self.add_table_row(' ', ' ', ' ')
+
     def hkl_roll_separator(self):
         for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
             num = [int(s) for s in re.findall(r'-?\d+', str(gid_item))]
@@ -507,57 +553,21 @@ class UICalculator(QWidget):
         pa_dE, phen_Actual, gid_list_s, model_slope_list = HXRSSsingle(
             (self.h_list, self.k_list, self.l_list, self.roll_list, self.centroid_list), self.DTHP, self.dthy, self.DTHR, self.alpha)
 
-        df_model = pd.DataFrame(
+        self.df_model = pd.DataFrame(
             dict(E_model=phen_Actual, gid=gid_list_s, centroid_pa=pa_dE, mdl_slope=model_slope_list))
         # Merge model phen values with detected lines phen
         self.df_detected = self.df_detected.merge(
-            df_model, on=['gid', 'centroid_pa'], how='left')
-        # Subtract model energy and measured energy to get offset dE
-        self.df_detected['dE'] = self.df_detected['E_model'] - \
-            self.df_detected['centroid_phen']
-        # Remove any dE values outside the following range
-        btwn = self.df_detected['dE'].between(-290, 290, inclusive=False)
-        self.df_detected = self.df_detected[btwn]
-        # Print separate row for each detected line and calcuated offset in eV
-        for E, id in zip(self.df_detected['dE'], self.df_detected['gid']):
-            if abs(E) > 300:
-                self.ind = 'error'
-            self.add_table_row(id + ' Eoff', '-', str(np.round(E, 1))+' eV')
-        print(gid_list_s)
-        self.dE_mean = np.mean(self.df_detected['dE'])
+            self.df_model, on=['gid', 'centroid_pa'], how='left')
+        self.energy_off_cal()
         # Calculate pixel calibration
         self.dispersion_cal()
         # Calculate mean energy offset and pixel calibration
-
+        self.calculate_means()
         # Remove NaN values
-        if np.isnan(self.dE_mean) is True:
-            self.dE_mean = 0
-        if np.isnan(self.pixel_calibration_mean) is True:
-            self.pixel_calibration_mean = 0
-        # Print in red if value is outside range otherwise print in blue
-        if abs(self.pixel_calibration_mean) > 1:
-            self.ind = 'error'
-        else:
-            self.ind = 'record'
-        self.add_table_row(
-            'Avg. ev/px', '-', str(np.round(self.pixel_calibration_mean, 3)))
-        self.add_plot()
-        self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
-                             max(self.np_phen)+self.dE_mean, padding=None, update=True)
-        if abs(self.dE_mean) > 300:
-            self.ind = 'error'
-        self.add_table_row(
-            'Avg. Eoff', '-', str(np.round(self.dE_mean, 1))+' eV')
-        self.ind = 'record'  # Make sure to list Eo in blue as it will be recorded
-        self.add_table_row('Eo', str(np.round(self.parent.ui.sb_E0.value(
-        ), 0)) + ' eV', str(np.round((self.parent.ui.sb_E0.value()+self.dE_mean), 0))+' eV')
-        self.add_table_row(' ', ' ', ' ')
         self.allow_data_storage = 1  # File will be created with all parameters calculated
         # Enable logbook button
         self.ui.pb_logbook.setEnabled(True)
         self.ui.pb_doocs.setEnabled(True)
-
-    # In case no match is found, plot the model in this area.
 
     def nomatch_plot(self):
         self.roll_list = [self.set_roll_angle]
@@ -656,11 +666,11 @@ class UICalculator(QWidget):
         self.doocs_permit = True
         try:
             pydoocs.write(
-                "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION", 0.0)
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION", self.pixel_calibration_mean)
             self.pixel_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/PIXEL_CALIBRATION")
             pydoocs.write(
-                "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY", 0.0)
+                "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY", self.dE_mean)
             self.central_doocs = pydoocs.read(
                 "XFEL.UTIL/DYNPROP/HIREX.SA2/CENTRAL_ENERGY")
             pydoocs.write(
@@ -729,7 +739,11 @@ class UICalculator(QWidget):
     def load_corr2d(self):
         self.tt = np.load(self.pathname)
         self.orig_image = self.tt['corr2d']
-        self.np_doocs = self.tt['doocs_scale']
+        self.doocs_scale = self.tt['doocs_scale']
+        if len(self.doocs_scale) != len(self.orig_image):
+            self.np_doocs = self.doocs_scale[:-1]
+        else:
+            self.np_doocs = self.doocs_scale
         self.np_phen = self.tt['phen_scale']
         self.doocs_label = self.tt['doocs_channel']
         self.info_mono_no()
