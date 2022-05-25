@@ -519,8 +519,8 @@ class UICalculator(QWidget):
         self.add_table_row(
             'Avg. ev/px', '-', str(np.round(self.pixel_calibration_mean, 3)))
         self.add_plot()
-        self.plot1.setYRange(min(self.np_phen)+self.dE_mean,
-                             max(self.np_phen)+self.dE_mean, padding=None, update=True)
+        self.plot1.setYRange(min(self.np_phen)-100,
+                             max(self.np_phen)+100, padding=None, update=True)
         if abs(self.dE_mean) > 300:
             self.ind = 'error'
         self.add_table_row(
@@ -739,7 +739,11 @@ class UICalculator(QWidget):
     def load_corr2d(self):
         self.tt = np.load(self.pathname)
         self.orig_image = self.tt['corr2d']
-        self.np_doocs = self.tt['doocs_scale']
+        self.doocs_scale = self.tt['doocs_scale']
+        if len(self.doocs_scale) != len(self.orig_image):
+            self.np_doocs = self.doocs_scale[:-1]
+        else:
+            self.np_doocs = self.doocs_scale
         self.np_phen = self.tt['phen_scale']
         self.doocs_label = self.tt['doocs_channel']
         self.info_mono_no()
