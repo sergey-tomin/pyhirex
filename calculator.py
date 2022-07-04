@@ -411,13 +411,13 @@ class UICalculator(QWidget):
         if self.mono_no == 2:
             self.DTHP = -0.392
             self.dthy = 1.17
-            self.DTHR = 0.1675
-            self.alpha = 0.00338
+            self.DTHR = -0.1675
+            self.alpha = 0.00238
         else:
             self.DTHP = -0.392
             self.dthy = 1.17
-            self.DTHR = 0.1675
-            self.alpha = 0.00338
+            self.DTHR = -0.1675
+            self.alpha = 0.00238
         self.pa_range = np.linspace(self.min_pangle-1, self.max_pangle+1, 100)
         self.pa_range_plot = np.linspace(
             self.min_pangle-1, self.max_pangle+1, 100)
@@ -538,11 +538,15 @@ class UICalculator(QWidget):
     def hkl_roll_separator(self):
         for gid_item, roll, cent_x in zip(self.df_detected['gid'], self.df_detected['roll_angle'], self.df_detected['centroid_pa']):
             num = [int(s) for s in re.findall(r'-?\d+', str(gid_item))]
-            self.h_list.append(num[0])
-            self.k_list.append(num[1])
-            self.l_list.append(num[2])
-            self.roll_list.append(roll)
-            self.centroid_list.append(cent_x-self.DTHP)
+            if not(abs(num[0])+abs(num[1])+abs(num[2])==5) and not(abs(num[0])+abs(num[1])+abs(num[2])==13):
+                self.h_list.append(num[0])
+                self.k_list.append(num[1])
+                self.l_list.append(num[2])
+                self.roll_list.append(roll)
+                self.centroid_list.append(cent_x-self.DTHP)
+            else:
+                self.ui.output.setText(self.ui.output.text(
+                            ) + 'Skipped reflection ' + str(num) + '.\n')
 
     def offset_calc_and_plot(self):
         self.roll_list_fun = [self.set_roll_angle]
