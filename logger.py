@@ -402,7 +402,6 @@ class UILogger(QWidget):
 
         pen3 = pg.mkPen('#0000ff', width=2)
         self.peak_ev_pos =  pg.PlotCurveItem(pen=pen3, name='peak_pos')
-
         
         pen4 = pg.mkPen('#800080', width=2)
         self.XGM =  pg.PlotCurveItem(pen=pen4, name='XGM')
