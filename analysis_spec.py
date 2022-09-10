@@ -11,6 +11,13 @@ from opt_lib import *
 
 # from opt_lib import SpectrumArray
 
+#fixing pyqtgraph poor coding practice
+step_arg = True
+#pyqtgraph_v = pg.__version__.split('.')
+#if int(pyqtgraph_v[0]) == 0 and int(pyqtgraph_v[1]) < 11:
+#    step_arg = True
+#else:
+#    step_arg = 'center'
 
 def find_nearest_idx(array, value):
     idx = np.abs(array - value).argmin()
@@ -230,7 +237,7 @@ class AnalysisInterface:
         self.img_spectrum = win.addPlot()
         self.img_spectrum.addLegend()
         self.img_spectrum.setLabel('left', 'intensity', units=self.spec_axis_label)
-        self.img_spectrum.setLabel('bottom', 'E_ph', units='eV')
+        self.img_spectrum.setLabel('bottom', '<math>E<sub>ph</sub></math>', units='eV')
         
         pen_avg=pg.mkPen(color=(200, 0, 0), width=3)
         pen_single=pg.mkPen(color=(100, 100, 100), width=2)
@@ -360,14 +367,14 @@ class AnalysisInterface:
         layout.addWidget(win)
 
         self.histogram_full = win.addPlot(row=1, col=0)
-        self.histogram_full.setLabel('bottom', 'W/Wmean')
+        self.histogram_full.setLabel('bottom', '<math>W/W<sub>mean</sub></math>')
         self.histogram_full.setLabel('left', 'full events', units='')
         self.histogram_full.clear()
         
         self.label_hist_full = pg.LabelItem(justify='right')
         win.addItem(self.label_hist_full, row=0, col=0)
         
-        self.histogram_full_curve = self.histogram_full.plot(stepMode=True,  fillLevel=0,  brush=(100,100,100,100))
+        self.histogram_full_curve = self.histogram_full.plot([0,0], [0], stepMode=step_arg,  fillLevel=0,  brush=(100,100,100,100))
         
         self.histogram_full_fit_curve = self.histogram_full.plot(pen=pg.mkPen(color=(200, 0, 0), width=3))
         
@@ -412,7 +419,7 @@ class AnalysisInterface:
             #print('gama_dist_full=',gama_dist)
             self.histogram_full_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
-            self.label_hist_full.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
+            self.label_hist_full.setText("<span style='font-size: 10pt', style='color: green'><math>M<sub>calc</sub></math>: %0.2f   <span style='color: red'><math>M<sub>fit</sub></math>: %0.2f</span>"%(M_calc, M_fit))
             
 
     def add_hist_peak_widget(self):
@@ -423,14 +430,14 @@ class AnalysisInterface:
         layout.addWidget(win)
 
         self.histogram_peak = win.addPlot(row=1, col=0)
-        self.histogram_peak.setLabel('bottom', 'W/Wmean')
+        self.histogram_peak.setLabel('bottom', '<math>W/W<sub>mean</sub></math>')
         self.histogram_peak.setLabel('left', 'window events', units='')
         self.histogram_peak.clear()
         
         self.label_hist_peak = pg.LabelItem(justify='right')
         win.addItem(self.label_hist_peak, row=0, col=0)
         
-        self.histogram_peak_curve = self.histogram_peak.plot(stepMode=True,  fillLevel=0,  brush=(100,100,100,100))
+        self.histogram_peak_curve = self.histogram_peak.plot([0,0], [0], stepMode=step_arg,  fillLevel=0,  brush=(100,100,100,100))
         
         self.histogram_peak_fit_curve = self.histogram_peak.plot(pen=pg.mkPen(color=(200, 0, 0), width=3))
         
@@ -487,7 +494,7 @@ class AnalysisInterface:
             self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
             #self.histogram_peak.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
-            self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: green'>M_calc: %0.2f  <span style='color: red'>M_fit: %0.2f</span>"%(M_calc, M_fit))
+            self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: green'><math>M<sub>calc</sub></math>: %0.2f   <span style='color: red'><math>M<sub>fit</sub></math>: %0.2f</span>"%(M_calc, M_fit))
 
     def add_durr_widget(self):
         win = pg.GraphicsLayoutWidget()
@@ -498,14 +505,15 @@ class AnalysisInterface:
         self.fit_pulse_dur = win.addPlot()
         legend = self.fit_pulse_dur.addLegend()
         # legend.setBrush((0,0,0,0))
-        self.fit_pulse_dur.setLabel('bottom', 'E_ph', units='eV')
+        self.fit_pulse_dur.setLabel('bottom', '<math>E<sub>ph</sub></math>', units='eV')
         self.fit_pulse_dur.setLabel('left', 'group duration', units='s')
-        self.durr_curve = self.fit_pulse_dur.plot(symbolBrush=(200,0,0,50), pen = (200,0,0,50), name='fit')
-        self.durr_comp_curve = self.fit_pulse_dur.plot(symbolBrush='b', name='corrected fit')
+        self.durr_comp_curve = self.fit_pulse_dur.plot(symbolBrush='r', name='fit')
+        self.durr_curve = self.fit_pulse_dur.plot(symbolSize = 3, symbolBrush=(50,0,0,50), pen = (50,0,0,0), name='uncorrected fit')
         self.durr0_curve = self.fit_pulse_dur.plot(pen='w')
         self.fit_pulse_dur.setXLink(self.img_spectrum)
         
         self.g2_phen_curve = self.fit_pulse_dur.plot(pen='g')
+        
         # self.fit_pulse_dur.setYRange(0,2)
         
     def update_durr_plot(self):
@@ -517,7 +525,7 @@ class AnalysisInterface:
         self.durr_curve.setData(self.g2fit.omega[idx] * hr_eV_s, self.g2fit.fit_t[idx])
         self.durr_comp_curve.setData(self.g2fit.omega[idx] * hr_eV_s, self.g2fit.fit_t_comp[idx])
         self.durr0_curve.setData(self.g2fit.omega[idx] * hr_eV_s, np.zeros_like(self.g2fit.fit_t_comp[idx]))
-        
+
         try:
             if len(self.g2fit.fit_t_comp)>0:
                 maxdur = np.nanmax(self.g2fit.fit_t_comp[idx])
@@ -546,14 +554,16 @@ class AnalysisInterface:
         # label = pg.LabelItem(justify='left', row=0, col=0)
         # win.addItem(label)
         self.fit_g2_plot.clear()
-        self.fit_g2_plot.setLabel('bottom', 'dE_ph', units='eV')
-        self.fit_g2_plot.setLabel('left', 'g2')
+        self.fit_g2_plot.setLabel('bottom', '<math>dE<sub>ph</sub></math>', units='eV')
+        self.fit_g2_plot.setLabel('left', 'g<sub>2</sub>')
         self.g2_measured_curve = self.fit_g2_plot.plot(symbolBrush='b', name='data')
         self.g2_fit_curve = self.fit_g2_plot.plot(pen='r', name='fit')
         # self.fit_g2_plot.setXLink(self.img_spectrum)
         self.fit_g2_plot.setYRange(0.5,2.5)
         self.g2_1_curve = self.fit_g2_plot.plot(pen=(200,200,200,150), style=QtCore.Qt.DashLine)
         self.g2_2_curve = self.fit_g2_plot.plot(pen=(200,200,200,150), style=QtCore.Qt.DashLine)
+        self.label_durr_widget = pg.LabelItem(justify='right')
+        win.addItem(self.label_durr_widget, row=0, col=0)
         
     def update_g2_line_plot(self):
         if len(self.g2fit.fit_t) == 0 or self.n_last_correlated == 0:
@@ -564,6 +574,7 @@ class AnalysisInterface:
         self.g2_fit_curve.setData(self.g2fit.domega * hr_eV_s, self.g2fit.g2_fit[self.g2_plot_idx])
         self.g2_1_curve.setData(self.g2fit.domega * hr_eV_s, np.ones_like(self.g2fit.domega))
         self.g2_2_curve.setData(self.g2fit.domega * hr_eV_s, np.ones_like(self.g2fit.domega)*2)
+        self.label_durr_widget.setText("<span style='font-size: 10pt', style='color: black'> <math>&lt;E<sub>ph</sub>&gt;</math> = %0.2f eV</span>"%(self.g2fit.omega[self.g2_plot_idx] * hr_eV_s))
         
     def correlate_and_plot(self):
         if self.spar_screwed.events > 2:
