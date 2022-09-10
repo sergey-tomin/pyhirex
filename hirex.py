@@ -50,71 +50,6 @@ DIR_NAME = "hirex"
 PY_SPECTROMETER_DIR = "pySpectrometer"
 
 
-# def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
-    # """calculates the full width at half maximum (fwhm) of the array.
-    # the function will return the fwhm with sub-pixel interpolation.
-    # It will start at the maximum position and 'walk' left and right until it approaches the half values.
-    # if total==1, it will start at the edges and 'walk' towards peak until it approaches the half values.
-    # INPUT:
-    # - valuelist: e.g. the list containing the temporal shape of a pulse
-    # OPTIONAL INPUT:
-    # -peakpos: position of the peak to examine (list index)
-    # the global maximum will be used if omitted.
-    # if total = 1 -
-    # OUTPUT:
-    # - peakpos(index), interpolated_width(npoints), [index_l, index_r]
-    # """
-    # if peakpos == -1:  # no peakpos given -> take maximum
-        # peak = np.max(valuelist)
-        # peakpos = np.min(np.nonzero(valuelist == peak))
-    # peakvalue = valuelist[peakpos]
-    # phalf = peakvalue * height
-    # if total == 0:
-        # # go left and right, starting from peakpos
-        # ind1 = peakpos
-        # ind2 = peakpos
-        # while ind1 > 2 and valuelist[ind1] > phalf:
-            # ind1 = ind1 - 1
-        # while ind2 < len(valuelist) - 1 and valuelist[ind2] > phalf:
-            # ind2 = ind2 + 1
-        # grad1 = valuelist[ind1 + 1] - valuelist[ind1]
-        # grad2 = valuelist[ind2] - valuelist[ind2 - 1]
-        # if grad1 == 0 or grad2 == 0:
-            # width = None
-        # else:
-            # # calculate the linear interpolations
-            # # print(ind1,ind2)
-            # p1interp = ind1 + (phalf - valuelist[ind1]) / grad1
-            # p2interp = ind2 + (phalf - valuelist[ind2]) / grad2
-            # # calculate the width
-            # width = p2interp - p1interp
-    # else:
-        # # go to center from edges
-        # ind1 = 1
-        # ind2 = valuelist.size-2
-        # # print(peakvalue,phalf)
-        # # print(ind1,ind2,valuelist[ind1],valuelist[ind2])
-        # while ind1 < peakpos and valuelist[ind1] < phalf:
-            # ind1 = ind1 + 1
-        # while ind2 > peakpos and valuelist[ind2] < phalf:
-            # ind2 = ind2 - 1
-        # # print(ind1,ind2)
-        # # ind1 and 2 are now just above phalf
-        # grad1 = valuelist[ind1] - valuelist[ind1 - 1]
-        # grad2 = valuelist[ind2 + 1] - valuelist[ind2]
-        # if grad1 == 0 or grad2 == 0:
-            # width = None
-        # else:
-            # # calculate the linear interpolations
-            # p1interp = ind1 + (phalf - valuelist[ind1]) / grad1
-            # p2interp = ind2 + (phalf - valuelist[ind2]) / grad2
-            # # calculate the width
-            # width = p2interp - p1interp
-        # # print(p1interp, p2interp)
-
-    # return (p1interp, p2interp)
-
-
 class Background(Thread):
     def __init__(self, mi, device, dev_name):
         super(Background, self).__init__()
@@ -642,10 +577,9 @@ class SpectrometerWindow(QMainWindow):
         self.data_2d[:, 0] = self.spectrum_event_disp# single_sig_wo_noise
 
         try:
-            peak_px, fwhm_px, _ = fwhm3(np.array(self.ave_spectrum))
-            #p1interp, p2interp = fwhm3(np.array(self.ave_spectrum))
-            #fwhm_px = p2interp - p1interp
-            #peak_px = (p2interp + p1interp)/2
+            p1interp, p2interp = fwhm3(np.array(self.ave_spectrum))
+            fwhm_px = p2interp - p1interp
+            peak_px = (p2interp + p1interp)/2
         except:
             fwhm_px = 0
             peak_px = 0
@@ -664,11 +598,12 @@ class SpectrometerWindow(QMainWindow):
             self.reset_spectrum()
             return
         self.pulse_energy = self.xgm.get_value()
-
+        
         #print('self.spectrum_event_disp.shape',self.spectrum_event_disp.shape)
         #print('self.x_axis_disp.shape',self.x_axis_disp.shape)
-        if self.spectrum_event_disp.shape != self.x_axis_disp.shape:
+        if len(self.spectrum_event_disp) != len(self.x_axis_disp) or len(self.ave_spectrum) != len(self.x_axis_disp):
             return
+        
             # if tab is not active plotting paused
         if self.ui.scan_tab.currentIndex() == 0:
             if self.ui.chb_uj_ev.isChecked():
