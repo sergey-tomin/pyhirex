@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Documents/pyhirex/gui/UISpectrometer.ui'
+# Form implementation generated from reading ui file 'D:\DESYcloud\_code\pyhirex\gui\UISpectrometer.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -998,20 +998,9 @@ class Ui_MainWindow(object):
         self.widget_corr_line.setMinimumSize(QtCore.QSize(100, 100))
         self.widget_corr_line.setObjectName("widget_corr_line")
         self.gridLayout_6.addWidget(self.widget_corr_line, 1, 2, 1, 1)
-        self.label_46 = QtWidgets.QLabel(self.tab_spectral_analysis)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_46.sizePolicy().hasHeightForWidth())
-        self.label_46.setSizePolicy(sizePolicy)
-        self.label_46.setMinimumSize(QtCore.QSize(100, 100))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setItalic(True)
-        self.label_46.setFont(font)
-        self.label_46.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_46.setObjectName("label_46")
-        self.gridLayout_6.addWidget(self.label_46, 0, 2, 1, 1)
+        self.widget_rosa = QtWidgets.QWidget(self.tab_spectral_analysis)
+        self.widget_rosa.setObjectName("widget_rosa")
+        self.gridLayout_6.addWidget(self.widget_rosa, 0, 2, 1, 1)
         self.gridLayout_22.addLayout(self.gridLayout_6, 0, 0, 1, 1)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
@@ -1363,7 +1352,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.scan_tab)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1440, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1440, 18))
         self.menubar.setObjectName("menubar")
         self.menuExpert = QtWidgets.QMenu(self.menubar)
         self.menuExpert.setObjectName("menuExpert")
@@ -1488,7 +1477,6 @@ class Ui_MainWindow(object):
         self.label_11.setText(_translate("MainWindow", " sec "))
         self.label_24.setText(_translate("MainWindow", "Timeout"))
         self.scan_tab.setTabText(self.scan_tab.indexOf(self.tab_3), _translate("MainWindow", "Scan"))
-        self.label_46.setText(_translate("MainWindow", "vacant"))
         self.pb_logbook_specanalysis.setText(_translate("MainWindow", "Logbook with data"))
         self.label_30.setText(_translate("MainWindow", "Process last"))
         self.label_33.setText(_translate("MainWindow", "events"))

@@ -65,6 +65,7 @@ class AnalysisInterface:
         self.add_hist_peak_widget()
         self.add_durr_widget()
         self.add_g2_line_widget()
+        self.add_rosa_widget()
         
         self.reset_spectra()
         self.ui.analysis_resetbutton.clicked.connect(self.clear_all_curves)
@@ -331,7 +332,12 @@ class AnalysisInterface:
         
         # try: 
         self.corrn = spar.correlate_center(dE=dE, norm=1)
+        self.corr = spar.correlate_center(dE=dE, norm=0)
         self.corrn.bin_phen(dE=dE)
+        self.corr.bin_phen(dE=dE)
+        
+        self.reconstr = self.corr.fft()
+        
         if len(self.corrn.dphen) < 4:
             print('too little points for fit')
             self.n_last_correlated = 0
@@ -576,12 +582,58 @@ class AnalysisInterface:
         self.g2_2_curve.setData(self.g2fit.domega * hr_eV_s, np.ones_like(self.g2fit.domega)*2)
         self.label_durr_widget.setText("<span style='font-size: 10pt', style='color: black'> <math>&lt;E<sub>ph</sub>&gt;</math> = %0.2f eV</span>"%(self.g2fit.omega[self.g2_plot_idx] * hr_eV_s))
         
+    def add_rosa_widget(self):
+        win = pg.GraphicsLayoutWidget()
+        layout = QtGui.QGridLayout()
+        self.ui.widget_rosa.setLayout(layout)
+        layout.addWidget(win)
+        
+        self.rosa_plot = win.addPlot()
+        self.add_rosaimage_item()
+        
+    def add_rosaimage_item(self):
+        self.rosa_plot.clear()
+        self.rosa_plot.setLabel('left', "E_ph", units='eV')
+        self.rosa_plot.setLabel('bottom', "dt", units='s')
+        self.img_rosa = pg.ImageItem()
+
+        self.rosa_plot.addItem(self.img_rosa)
+
+        colormap = cm.get_cmap('gist_earth_r') #"nipy_spectral")  # cm.get_cmap("CMRmap")
+        colormap._init()
+        lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
+
+        # Apply the colormap
+        self.img_rosa.setLookupTable(lut)
+        
+    def update_rosa_plot(self):
+    
+        m_idx = self.reconstr.m_idx
+        xaxis = self.reconstr.time_scale()[m_idx:]
+        xydata = self.reconstr.recon.T[m_idx:,:]
+        yaxis = self.reconstr.omega_bin * hr_eV_s
+        
+        # nx = 100
+        # ny = 300
+        # xaxis = np.linspace(0,10,nx)
+        # yaxis = np.linspace(1000,1010,ny)
+        # xydata = np.random.randn(nx,ny)
+        scale_coef_xaxis = (xaxis.max() - xaxis.min())/len(xaxis)
+        scale_coef_yaxis = (yaxis.max() - yaxis.min())/len(yaxis)
+        
+        self.add_rosaimage_item()
+        self.img_rosa.setImage(xydata)
+        self.img_rosa.scale(scale_coef_xaxis, scale_coef_yaxis)
+        self.img_rosa.translate(xaxis[0]/scale_coef_xaxis, yaxis[0]/scale_coef_yaxis)
+        
+        
     def correlate_and_plot(self):
         if self.spar_screwed.events > 2:
             
             self.correlate()
             self.update_durr_plot()
             self.update_g2_line_plot()
+            self.update_rosa_plot()
         else:
             print('not enough events for correlation')
         
