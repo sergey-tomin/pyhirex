@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1440</width>
-    <height>876</height>
+    <width>968</width>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,6 +62,11 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>13</pointsize>
+           </font>
+          </property>
           <property name="title">
            <string>Calibration</string>
           </property>
@@ -95,20 +100,35 @@
              </item>
              <item row="0" column="2">
               <widget class="QLabel" name="label_4">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>Central pixel [Px1]</string>
+                <string>px_central</string>
                </property>
               </widget>
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_3">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>Central Energy [eV]</string>
+                <string>E_centr [eV]</string>
                </property>
               </widget>
              </item>
              <item row="0" column="3">
               <widget class="QDoubleSpinBox" name="sb_px1">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="locale">
                 <locale language="English" country="UnitedStates"/>
                </property>
@@ -125,8 +145,13 @@
              </item>
              <item row="0" column="0">
               <widget class="QLabel" name="label_2">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>ev/px</string>
+                <string>disp [eV/px]</string>
                </property>
               </widget>
              </item>
@@ -145,6 +170,11 @@
              </item>
              <item row="1" column="3">
               <widget class="QPushButton" name="pb_estim_px1">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Estimate Px1</string>
                </property>
@@ -152,64 +182,13 @@
              </item>
              <item row="1" column="2">
               <widget class="QCheckBox" name="chb_show_fit">
-               <property name="text">
-                <string>Show Fit Func</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="3" column="5">
-         <widget class="QGroupBox" name="groupBox_5">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>290</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Control</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_12">
-           <property name="leftMargin">
-            <number>7</number>
-           </property>
-           <property name="topMargin">
-            <number>7</number>
-           </property>
-           <property name="rightMargin">
-            <number>7</number>
-           </property>
-           <property name="bottomMargin">
-            <number>7</number>
-           </property>
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_11">
-             <item row="0" column="0" colspan="2">
-              <widget class="QPushButton" name="pb_start">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgb(255, 0, 0); font-size: 18pt;</string>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
                </property>
                <property name="text">
-                <string>Start</string>
-               </property>
-               <property name="shortcut">
-                <string>Space</string>
+                <string>Show Fit</string>
                </property>
               </widget>
              </item>
@@ -252,8 +231,13 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>Take Background</string>
+                <string>Take Bkg</string>
                </property>
               </widget>
              </item>
@@ -265,20 +249,35 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>subtract background</string>
+                <string>subtract</string>
                </property>
               </widget>
              </item>
              <item row="1" column="1">
               <widget class="QPushButton" name="pb_hide_show_backplot">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>Show Background</string>
+                <string>Show Bkg</string>
                </property>
               </widget>
              </item>
              <item row="1" column="2">
               <widget class="QPushButton" name="pb_hide_average">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Hide Average</string>
                </property>
@@ -296,6 +295,11 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>13</pointsize>
+           </font>
           </property>
           <property name="title">
            <string>DOOCS channels</string>
@@ -317,6 +321,11 @@
             <layout class="QGridLayout" name="gridLayout">
              <item row="0" column="7" colspan="2">
               <widget class="QDoubleSpinBox" name="sb_bnumber">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="locale">
                 <locale language="English" country="UnitedStates"/>
                </property>
@@ -332,10 +341,21 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QComboBox" name="combo_hirex"/>
+              <widget class="QComboBox" name="combo_hirex">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+              </widget>
              </item>
              <item row="1" column="7" colspan="2">
               <widget class="QDoubleSpinBox" name="sb_transmission">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="locale">
                 <locale language="English" country="UnitedStates"/>
                </property>
@@ -362,6 +382,11 @@
                <property name="enabled">
                 <bool>true</bool>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Transmission override</string>
                </property>
@@ -372,6 +397,11 @@
              </item>
              <item row="0" column="3">
               <widget class="QLabel" name="label_39">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Bunch Number</string>
                </property>
@@ -380,274 +410,6 @@
             </layout>
            </item>
           </layout>
-         </widget>
-        </item>
-        <item row="2" column="5">
-         <widget class="QGroupBox" name="groupBox_6">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>290</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Misc</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_14">
-           <property name="leftMargin">
-            <number>7</number>
-           </property>
-           <property name="topMargin">
-            <number>7</number>
-           </property>
-           <property name="rightMargin">
-            <number>7</number>
-           </property>
-           <property name="bottomMargin">
-            <number>7</number>
-           </property>
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_13">
-             <item row="2" column="0">
-              <widget class="QPushButton" name="pb_logger">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Open Logger</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QCheckBox" name="cb_doocs_send_data">
-               <property name="text">
-                <string>DOOCS: Send Data</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0" colspan="2">
-              <widget class="QPushButton" name="pb_logbook">
-               <property name="palette">
-                <palette>
-                 <active>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>0</red>
-                     <green>0</green>
-                     <blue>255</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </active>
-                 <inactive>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>0</red>
-                     <green>0</green>
-                     <blue>255</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </inactive>
-                 <disabled>
-                  <colorrole role="ButtonText">
-                   <brush brushstyle="SolidPattern">
-                    <color alpha="255">
-                     <red>120</red>
-                     <green>120</green>
-                     <blue>120</blue>
-                    </color>
-                   </brush>
-                  </colorrole>
-                 </disabled>
-                </palette>
-               </property>
-               <property name="text">
-                <string>Logbook with data</string>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+P</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="2" column="1" colspan="3">
-         <widget class="QGroupBox" name="groupBox_4">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Display control</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_9">
-           <property name="leftMargin">
-            <number>7</number>
-           </property>
-           <property name="topMargin">
-            <number>7</number>
-           </property>
-           <property name="rightMargin">
-            <number>7</number>
-           </property>
-           <property name="bottomMargin">
-            <number>7</number>
-           </property>
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_8">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_48">
-               <property name="text">
-                <string>Px last</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="sb_px_last">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="minimum">
-                <number>-2000</number>
-               </property>
-               <property name="maximum">
-                <number>0</number>
-               </property>
-               <property name="singleStep">
-                <number>10</number>
-               </property>
-               <property name="value">
-                <number>0</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="3">
-              <widget class="QPushButton" name="pb_cross_calib">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Cross-calibration with XGM</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="4">
-              <widget class="QCheckBox" name="chb_uj_ev">
-               <property name="text">
-                <string>uJ/eV scale</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_47">
-               <property name="text">
-                <string>Px first</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QSpinBox" name="sb_px_first">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="maximum">
-                <number>2000</number>
-               </property>
-               <property name="singleStep">
-                <number>10</number>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="4">
-              <widget class="QDoubleSpinBox" name="sb_av_nbunch">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="decimals">
-                <number>0</number>
-               </property>
-               <property name="minimum">
-                <double>1.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10000.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>100.000000000000000</double>
-               </property>
-               <property name="value">
-                <double>100.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Avarage over N bunches</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="3" rowspan="2" colspan="3">
-         <widget class="QWidget" name="widget_2" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>400</width>
-            <height>16777215</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="QWidget" name="widget" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>100</height>
-           </size>
-          </property>
          </widget>
         </item>
         <item row="3" column="1">
@@ -666,6 +428,11 @@
             <layout class="QGridLayout" name="gridLayout_23">
              <item row="1" column="2" alignment="Qt::AlignRight">
               <widget class="QLabel" name="label_45">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>(</string>
                </property>
@@ -710,6 +477,11 @@
                  </disabled>
                 </palette>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>[%]</string>
                </property>
@@ -717,6 +489,11 @@
              </item>
              <item row="1" column="1" alignment="Qt::AlignLeft">
               <widget class="QLabel" name="label_sigma">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>0</string>
                </property>
@@ -724,6 +501,11 @@
              </item>
              <item row="1" column="3" alignment="Qt::AlignRight">
               <widget class="QLabel" name="rel_width">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>0</string>
                </property>
@@ -768,15 +550,13 @@
                  </disabled>
                 </palette>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>PEAK avr [eV]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1" alignment="Qt::AlignLeft">
-              <widget class="QLabel" name="label_peak_ev">
-               <property name="text">
-                <string>0</string>
                </property>
               </widget>
              </item>
@@ -819,6 +599,11 @@
                  </disabled>
                 </palette>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>FWHM avr [eV]</string>
                </property>
@@ -826,8 +611,397 @@
              </item>
              <item row="1" column="5" alignment="Qt::AlignLeft">
               <widget class="QLabel" name="label_50">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="label_peak_ev">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="2" column="4">
+         <widget class="QGroupBox" name="groupBox_6">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Misc</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_14">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_13">
+             <item row="2" column="0">
+              <widget class="QPushButton" name="pb_logger">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Open Logger</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QCheckBox" name="cb_doocs_send_data">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>data-&gt;DOOCS</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QPushButton" name="pb_logbook">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>255</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>0</red>
+                     <green>0</green>
+                     <blue>255</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Logbook with data</string>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+P</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="4">
+         <widget class="QGroupBox" name="groupBox_5">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>Control</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_12">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_11">
+             <item row="0" column="0">
+              <widget class="QPushButton" name="pb_start">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color: rgb(255, 0, 0); font-size: 18pt;</string>
+               </property>
+               <property name="text">
+                <string>Start</string>
+               </property>
+               <property name="shortcut">
+                <string>Space</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="4" rowspan="2">
+         <widget class="QWidget" name="widget_2" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>400</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="3">
+         <widget class="QWidget" name="widget" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>100</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="2">
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Display control</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_8">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_48">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Px last</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="sb_px_last">
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="minimum">
+                <number>-2000</number>
+               </property>
+               <property name="maximum">
+                <number>0</number>
+               </property>
+               <property name="singleStep">
+                <number>10</number>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QPushButton" name="pb_cross_calib">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string comment="Cross-calibrate Cpectrum integral value to match XGM readour"/>
+               </property>
+               <property name="text">
+                <string>xCalibr &lt;- XGM</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QCheckBox" name="chb_uj_ev">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>uJ/eV scale</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_47">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Px first</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="sb_px_first">
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="maximum">
+                <number>2000</number>
+               </property>
+               <property name="singleStep">
+                <number>10</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="4">
+              <widget class="QDoubleSpinBox" name="sb_av_nbunch">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="decimals">
+                <number>0</number>
+               </property>
+               <property name="minimum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>10000.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>100.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>100.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QLabel" name="label">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Aver. Nbunches</string>
                </property>
               </widget>
              </item>
@@ -1129,6 +1303,11 @@
              </property>
              <item>
               <widget class="QLabel" name="label_6">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>DOOCS address</string>
                </property>
@@ -1138,7 +1317,7 @@
               <widget class="QLineEdit" name="le_doocs_ch_cor2d">
                <property name="font">
                 <font>
-                 <pointsize>15</pointsize>
+                 <pointsize>11</pointsize>
                 </font>
                </property>
                <property name="text">
@@ -1160,7 +1339,7 @@
               <widget class="QSpinBox" name="sb_n_shots_max">
                <property name="font">
                 <font>
-                 <pointsize>15</pointsize>
+                 <pointsize>11</pointsize>
                 </font>
                </property>
                <property name="minimum">
@@ -1327,6 +1506,11 @@
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
               <widget class="QLabel" name="label_28">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Spectrometer lag (events)</string>
                </property>
@@ -1388,7 +1572,7 @@
                </property>
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>11</pointsize>
                  <italic>false</italic>
                 </font>
                </property>
@@ -1407,7 +1591,7 @@
                </property>
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>11</pointsize>
                 </font>
                </property>
                <property name="text">
@@ -3006,6 +3190,9 @@
             <property name="singleStep">
              <number>9</number>
             </property>
+            <property name="value">
+             <number>18</number>
+            </property>
            </widget>
           </item>
           <item>
@@ -3048,7 +3235,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1440</width>
+     <width>968</width>
      <height>18</height>
     </rect>
    </property>
