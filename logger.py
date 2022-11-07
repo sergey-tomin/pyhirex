@@ -306,9 +306,9 @@ class UILogger(QWidget):
 
         # win = pg.GraphicsLayoutWidget() # justify='right',,
         win = pg.GraphicsView()
-        win.setWindowTitle('pyqtgraph example: multiple y-axis')
+        win.setWindowTitle('logger')
         win.show()
-
+        
         # self.label = pg.LabelItem(justify='left', row=0, col=0)
         # win.addItem(self.label)
 

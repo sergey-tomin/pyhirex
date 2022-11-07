@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>968</width>
-    <height>689</height>
+    <width>1247</width>
+    <height>791</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2338,7 +2338,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QWidget" name="widget_histogram_full" native="true">
+           <widget class="QWidget" name="widget_spec_history" native="true">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
               <horstretch>0</horstretch>
@@ -2454,7 +2454,7 @@
            <widget class="QSpinBox" name="analyze_last">
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>30</width>
               <height>0</height>
              </size>
             </property>
@@ -2465,7 +2465,7 @@
              </size>
             </property>
             <property name="maximum">
-             <number>100000</number>
+             <number>10000</number>
             </property>
             <property name="singleStep">
              <number>100</number>
@@ -2511,6 +2511,12 @@
             </property>
             <property name="shortcut">
              <string>Space</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -3039,8 +3045,8 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
-              <italic>false</italic>
+              <pointsize>6</pointsize>
+              <italic>true</italic>
              </font>
             </property>
             <property name="text">
@@ -3137,6 +3143,9 @@
             <property name="decimals">
              <number>1</number>
             </property>
+            <property name="singleStep">
+             <double>0.500000000000000</double>
+            </property>
             <property name="value">
              <double>2.000000000000000</double>
             </property>
@@ -3188,10 +3197,10 @@
              <number>100000</number>
             </property>
             <property name="singleStep">
-             <number>9</number>
+             <number>1</number>
             </property>
             <property name="value">
-             <number>18</number>
+             <number>3</number>
             </property>
            </widget>
           </item>
@@ -3235,8 +3244,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>968</width>
-     <height>18</height>
+     <width>1247</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">
