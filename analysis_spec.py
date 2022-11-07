@@ -759,27 +759,25 @@ class AnalysisInterface:
 
         self.spechist_plot.addItem(self.img_spechist)
 
-        mapp = pg.colormaps.Viridis()   # for example
-        self.img_spechist.setLookupTable(mapp.getLookupTable())
-
-        # colormap = cm.get_cmap('gist_yarg') #"nipy_spectral")  # cm.get_cmap("CMRmap")
-        # # pg.colormap
-        # colormap._init()
-        # # lut = int(colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
+        colormap = cm.get_cmap('gist_yarg') #"nipy_spectral")  # cm.get_cmap("CMRmap")
+        # pg.colormap
+        colormap._init()
+        
+        # lut = int(colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
         # print(colormap._lut)
         # print('multiplied:')
-        # print((colormap._lut*254).astype(np.int))
-        # lut = (colormap._lut * 254).astype(np.int)#.view(np.int32)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
-        # # lut = np.uint8(colormap._lut * 255)
+        # print((colormap._lut*255).astype(np.int))
+        lut = (colormap._lut * 255).astype(np.int)#.view(np.int32)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
+        # lut = np.uint8(colormap._lut * 255)
 
-        # # Apply the colormap
-        # self.img_spechist.setLookupTable(lut)
-        # # self.img_spechist.setLookupTable(colormap.getLookupTable())
-        # # self.img_spechist.setLevels([0,10])
+        # Apply the colormap
+        self.img_spechist.setLookupTable(lut)
+        # self.img_spechist.setLookupTable(colormap.getLookupTable())
+        # self.img_spechist.setLevels([0,10])
         
-        # # self.img_spechist.setColormap(colormap)
-        # # cmap = pg.colormap.get('CET-L9')
-        # # self.img_spechist.setLookupTable(cmap.getLookupTable())
+        # self.img_spechist.setColormap(colormap)
+        # cmap = pg.colormap.get('CET-L9')
+        # self.img_spechist.setLookupTable(cmap.getLookupTable())
         
     def update_spechist_plot(self):
         self.spechist_plot.setYRange(0,self.ui.analyze_last.value())
