@@ -115,7 +115,7 @@ class MainWindow(Ui_MainWindow):
         self.le_doocs_ch_hist.editingFinished.connect(lambda: self.is_le_addr_ok(self.le_doocs_ch_hist))
         #self.le_b.editingFinished.connect(self.check_address)
         self.pb_logbook.clicked.connect(lambda: self.log_waterflow(self.Form, save_data=1))
-        self.pb_logbook_only.clicked.connect(lambda: self.log_waterflow(self.Form, save_data=0))
+        # self.pb_logbook_only.clicked.connect(lambda: self.log_waterflow(self.Form, save_data=0))
         self.actionSend_to_logbook.triggered.connect(lambda: self.log_waterflow(self.Form, save_data=1))
         
         self.pb_logbook_cor2d.clicked.connect(lambda: self.log_cor2d(self.Form))

@@ -633,9 +633,17 @@ class SpectrometerWindow(QMainWindow):
             #pass
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
         if self.counter_spect % 10 == 1:
+            if np.abs(self.ave_integ-self.pulse_energy)/self.pulse_energy > 0.2:
+                integral_text_color='red'
+            elif np.abs(self.ave_integ-self.pulse_energy)/self.pulse_energy > 0.05:
+                integral_text_color='orange'
+            else:
+                integral_text_color='green'
+            
             self.label2.setText(
-            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
-            self.pulse_energy, self.ave_integ, self.peak_ev))
+            # "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
+            "<span style='font-size: 15pt', style='color: blue'>XGM: %0.2f &mu;J   <span style='color: %s'>SPEC.INTEGRAL: %0.2f &mu;J"%(
+            self.pulse_energy, integral_text_color, self.ave_integ))
             # try:
             # print('self.x_axis_disp = {}'.format(self.x_axis_disp))
 
@@ -887,10 +895,9 @@ class SpectrometerWindow(QMainWindow):
             # index = int(mousePoint.x())
             array = np.asarray(self.x_axis)
             index = (np.abs(array - mousePoint.x())).argmin()
-            #print(mousePoint.x(), index, len(self.x_axis))
             if index > 0 and index < len(self.x_axis):
                 self.label.setText(
-                    "<span style='font-size: 16pt', style='color: green'>x=%0.1f,   <span style='color: red'>y=%0.1f</span>" % (
+                    "<span style='font-size: 10pt', style='color: green'>x=%0.1f,   <span style='color: red'>y=%0.1f</span>" % (
                     mousePoint.x(), mousePoint.y()))
             self.vLine.setPos(mousePoint.x())
             self.hLine.setPos(mousePoint.y())

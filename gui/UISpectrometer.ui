@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1308</width>
-    <height>791</height>
+    <height>786</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
        <locale language="English" country="UnitedStates"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -85,19 +85,6 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_3">
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="sb_E0">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="maximum">
-                <double>24000.000000000000000</double>
-               </property>
-               <property name="value">
-                <double>9000.000000000000000</double>
-               </property>
-              </widget>
-             </item>
              <item row="0" column="2">
               <widget class="QLabel" name="label_4">
                <property name="font">
@@ -107,18 +94,6 @@
                </property>
                <property name="text">
                 <string>px_central</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_3">
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>E_centr [eV]</string>
                </property>
               </widget>
              </item>
@@ -143,28 +118,15 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_2">
+             <item row="1" column="2">
+              <widget class="QCheckBox" name="chb_show_fit">
                <property name="font">
                 <font>
                  <pointsize>13</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>disp [eV/px]</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="sb_ev_px">
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.500000000000000</double>
+                <string>Show Fit</string>
                </property>
               </widget>
              </item>
@@ -180,15 +142,59 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="2">
-              <widget class="QCheckBox" name="chb_show_fit">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_3">
                <property name="font">
                 <font>
                  <pointsize>13</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>Show Fit</string>
+                <string>E_central [eV]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="sb_E0">
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="maximum">
+                <double>24000.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>9000.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="sb_ev_px">
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.500000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string comment="dispersion of the spectrometer in Ev per pixel" extracomment="dispersion of the spectrometer in Ev per pixel"/>
+               </property>
+               <property name="toolTipDuration">
+                <number>-1</number>
+               </property>
+               <property name="text">
+                <string>dispers [eV/px]</string>
                </property>
               </widget>
              </item>
@@ -349,27 +355,6 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="7" colspan="2">
-              <widget class="QDoubleSpinBox" name="sb_transmission">
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                </font>
-               </property>
-               <property name="locale">
-                <locale language="English" country="UnitedStates"/>
-               </property>
-               <property name="decimals">
-                <number>7</number>
-               </property>
-               <property name="maximum">
-                <double>1.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.001000000000000</double>
-               </property>
-              </widget>
-             </item>
              <item row="0" column="2">
               <widget class="Line" name="line_11">
                <property name="orientation">
@@ -404,6 +389,27 @@
                </property>
                <property name="text">
                 <string>Bunch Number</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="7" colspan="2">
+              <widget class="QDoubleSpinBox" name="sb_transmission">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="decimals">
+                <number>7</number>
+               </property>
+               <property name="maximum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.001000000000000</double>
                </property>
               </widget>
              </item>
@@ -755,7 +761,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Logbook</string>
+                <string>Logbook with data</string>
                </property>
               </widget>
              </item>
@@ -892,7 +898,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Px last</string>
+                <string>cut right [px]</string>
                </property>
               </widget>
              </item>
@@ -956,7 +962,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Px first</string>
+                <string>cut left [px]</string>
                </property>
               </widget>
              </item>
@@ -1353,13 +1359,16 @@
                 <number>1</number>
                </property>
                <property name="maximum">
-                <number>10000000</number>
+                <number>1000000</number>
                </property>
                <property name="singleStep">
                 <number>1000</number>
                </property>
                <property name="value">
                 <number>100000</number>
+               </property>
+               <property name="displayIntegerBase">
+                <number>10</number>
                </property>
               </widget>
              </item>
@@ -1390,6 +1399,43 @@
              </item>
              <item>
               <widget class="QPushButton" name="sb_corr_2d_reset">
+               <property name="palette">
+                <palette>
+                 <active>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </active>
+                 <inactive>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </inactive>
+                 <disabled>
+                  <colorrole role="ButtonText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>120</red>
+                     <green>120</green>
+                     <blue>120</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                 </disabled>
+                </palette>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>13</pointsize>
@@ -1793,6 +1839,43 @@
            </item>
            <item>
             <widget class="QPushButton" name="pb_logbook_cor2d">
+             <property name="palette">
+              <palette>
+               <active>
+                <colorrole role="ButtonText">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>0</red>
+                   <green>0</green>
+                   <blue>255</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </active>
+               <inactive>
+                <colorrole role="ButtonText">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>0</red>
+                   <green>0</green>
+                   <blue>255</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </inactive>
+               <disabled>
+                <colorrole role="ButtonText">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>120</red>
+                   <green>120</green>
+                   <blue>120</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </disabled>
+              </palette>
+             </property>
              <property name="text">
               <string>Logbook with data</string>
              </property>
@@ -2895,7 +2978,7 @@
           <item>
            <widget class="QLabel" name="label_30">
             <property name="text">
-             <string>process last</string>
+             <string>-</string>
             </property>
            </widget>
           </item>
@@ -2927,7 +3010,7 @@
           <item>
            <widget class="QLabel" name="label_31">
             <property name="text">
-             <string>events and correlate once every</string>
+             <string> every</string>
             </property>
            </widget>
           </item>
@@ -2952,6 +3035,13 @@
            </widget>
           </item>
           <item>
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="analysis_correlate_button">
             <property name="font">
              <font>
@@ -2960,7 +3050,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Correlate once</string>
+             <string>Analyze once</string>
             </property>
            </widget>
           </item>
@@ -3123,7 +3213,7 @@
      <x>0</x>
      <y>0</y>
      <width>1308</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">
