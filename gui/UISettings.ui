@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>847</width>
-    <height>881</height>
+    <height>1002</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -227,7 +227,11 @@
              <widget class="QLineEdit" name="le_hirex_ch_sa1"/>
             </item>
             <item row="1" column="1" colspan="2">
-             <widget class="QLineEdit" name="le_trans_ch_sa1"/>
+             <widget class="QLineEdit" name="le_trans_ch_sa1">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
             <item row="3" column="1" colspan="2">
              <widget class="QLineEdit" name="le_slow_xgm_sa1"/>
@@ -614,7 +618,7 @@
           <item row="4" column="1" colspan="2">
            <widget class="QLineEdit" name="le_trans_ch_sa3">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="font">
              <font>
@@ -772,7 +776,7 @@
           <item row="4" column="1" colspan="2">
            <widget class="QLineEdit" name="le_trans_ch_sa3_scs">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="font">
              <font>
