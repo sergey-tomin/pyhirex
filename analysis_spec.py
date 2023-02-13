@@ -551,7 +551,7 @@ class AnalysisInterface:
 
         self.histogram_peak = win.addPlot(row=1, col=0)
         self.histogram_peak.setLabel('bottom', '<math>W/W<sub>mean</sub></math>')
-        self.histogram_peak.setLabel('left', 'window events', units='')
+        self.histogram_peak.setLabel('left', 'events', units='')
         self.histogram_peak.clear()
         
         self.label_hist_peak = pg.LabelItem(justify='right')
@@ -614,7 +614,7 @@ class AnalysisInterface:
             self.histogram_peak_fit_curve.setData((W_bins[1:]-bin_width/2)/Wm, gama_dist)
             
             #self.histogram_peak.plot(W_bins/Wm, W_hist, stepMode=True,  fillLevel=0,  brush=(100,100,100,100), clear=True)
-            self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: green'><math>M<sub>calc</sub></math>: %0.2f   <span style='color: red'><math>M<sub>fit</sub></math>: %0.2f</span>"%(M_calc, M_fit))
+            self.label_hist_peak.setText("<span style='font-size: 10pt', style='color: black'><math>M<sub>calc</sub></math>: %0.2f     <span style='color: black'><math>M<sub>fit</sub></math>: %0.2f</span>"%(M_calc, M_fit))
 
     def add_durr_widget(self):
         win = pg.GraphicsLayoutWidget()
@@ -754,7 +754,7 @@ class AnalysisInterface:
     def add_spechist_item(self):
         self.spechist_plot.clear()
         self.spechist_plot.setLabel('bottom', "<math>E<sub>ph</sub></math>", units='eV')
-        self.spechist_plot.setLabel('left', "events", units='')
+        self.spechist_plot.setLabel('left', "events analyzed", units='')
         self.img_spechist = pg.ImageItem()
 
         self.spechist_plot.addItem(self.img_spechist)
@@ -823,7 +823,7 @@ class AnalysisInterface:
         
         
     def print_n_events(self):
-        self.ui.label_30.setText("Process last {} of ".format(self.spar.events))
+        self.ui.label_30.setText("Analyze last {} of ".format(self.spar.events))
         
     def clear_all_plots(self):
         for widget in [self.img_spectrum, self.histogram_full, self.histogram_peak, self.fit_pulse_dur, self.fit_g2_plot]:

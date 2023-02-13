@@ -33,6 +33,7 @@ from correlation import CorrelInterface
 from correlation_2d import Correl2DInterface
 from analysis_spec import AnalysisInterface
 from logger import UILogger
+from calculator import UICalculator
 from scipy import ndimage
 import pathlib
 import json
@@ -272,6 +273,8 @@ class SpectrometerWindow(QMainWindow):
         self.back_taker_status.timeout.connect(self.is_back_taker_alive)
 
         self.ui.actionSettings.triggered.connect(self.run_settings_window)
+        self.calculator_window = None
+        self.ui.actionSelf_Seeding_tools.triggered.connect(self.run_calculator_window)
         self.ui.pb_cross_calib.clicked.connect(self.cross_calibrate)
         self.calib_energy_coef = 1
         self.plot1.scene().sigMouseMoved.connect(self.mouseMoved)
@@ -413,6 +416,11 @@ class SpectrometerWindow(QMainWindow):
             self.settings = HirexSettings(parent=self)
         self.settings.show()
 
+    def run_calculator_window(self):
+        if self.calculator_window is None:
+            self.calculator_window = UICalculator(parent=self)
+        self.calculator_window.show()
+
     def fit_guass(self):
         if len(self.ave_spectrum) == 0:
             self.error_box("Press Start first")
@@ -492,7 +500,8 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_background.setText("Take Background")
             self.background = self.back_taker.background
             self.back_taker_status.stop()
-            self.bunch_num_ctrl.set_value(self.actual_n_bunchs)
+            if self.actual_n_bunchs != self.bunch_num_ctrl.get_value():
+                self.bunch_num_ctrl.set_value(self.actual_n_bunchs)
 
     def take_background(self):
         current_source = self.ui.combo_hirex.currentText()
@@ -501,7 +510,8 @@ class SpectrometerWindow(QMainWindow):
             self.ui.pb_background.setText("Take Background")
             if self.back_taker.is_alive():
                 self.back_taker.stop()
-                self.bunch_num_ctrl.set_value(self.actual_n_bunchs)
+                if self.actual_n_bunchs != self.bunch_num_ctrl.get_value():
+                    self.bunch_num_ctrl.set_value(self.actual_n_bunchs)
         else:
             if self.ui.pb_start.text() == "Start":
                 self.error_box("Start HIREX first")
@@ -511,7 +521,7 @@ class SpectrometerWindow(QMainWindow):
                 try:
                     self.bunch_num_ctrl.set_value(0)
                 except:
-                    self.error_box("No permission")
+                    self.error_box("No permission. Set to Zero bunches before taking background")
                     return
 
             self.back_taker = Background(mi=self.mi, device=self.spectrometer, dev_name=current_source)
@@ -623,9 +633,17 @@ class SpectrometerWindow(QMainWindow):
             #pass
             # self.average.setData(x=self.x_axis, y=filtr_av_spectrum)
         if self.counter_spect % 10 == 1:
+            if np.abs(self.ave_integ-self.pulse_energy)/self.pulse_energy > 0.2:
+                integral_text_color='red'
+            elif np.abs(self.ave_integ-self.pulse_energy)/self.pulse_energy > 0.05:
+                integral_text_color='orange'
+            else:
+                integral_text_color='green'
+            
             self.label2.setText(
-            "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
-            self.pulse_energy, self.ave_integ, self.peak_ev))
+            # "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
+            "<span style='font-size: 15pt', style='color: blue'>XGM: %0.2f &mu;J   <span style='color: %s'>SPEC.INTEGRAL: %0.2f &mu;J"%(
+            self.pulse_energy, integral_text_color, self.ave_integ))
             # try:
             # print('self.x_axis_disp = {}'.format(self.x_axis_disp))
 
@@ -877,10 +895,9 @@ class SpectrometerWindow(QMainWindow):
             # index = int(mousePoint.x())
             array = np.asarray(self.x_axis)
             index = (np.abs(array - mousePoint.x())).argmin()
-            #print(mousePoint.x(), index, len(self.x_axis))
             if index > 0 and index < len(self.x_axis):
                 self.label.setText(
-                    "<span style='font-size: 16pt', style='color: green'>x=%0.1f,   <span style='color: red'>y=%0.1f</span>" % (
+                    "<span style='font-size: 10pt', style='color: green'>x=%0.1f,   <span style='color: red'>y=%0.1f</span>" % (
                     mousePoint.x(), mousePoint.y()))
             self.vLine.setPos(mousePoint.x())
             self.hLine.setPos(mousePoint.y())
