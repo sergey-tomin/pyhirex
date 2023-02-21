@@ -31,22 +31,28 @@ class Correl2DInterface:
         self.get_device()
         self.ui.le_doocs_ch_cor2d.editingFinished.connect(self.get_device)
         
+        self.calc_timer = pg.QtCore.QTimer()
+        self.calc_timer.timeout.connect(self.calc_correl)
+        self.calc_timer.start(100)
         
         self.plot_timer = pg.QtCore.QTimer()
         self.plot_timer.timeout.connect(self.plot_correl)
-        self.plot_timer.start(100)
+        self.plot_timer.timeout.connect(self.plot_hist_event)
+        self.plot_timer.timeout.connect(self.plot_Ipk_event)
+        self.plot_timer.timeout.connect(self.plot_Isum_event)
+        self.plot_timer.start(200)
         
-        self.plot_timer_hist_event = pg.QtCore.QTimer()
-        self.plot_timer_hist_event.timeout.connect(self.plot_hist_event)
-        self.plot_timer_hist_event.start(100)
+        # self.plot_timer_hist_event = pg.QtCore.QTimer()
+        # self.plot_timer_hist_event.timeout.connect(self.plot_hist_event)
+        # self.plot_timer_hist_event.start(100)
         
-        self.plot_timer_Ipk_event = pg.QtCore.QTimer()
-        self.plot_timer_Ipk_event.timeout.connect(self.plot_Ipk_event)
-        self.plot_timer_Ipk_event.start(100)
+        # self.plot_timer_Ipk_event = pg.QtCore.QTimer()
+        # self.plot_timer_Ipk_event.timeout.connect(self.plot_Ipk_event)
+        # self.plot_timer_Ipk_event.start(100)
         
-        self.plot_timer_Isum_event = pg.QtCore.QTimer()
-        self.plot_timer_Isum_event.timeout.connect(self.plot_Isum_event)
-        self.plot_timer_Isum_event.start(100)
+        # self.plot_timer_Isum_event = pg.QtCore.QTimer()
+        # self.plot_timer_Isum_event.timeout.connect(self.plot_Isum_event)
+        # self.plot_timer_Isum_event.start(100)
 
         # self.plot_timer_hist = pg.QtCore.QTimer()
         # self.plot_timer_hist.timeout.connect(self.plot_histogram)
@@ -92,9 +98,9 @@ class Correl2DInterface:
 
     def stop_timers(self):
         self.plot_timer.stop()
-        self.plot_timer_hist_event.stop()
-        self.plot_timer_Ipk_event.stop()
-        self.plot_timer_Isum_event.stop()
+        # self.plot_timer_hist_event.stop()
+        # self.plot_timer_Ipk_event.stop()
+        # self.plot_timer_Isum_event.stop()
 
     def get_device(self):
         if self.ui.is_le_addr_ok(self.ui.le_doocs_ch_cor2d):
@@ -235,14 +241,15 @@ class Correl2DInterface:
         self.doocs_vals_hist = []
         self.img_hist.clear()
         self.img_corr2d.clear()
+        self.img_Ipk.clear()
+        self.img_Isum.clear()
         self.doocs_address_label = self.ui.le_doocs_ch_cor2d.text()
         self.transmission_vals_hist = []
         self.cross_callibration_vals_hist = []
+        self.doocs_bins = []
+        self.event_counter = 0
         
-    def plot_correl(self):
-        
-        
-        
+    def calc_correl(self):
         if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event_disp is None:
             return
             
@@ -255,6 +262,14 @@ class Correl2DInterface:
         
         # print('min_self.phen_val', min(self.phen))
         # print('max_self.phen_val', max(self.phen))
+        
+        if self.parent.energy_axis_thread.trigger:
+            print('energy_axis_thread.trigger')
+            self.reset()
+            
+        if len(self.parent.ave_spectrum) < 3:
+            print('self.parent.ave_spectrum < 3')
+            self.reset()
         
         n_shots = int(self.ui.sb_n_shots_max.value())
         if len(self.spec_hist) > n_shots: #add lag value
@@ -285,13 +300,18 @@ class Correl2DInterface:
             
         self.transmission_vals_hist.append(self.parent.transmission_value)
         self.cross_callibration_vals_hist.append(self.parent.calib_energy_coef)
-            
-            
-
-        # print(self.doocs_vals_hist[-1])
+        
+        self.doocs_old_label = self.doocs_address_label
         
         if self.ui.scan_tab.currentIndex() == 2:
             self.sort_and_bin()
+
+        # print(self.doocs_vals_hist[-1])
+    def plot_correl(self):
+        if self.ui.pb_start.text() == "Start" or not self.ui.sb_corr_2d_run.isChecked() or self.parent.spectrum_event_disp is None or self.ui.scan_tab.currentIndex() != 2:
+            return
+        
+        try:
             scale_yaxis = (self.phen[-1] - self.phen[0]) / len(self.phen)
             translate_yaxis = self.phen[0] / scale_yaxis
             
@@ -309,8 +329,9 @@ class Correl2DInterface:
             self.img.scale(scale_xaxis, scale_yaxis)
             self.img.translate(translate_xaxis, translate_yaxis)
             self.img_corr2d.setLabel('bottom', self.doocs_address_label, units='_')
-            
-        self.doocs_old_label = self.doocs_address_label
+        except:
+            pass     
+        
         
 
     def add_corr2d_image_widget(self):

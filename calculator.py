@@ -13,7 +13,8 @@ from gui.UICalculator import Ui_Form
 import os
 import glob
 import logging
-import pydoocs
+from mint.xfel_interface import *
+# import pydoocs
 from matplotlib import cm
 import pandas as pd
 from scipy import ndimage

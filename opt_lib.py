@@ -100,37 +100,24 @@ def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
     ### None as default for peakpos
     ### Rename total to start_search_from_edges
     ### Type of parameter "total" should be bool (default=True)
+    """calculates the full width at half maximum (fwhm) of the array.
+    the function will return the fwhm with sub-pixel interpolation.
+    It will start at the maximum position and 'walk' left and right until it approaches the half values.
+    if total==1, it will start at the edges and 'walk' towards peak until it approaches the half values.
+    INPUT:
+    - valuelist: e.g. the list containing the temporal shape of a pulse
+    OPTIONAL INPUT:
+    -peakpos: position of the peak to examine (list index)
+    the global maximum will be used if omitted.
+    if total = 1 -
+    OUTPUT:
+    - peakpos(index), interpolated_width(npoints), [index_l, index_r]
     """
-    Calculates the full width at half maximum (fwhm) of some curve.
-    The function will return the fwhm with sub-pixel interpolation.
-    It will start at the maximum position and 'walk' left and right
-    until it approaches the half values.
-    if total==1, it will start at the edges and 'walk' towards peak
-    until it approaches the half values.
-
-    :param valuelist: Values to analyse (e.g. temporal shape of a pulse).
-    :type valuelist: iterable (list, array, numpy.ndarray)
-
-    :param height: Fraction of maximum value used to evaluate the width. Default=0.5 (corresponding to FWHM).
-    :type height: float
-
-    :param peakpos: List index of the peak to examine. Default = -1 (use global maximum).
-    :type peakpos: int
-
-    :param total: Flag to force searching the half maximum starting from edges (instead of from maximum). Default=1 (True).
-    :type total: int
-
-    :return: Peak index, width, [lower index of width interval, upper index of width interval].
-    :rtype: tuple
-    """
-
     if peakpos == -1:  # no peakpos given -> take maximum
         peak = numpy.max(valuelist)
         peakpos = numpy.min(numpy.nonzero(valuelist == peak))
-
     peakvalue = valuelist[peakpos]
     phalf = peakvalue * height
-
     if total == 0:
         # go left and right, starting from peakpos
         ind1 = peakpos
@@ -173,8 +160,8 @@ def fwhm3(valuelist, height=0.5, peakpos=-1, total=1):
             # calculate the width
             width = p2interp - p1interp
         # print(p1interp, p2interp)
-
-    return (peakpos, width, numpy.array([ind1, ind2]))
+    
+    return (p1interp, p2interp)
 
 def mode(ndarray, axis=0):
     ### Complete docstring

@@ -25,7 +25,7 @@ class Spectrometer():
         self.gauss_coeff_fit = None
         #self.update_params(transmission=1, calib_energy_coef=1)
         self.update_background()
-    
+
     def is_online(self):
         if self.eid is not None and self.eid != "":
             try:
@@ -144,7 +144,7 @@ class BraggCamera(Spectrometer):
         self.background = []
         self.av_spectrum = []
         self.update_background()
-        
+
     def calibrate_axis(self):
         """
         method to calibrate energy axis
@@ -168,8 +168,8 @@ class SpectrometerSA3(Spectrometer):
         self.background = []
         self.av_spectrum = []
         self.update_background()
-        
-        
+
+
     def is_online(self):
         if self.energy_ch is not None and self.energy_ch != "":
             try:
@@ -180,7 +180,7 @@ class SpectrometerSA3(Spectrometer):
         else:
             status = False
         return status
-    
+
     def calibrate_axis(self, ev_px=None, E0=None, px1=None):
         """
         method to calibrate energy axis
@@ -190,7 +190,41 @@ class SpectrometerSA3(Spectrometer):
 
         self.x_axis = self.mi.get_value(self.energy_ch)
         return self.x_axis
-         
+
+class SpectrometerViking(Spectrometer):
+    def __init__(self, mi, eid=None, energy_ch=None, **kwargs):
+        super(SpectrometerViking, self).__init__(mi=mi, eid=eid, **kwargs)
+        self.mi = mi
+        self.energy_ch = energy_ch
+        self.eid = eid
+        self.num_px = 2048  # number of pixels
+        self.x_axis = np.arange(self.num_px)
+        self.spectrum = []
+        self.background = []
+        self.av_spectrum = []
+        self.update_background()
+
+
+    def is_online(self):
+        if self.energy_ch is not None and self.energy_ch != "":
+            try:
+                self.mi.get_value(self.energy_ch)
+                status = True
+            except:
+                status = False
+        else:
+            status = False
+        return status
+
+    def calibrate_axis(self, ev_px=None, E0=None, px1=None):
+        """
+        method to calibrate energy axis
+
+        :return: x_axis - array in [ev]
+        """
+
+        self.x_axis = self.mi.get_value(self.energy_ch)
+        return self.x_axis
 
 class CrazySpectrometer(Spectrometer):
     def __init__(self, mi, eid=None, energy_ch=None, **kwargs):
@@ -205,8 +239,8 @@ class CrazySpectrometer(Spectrometer):
         self.background = []
         self.av_spectrum = []
         self.update_background()
-        
-        
+
+
     def is_online(self):
         if self.eid is not None and self.eid != "":
             try:
@@ -217,7 +251,7 @@ class CrazySpectrometer(Spectrometer):
         else:
             status = False
         return status
-    
+
     def calibrate_axis(self, ev_px=None, E0=None, px1=None):
         """
         method to calibrate energy axis
@@ -230,17 +264,17 @@ class CrazySpectrometer(Spectrometer):
         else:
             self.x_axis = self.mi.get_value(self.energy_ch)
         return self.x_axis
-         
-         
-     
+
+
+
 class DummyHirex(Spectrometer):
 
     def __init__(self, *args, **kwargs):
         super(DummyHirex, self).__init__(*args, **kwargs)
-    
+
     def actuator(self):
         return np.sin(time.time()/10)*2
-    
+
     def get_value(self):
         """
         basic method to get value/spectrum via DOOCS server
@@ -248,21 +282,21 @@ class DummyHirex(Spectrometer):
         """
 
         spectrum_phen = np.linspace(8800, 9200, 1280)
-        
+
         sase_center = 9000
         sase_sigma = 20
-        
+
         seed_center = 9020 + 10 * self.actuator()
         seed_power = np.exp(-(seed_center - sase_center - 10)**2 / (2 * sase_sigma/2)**2) * np.abs(np.random.randn(1)[0])
         seed_sigma = 1
-        
+
         spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
         spectrum_seed = np.exp(-(spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
         spectrum_noise = np.random.rand(len(spectrum_phen))
 
         val =  3 * spectrum_sase + 20 * seed_power * spectrum_seed + spectrum_noise * 3
         return val
-    
+
     def is_online(self):
         return True
 
@@ -271,47 +305,47 @@ class DummySASE(Spectrometer):
 
     def __init__(self, *args, **kwargs):
         super(DummySASE, self).__init__(*args, **kwargs)
-        
+
         self.sase_center = 9000
         self.sase_sigma = 10
-        
+
         self.n_events = 1000
-        
+
         _, _, spectrum_phen, fd = imitate_1d_sase(spec_center=self.sase_center, spec_res=0.1, spec_width=self.sase_sigma, spec_range=(8950, 9050), pulse_length=0.3*5, # 1 fs = 0.3 um
                     en_pulse=10e-6, flattop=0, n_events=self.n_events)
-        
+
         self.idx=0
-        
+
         self.spectrum_sase = abs(fd)**2
         self.spectrum_phen = spectrum_phen
-        
+
         self.num_px = len(self.spectrum_phen)
-        
+
         # spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
         # spectrum_seed = np.exp(-(spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
         # spectrum_noise = np.random.rand(len(spectrum_phen))
 
         # val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
-    
+
     def actuator(self):
         return np.sin(time.time()/10)*2
-    
+
     def get_value(self):
         """
         basic method to get value/spectrum via DOOCS server
         :return:
         """
-        
+
         # spectrum_phen = np.linspace(8800, 9200, 1280)
         #self.px_last = self.px_last if self.px_last != 0 else None
         spectrum_sase = self.spectrum_sase[:,self.idx % self.n_events]
         self.idx += 1
-        
+
         seed_center = 9000 + 10 * self.actuator()
         # seed_power = np.exp(-(seed_center - self.sase_center - 10)**2 / (2 * self.sase_sigma/2)**2) * np.abs(np.random.randn(1)[0])
         seed_sigma = 1
         seed_power=1
-        
+
         # spectrum_sase = np.exp(-(spectrum_phen - sase_center)**2 / (2 * sase_sigma)**2)
         spectrum_seed = np.exp(-(self.spectrum_phen - seed_center)**2 / (2 * seed_sigma)**2)
         spectrum_seed = spectrum_seed / np.amax(spectrum_seed) * 2
@@ -321,9 +355,14 @@ class DummySASE(Spectrometer):
         val = spectrum_sase# * spectrum_seed
         return val#[self.px_first:self.px_last]
         
+        
     def is_online(self):
         return True
         
+    def calibrate_axis(self, ev_px=None, E0=None, px1=None):
+        self.x_axis = self.spectrum_phen
+        return self.x_axis
+
 
 
 class XGM():
@@ -333,7 +372,7 @@ class XGM():
 
     def get_value(self):
         """
-        basic method to get value from XFGM        
+        basic method to get value from XFGM
         :return: val
         """
         try:
@@ -349,11 +388,11 @@ class DummyXGM(XGM):
 
     def get_value(self):
         """
-        basic method to get value from XFGM        
+        basic method to get value from XFGM
         :return: val
         """
         return 1000.
-        
+
 
 class BunchNumberCTRL():
     def __init__(self, mi, doocs_ch):
@@ -368,7 +407,7 @@ class BunchNumberCTRL():
 
     def set_value(self, num):
         if self.doocs_ch is None:
-            return 
+            return
         self.mi.set_value(self.doocs_ch, num)
 
 
@@ -395,13 +434,13 @@ class Corrector(Device):
         ch_max = self.server + ".MAGNETS/MAGNET.ML/" + self.id + "/MAX_KICK"
         max_kick = self.mi.get_value(ch_max)
         return [min_kick*1000, max_kick*1000]
-    
+
     def is_ok(self):
         ch = self.server+ ".MAGNETS/MAGNET.ML/" + self.id + "/COMBINED_STATUS"
         status = int(self.mi.get_value(ch))
         power_bit = '{0:08b}'.format(status)[-2]
         busy_bit = '{0:08b}'.format(status)[-4]
-        
+
         if power_bit == "1" and busy_bit == "0":
             return True
         else:
@@ -428,7 +467,7 @@ class MPS(Device):
 
     def num_bunches_requested(self, num_bunches=1):
         self.mi.set_value(self.server + ".UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_1", num_bunches)
-    
+
     def is_beam_on(self):
         val = self.mi.get_value(self.server + ".UTIL/BUNCH_PATTERN/CONTROL/BEAM_ALLOWED")
         return val
@@ -467,4 +506,3 @@ class MISASE2Feedback(Device):
     def is_running(self):
         status = self.mi.get_value(self.server + ".FEEDBACK/ORBIT.SA2/ORBITFEEDBACK/ACTIVATE_FB")
         return status
-        
