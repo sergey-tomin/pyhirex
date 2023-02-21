@@ -167,6 +167,17 @@ class AnalysisInterface:
             self.phen_last = self.parent.x_axis_disp
             return
             
+        if self.parent.energy_axis_thread.trigger:
+            print('energy_axis_thread.trigger')
+            self.reset_spectra()
+            self.phen_last = self.parent.x_axis_disp
+            return
+            
+        if len(self.parent.ave_spectrum) < 3:
+            print('self.parent.ave_spectrum < 3')
+            self.reset_spectra()
+            self.phen_last = self.parent.x_axis_disp
+            return
         
         #if shifted_spec:
         #    print('correlation analysis: photon energy scale changed')
@@ -804,14 +815,15 @@ class AnalysisInterface:
         
     def correlate_and_plot(self):
         if self.spar_screwed.events > 2:
-            
-            self.correlate()
-            self.update_durr_plot()
-            self.update_g2_line_plot()
-            self.update_rosa_plot()
-            self.update_spechist_plot()
-            # self.plot_spec()
-            self.plot_hist_peak()
+            try:
+                self.correlate()
+                self.update_durr_plot()
+                self.update_g2_line_plot()
+                self.update_rosa_plot()
+                self.update_spechist_plot()
+                # self.plot_spec()
+                self.plot_hist_peak()
+            except Exception as e: print(e)
         else:
             print('not enough events for correlation')
         

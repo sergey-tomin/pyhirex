@@ -147,7 +147,7 @@ class EnergyAxisWatcher(Thread):
                 break
             time.sleep(1)
 
-            d_ev = (self.energy_axis[1] - self.energy_axis[0]) * 10 #TODO remove this multiplier
+            d_ev = (self.energy_axis[1] - self.energy_axis[0]) * 2 #TODO: check for stbility. 2 pixels scale noise
             if self.energy_axis[0] - d_ev/2. <= self.energy_axis_old[0] <= self.energy_axis[0] + d_ev/2:
                 self.trigger = False
             else:
@@ -443,7 +443,6 @@ class SpectrometerWindow(QMainWindow):
             return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
         if self.ui.chb_show_fit.isChecked():
-
             self.plot1.addItem(self.fit_func)
             # self.plot1.setLabel('left', "A", units='au')
             # self.plot1.setLabel('bottom', "", units='px')
@@ -563,12 +562,10 @@ class SpectrometerWindow(QMainWindow):
 
         if not old_scipy:
             filtr_av_spectrum = ndimage.gaussian_filter(self.ave_spectrum, sigma=self.ui.sb_gauss_filter.value())
-
             peaks, _ = find_peaks(filtr_av_spectrum,  distance=self.ui.sb_mkn_dist_peaks.value(),
                                height=np.max(filtr_av_spectrum)*self.ui.sb_low_thresh.value()/100.,
                               #prominence=0.5
                               )
-
             self.peak_ev_list = self.x_axis_disp[peaks]
         else:
             self.peak_ev_list = [self.x_axis_disp[np.argmax(self.ave_spectrum)]]
@@ -642,7 +639,7 @@ class SpectrometerWindow(QMainWindow):
             
             self.label2.setText(
             # "<span style='font-size: 16pt', style='color: green'>XGM: %0.2f &mu;J <span style='color: red'>SPEC.INTEGRAL: %0.2f &mu;J   <span style='color: green'> @ %0.1f eV</span>"%(
-            "<span style='font-size: 15pt', style='color: blue'>XGM: %0.2f &mu;J   <span style='color: %s'>SPEC.INTEGRAL: %0.2f &mu;J"%(
+            "<span style='font-size: 15pt', style='color: blue'>XGM: %0.2f &mu;J   <span style='color: %s'>SPEC.INTEGRAL: %0.2f &mu;J</span>"%(
             self.pulse_energy, integral_text_color, self.ave_integ))
             # try:
             # print('self.x_axis_disp = {}'.format(self.x_axis_disp))
@@ -740,6 +737,7 @@ class SpectrometerWindow(QMainWindow):
             if not self.spectrometer.is_online():
                 self.error_box("Spectrometer is not ONLINE")
                 return
+            self.calibrate_axis()
             self.reset_spectrum()
             self.timer_live.start(100)
             self.timer_plot.start(200)
@@ -984,7 +982,7 @@ class SpectrometerWindow(QMainWindow):
             self.fast_xgm_signal = table["le_fast_xgm_sa1"]
             self.slow_xgm_signal = table["le_slow_xgm_sa1"]
 
-        elif current_source == "SASE3":
+        elif current_source in ["SASE3", "SASE3_SQS"]:
             self.hirex_doocs_ch = table["le_hirex_ch_sa3"]
             self.ph_energy_ch = table["le_ph_energy_sa3"]
             self.transmission__doocs_ch = table["le_trans_ch_sa3"]

@@ -354,9 +354,14 @@ class DummySASE(Spectrometer):
         # val =  spectrum_sase + 2 * seed_power * spectrum_seed + spectrum_noise * 3
         val = spectrum_sase# * spectrum_seed
         return val#[self.px_first:self.px_last]
-
+        
+        
     def is_online(self):
         return True
+        
+    def calibrate_axis(self, ev_px=None, E0=None, px1=None):
+        self.x_axis = self.spectrum_phen
+        return self.x_axis
 
 
 

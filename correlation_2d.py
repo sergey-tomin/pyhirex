@@ -263,6 +263,14 @@ class Correl2DInterface:
         # print('min_self.phen_val', min(self.phen))
         # print('max_self.phen_val', max(self.phen))
         
+        if self.parent.energy_axis_thread.trigger:
+            print('energy_axis_thread.trigger')
+            self.reset()
+            
+        if len(self.parent.ave_spectrum) < 3:
+            print('self.parent.ave_spectrum < 3')
+            self.reset()
+        
         n_shots = int(self.ui.sb_n_shots_max.value())
         if len(self.spec_hist) > n_shots: #add lag value
             self.spec_hist = self.spec_hist[-n_shots:]
