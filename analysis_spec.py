@@ -743,7 +743,8 @@ class AnalysisInterface:
         # xaxis = np.linspace(0,10,nx)
         # yaxis = np.linspace(1000,1010,ny)
         # xydata = np.random.randn(nx,ny)
-        xydata = xydata / np.amax(xydata)
+        if np.amax(xydata) != 0:
+            xydata = xydata / np.amax(xydata)
         scale_coef_xaxis = (xaxis.max() - xaxis.min())/len(xaxis)
         scale_coef_yaxis = (yaxis.max() - yaxis.min())/len(yaxis)
         
@@ -844,10 +845,8 @@ class AnalysisInterface:
             
     def clear_all_curves(self):
         for curve in [self.spec_mean_curve, self.spec_last_curve, self.spec_max_curve, self.spec_min_curve, self.spec_window_l, self.spec_window_r,
-        self.histogram_full_fit_curve, 
         self.histogram_peak_fit_curve, 
         self.durr_curve, self.durr_comp_curve,
         self.g2_measured_curve, self.g2_fit_curve]:
             curve.clear()
-        self.histogram_full_curve.setData([0,0],[0])
         self.histogram_peak_curve.setData([0,0],[0])
