@@ -676,16 +676,6 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_13">
-             <item row="1" column="1">
-              <widget class="QPushButton" name="pb_logbook">
-               <property name="text">
-                <string>Logbook with data</string>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+P</string>
-               </property>
-              </widget>
-             </item>
              <item row="2" column="0">
               <widget class="QPushButton" name="pb_logger">
                <property name="sizePolicy">
@@ -762,6 +752,9 @@
                </property>
                <property name="text">
                 <string>Logbook with data</string>
+               </property>
+               <property name="shortcut">
+                <string>Meta+P</string>
                </property>
               </widget>
              </item>
@@ -3045,6 +3038,7 @@
            <widget class="QPushButton" name="analysis_correlate_button">
             <property name="font">
              <font>
+              <pointsize>13</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -3190,6 +3184,7 @@
             </property>
             <property name="font">
              <font>
+              <pointsize>13</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -3213,7 +3208,7 @@
      <x>0</x>
      <y>0</y>
      <width>1308</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuExpert">
