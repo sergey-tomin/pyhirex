@@ -734,7 +734,7 @@ class AnalysisInterface:
     def update_rosa_plot(self):
     
         m_idx = self.reconstr.m_idx
-        xaxis = self.reconstr.time_scale()[m_idx:]
+        xaxis = self.reconstr.time_scale()[m_idx:]*1e-15
         xydata = self.reconstr.recon.T[m_idx:,:]
         yaxis = self.reconstr.omega_bin * hr_eV_s
         
